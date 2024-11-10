@@ -1,0 +1,222 @@
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+
+class UserSeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     */
+    public function run(): void
+    {
+        $data = [
+            [
+                'user_id' => 1,
+                'level_id' => 1, // Administrator
+                'username' => 'admin',
+                'foto' => 'default.jpg',
+                'password' => Hash::make('admin123'), // Password di-hash
+                'nidn' => '1234567890',
+                'nama_lengkap' => 'Administrator',
+                'gelar_depan' => 'Dr.',
+                'gelar_belakang' => 'M.Kom.',
+                'jenis_kelamin' => 'L',
+                'jabatan_fungsional' => 'Kepala Admin',
+                'program_studi' => 'Teknologi Informasi',
+                'pendidikan_terakhir' => 'S3',
+                'asal_perguruan_tinggi' => 'Universitas Indonesia',
+                'tempat_lahir' => 'Jakarta',
+                'tanggal_lahir' => '1990-01-01',
+                'agama' => 'Islam',
+                'status_nikah' => 'Menikah',
+                'status_ikatan_kerja' => 'Tetap',
+                'alamat' => 'jl. Bandung No 108, Malang',
+                'email' => 'admin@example.com',
+                'created_by' => 'System',
+                'updated_by' => 'System'
+            ],
+            [
+                'user_id' => 2,
+                'level_id' => 2, // Kaprodi
+                'username' => 'kaprodi',
+                'foto' => 'default.jpg',
+                'password' => Hash::make('kaprodi123'),
+                'nidn' => '0987654321',
+                'nama_lengkap' => 'Kepala Program Studi',
+                'gelar_depan' => 'Dr.',
+                'gelar_belakang' => 'M.T.',
+                'jenis_kelamin' => 'P',
+                'jabatan_fungsional' => 'Kaprodi',
+                'program_studi' => 'Teknologi Informasi',
+                'pendidikan_terakhir' => 'S3',
+                'asal_perguruan_tinggi' => 'Institut Teknologi Bandung',
+                'tempat_lahir' => 'Salatiga',
+                'tanggal_lahir' => '1985-05-15',
+                'agama' => 'Islam',
+                'status_nikah' => 'Menikah',
+                'status_ikatan_kerja' => 'Tetap',
+                'alamat' => 'jl. Pahlawan Trip No 05, Malang',
+                'email' => 'kaprodi@example.com',
+                'created_by' => 'System',
+                'updated_by' => 'System'
+            ],
+            [
+                'user_id' => 3,
+                'level_id' => 3, // Dosen
+                'username' => 'dosen',
+                'foto' => 'default.jpg',
+                'password' => Hash::make('dosen123'),
+                'nidn' => '1122334455',
+                'nama_lengkap' => 'Dosen Pengajar',
+                'gelar_depan' => 'Dr.',
+                'gelar_belakang' => 'S.Kom., M.Kom.',
+                'jenis_kelamin' => 'L',
+                'jabatan_fungsional' => 'Lektor',
+                'program_studi' => 'Teknologi Informasi',
+                'pendidikan_terakhir' => 'S3',
+                'asal_perguruan_tinggi' => 'Universitas Gadjah Mada',
+                'tempat_lahir' => 'Sragen',
+                'tanggal_lahir' => '1988-08-18',
+                'agama' => 'Islam',
+                'status_nikah' => 'Menikah',
+                'status_ikatan_kerja' => 'Tetap',
+                'alamat' => 'jl. Jakarta No 10, Malang',
+                'email' => 'dosen@example.com',
+                'created_by' => 'System',
+                'updated_by' => 'System'
+            ],
+
+            [
+                'user_id' => 4,
+                'level_id' => 3,
+                'username' => 'dosen2',
+                'foto' => 'default.jpg',
+                'password' => Hash::make('dosen123'),
+                'nidn' => '2233445566',
+                'nama_lengkap' => 'Dosen Pengajar Dua',
+                'gelar_depan' => 'Dr.',
+                'gelar_belakang' => 'S.T., M.T.',
+                'jenis_kelamin' => 'P',
+                'jabatan_fungsional' => 'Asisten Ahli',
+                'program_studi' => 'Teknologi Informasi',
+                'pendidikan_terakhir' => 'S2',
+                'asal_perguruan_tinggi' => 'Institut Teknologi Sepuluh Nopember',
+                'tempat_lahir' => 'Surakarta',
+                'tanggal_lahir' => '1990-03-20',
+                'agama' => 'Islam',
+                'status_nikah' => 'Menikah',
+                'status_ikatan_kerja' => 'Tetap',
+                'alamat' => 'jl. Candi Mendut No 119, Malang',
+                'email' => 'dosen2@example.com',
+                'created_by' => 'System',
+                'updated_by' => 'System'
+            ],
+            [
+                'user_id' => 5,
+                'level_id' => 3,
+                'username' => 'dosen3',
+                'foto' => 'default.jpg',
+                'password' => Hash::make('dosen123'),
+                'nidn' => '3344556677',
+                'nama_lengkap' => 'Dosen Pengajar Tiga',
+                'gelar_depan' => '',
+                'gelar_belakang' => 'S.Si., M.Cs.',
+                'jenis_kelamin' => 'L',
+                'jabatan_fungsional' => 'Lektor',
+                'program_studi' => 'Teknologi Informasi',
+                'pendidikan_terakhir' => 'S2',
+                'asal_perguruan_tinggi' => 'Universitas Brawijaya',
+                'tempat_lahir' => 'Malang',
+                'tanggal_lahir' => '1987-07-25',
+                'agama' => 'Kristen',
+                'status_nikah' => 'Menikah',
+                'status_ikatan_kerja' => 'Tetap',
+                'alamat' => 'jl. Ikan Hiu No 115, Malang',
+                'email' => 'dosen3@example.com',
+                'created_by' => 'System',
+                'updated_by' => 'System'
+            ],
+            [
+                'user_id' => 6,
+                'level_id' => 3,
+                'username' => 'dosen4',
+                'foto' => 'default.jpg',
+                'password' => Hash::make('dosen123'),
+                'nidn' => '4455667788',
+                'nama_lengkap' => 'Dosen Pengajar Empat',
+                'gelar_depan' => '',
+                'gelar_belakang' => 'S.Kom., M.Sc.',
+                'jenis_kelamin' => 'P',
+                'jabatan_fungsional' => 'Asisten Ahli',
+                'program_studi' => 'Teknologi Informasi',
+                'pendidikan_terakhir' => 'S2',
+                'asal_perguruan_tinggi' => 'Universitas Diponegoro',
+                'tempat_lahir' => 'Magelang',
+                'tanggal_lahir' => '1992-11-30',
+                'agama' => 'Islam',
+                'status_nikah' => 'Belum Menikah',
+                'status_ikatan_kerja' => 'Kontrak',
+                'alamat' => 'jl. Ikan Sepat No 01, Malang',
+                'email' => 'dosen4@example.com',
+                'created_by' => 'System',
+                'updated_by' => 'System'
+            ],
+            [
+                'user_id' => 7,
+                'level_id' => 3,
+                'username' => 'dosen5',
+                'foto' => 'default.jpg',
+                'password' => Hash::make('dosen123'),
+                'nidn' => '5566778899',
+                'nama_lengkap' => 'Dosen Pengajar Lima',
+                'gelar_depan' => 'Dr.',
+                'gelar_belakang' => 'S.T., M.Eng.',
+                'jenis_kelamin' => 'L',
+                'jabatan_fungsional' => 'Lektor Kepala',
+                'program_studi' => 'Teknologi Informasi',
+                'pendidikan_terakhir' => 'S3',
+                'asal_perguruan_tinggi' => 'Universitas Hasanuddin',
+                'tempat_lahir' => 'Demak',
+                'tanggal_lahir' => '1983-04-15',
+                'agama' => 'Islam',
+                'status_nikah' => 'Menikah',
+                'status_ikatan_kerja' => 'Tetap',
+                'alamat' => 'jl. MT Haryano No 20, Malang',
+                'email' => 'dosen5@example.com',
+                'created_by' => 'System',
+                'updated_by' => 'System'
+            ],
+            [
+                'user_id' => 8,
+                'level_id' => 3,
+                'username' => 'dosen6',
+                'foto' => 'default.jpg',
+                'password' => Hash::make('dosen123'),
+                'nidn' => '6677889900',
+                'nama_lengkap' => 'Dosen Pengajar Enam',
+                'gelar_depan' => '',
+                'gelar_belakang' => 'S.Kom., MMSI.',
+                'jenis_kelamin' => 'P',
+                'jabatan_fungsional' => 'Lektor',
+                'program_studi' => 'Teknologi Informasi',
+                'pendidikan_terakhir' => 'S2',
+                'asal_perguruan_tinggi' => 'Universitas Bina Nusantara',
+                'tempat_lahir' => 'Purwokerto',
+                'tanggal_lahir' => '1989-09-10',
+                'agama' => 'Buddha',
+                'status_nikah' => 'Menikah',
+                'status_ikatan_kerja' => 'Tetap',
+                'alamat' => 'jl. Semanggi Barat No 07, Malang',
+                'email' => 'dosen6@example.com',
+                'created_by' => 'System',
+                'updated_by' => 'System'
+            ]
+        ];
+
+        DB::table('m_user')->insert($data);
+    }
+}
