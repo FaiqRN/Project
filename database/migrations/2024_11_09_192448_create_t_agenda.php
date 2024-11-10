@@ -19,7 +19,8 @@ return new class extends Migration
             $table->unsignedBigInteger('dokumentasi_id');
             $table->string('nama_kegiatan',200);
             $table->string('nama_agenda',200);
-            $table->string('nidn', 18)->unique();
+            $table->text('file_surat_agenda');
+            $table->string('nidn', 18);
             $table->string('nama_lengkap', 100);
             $table->string('nama_kelompok', 100);
             $table->string('program_studi', 100);

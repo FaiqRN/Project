@@ -29,7 +29,10 @@ return new class extends Migration
             $table->text('file_surat');
             $table->timestamps();
 
-
+            $table->foreign('user_id')
+                    ->references('user_id')
+                    ->on('m_user')
+                    ->onDelete('cascade');
 
             $table->foreign('surat_id')
                     ->references('surat_id')
