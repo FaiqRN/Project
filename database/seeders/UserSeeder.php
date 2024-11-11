@@ -6,20 +6,16 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
-class UserSeeder extends Seeder
-{
-    /**
-     * Run the database seeds.
-     */
-    public function run(): void
-    {
+class UserSeeder extends Seeder{
+    
+    public function run(): void{
         $data = [
             [
                 'user_id' => 1,
-                'level_id' => 1, // Administrator
+                'level_id' => 1, 
                 'username' => 'admin',
                 'foto' => 'default.jpg',
-                'password' => Hash::make('admin123'), // Password di-hash
+                'password' => Hash::make('admin123'), 
                 'nidn' => '1234567890',
                 'nama_lengkap' => 'Administrator',
                 'gelar_depan' => 'Dr.',
@@ -41,7 +37,7 @@ class UserSeeder extends Seeder
             ],
             [
                 'user_id' => 2,
-                'level_id' => 2, // Kaprodi
+                'level_id' => 2, 
                 'username' => 'kaprodi',
                 'foto' => 'default.jpg',
                 'password' => Hash::make('kaprodi123'),
@@ -66,7 +62,7 @@ class UserSeeder extends Seeder
             ],
             [
                 'user_id' => 3,
-                'level_id' => 3, // Dosen
+                'level_id' => 3, 
                 'username' => 'dosen',
                 'foto' => 'default.jpg',
                 'password' => Hash::make('dosen123'),

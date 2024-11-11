@@ -6,17 +6,13 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
-class NonJTISeeder extends Seeder
-{
-   /**
-    * Run the database seeds.
-    */
-   public function run(): void
-   {
+class NonJTISeeder extends Seeder{
+   
+   public function run(): void{
        $data = [
            [
                'non_jti_id' => 1,
-               'user_id' => 3, // Dosen 1
+               'user_id' => 3, 
                'nama_lengkap' => 'Dosen Pengajar Satu',
                'nama_kegiatan' => 'Seminar Nasional Artificial Intelligence',
                'deskripsi_kegiatan' => 'Seminar nasional membahas perkembangan terbaru AI dan implementasinya di Indonesia',
@@ -35,7 +31,7 @@ class NonJTISeeder extends Seeder
            ],
            [
                'non_jti_id' => 2,
-               'user_id' => 4, // Dosen 2
+               'user_id' => 4, 
                'nama_lengkap' => 'Dosen Pengajar Dua',
                'nama_kegiatan' => 'Workshop Data Science for Industry 4.0',
                'deskripsi_kegiatan' => 'Workshop praktis mengenai implementasi data science dalam industri 4.0',
@@ -54,7 +50,7 @@ class NonJTISeeder extends Seeder
            ],
            [
                'non_jti_id' => 3,
-               'user_id' => 5, // Dosen 3
+               'user_id' => 5, 
                'nama_lengkap' => 'Dosen Pengajar Tiga',
                'nama_kegiatan' => 'International Conference on Computer Science',
                'deskripsi_kegiatan' => 'Konferensi internasional tentang perkembangan ilmu komputer',

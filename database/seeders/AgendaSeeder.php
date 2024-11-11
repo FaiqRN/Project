@@ -6,18 +6,18 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
-class AgendaSeeder extends Seeder
-{
-   public function run(): void
-   {
+class AgendaSeeder extends Seeder{
+
+   public function run(): void{
+
        // Agenda untuk Kegiatan 1 (Seminar AI)
        $data = [
            [
                'agenda_id' => 1,
                'kegiatan_id' => 1,
                'user_id' => 3,
-               'poin_id' => 1, // Asumsi poin_id sudah ada
-               'dokumentasi_id' => 1, // Asumsi dokumentasi_id sudah ada
+               'poin_id' => 1, 
+               'dokumentasi_id' => 1, 
                'nama_kegiatan' => 'Seminar Nasional Artificial Intelligence',
                'nama_agenda' => 'Registrasi dan Pembukaan',
                'file_surat_agenda' => 'agenda_1_registrasi.pdf',
@@ -113,7 +113,6 @@ class AgendaSeeder extends Seeder
                'updated_at' => Carbon::now()
            ],
        
-
        // Agenda untuk Kegiatan 2 (Workshop Data Science)
        
            [
@@ -178,8 +177,6 @@ class AgendaSeeder extends Seeder
            ]
        ];
 
-
-       // Insert ke database
        DB::table('t_agenda')->insert($data);
    }
 }

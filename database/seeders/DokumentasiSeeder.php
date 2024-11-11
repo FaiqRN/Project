@@ -6,10 +6,9 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
-class DokumentasiSeeder extends Seeder
-{
-   public function run(): void
-   {
+class DokumentasiSeeder extends Seeder{
+
+   public function run(): void{
        // Dokumentasi untuk agenda Kegiatan 1 (Seminar AI)
        $data = [
            [
@@ -36,6 +35,9 @@ class DokumentasiSeeder extends Seeder
                'created_at' => Carbon::now(),
                'updated_at' => Carbon::now()
            ],
+
+           // Dokumentasi untuk agenda Kegiatan 2 (Workshop AI Implementation)
+
            [
                'dokumentasi_id' => 4,
                'nama_dokumentasi' => 'Dokumentasi Workshop AI Implementation',
@@ -80,8 +82,6 @@ class DokumentasiSeeder extends Seeder
            ]
        ];
 
-
-       // Insert ke database
        DB::table('m_dokumentasi')->insert($data);
    }
 }

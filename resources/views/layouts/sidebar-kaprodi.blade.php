@@ -16,7 +16,7 @@
             <!-- Kegiatan -->
             <li class="nav-item">
                 <a href="#" class="nav-link {{ ($activemenu == 'kegiatan')? 'active' : '' }}">
-                    <i class="nav-icon fas fa-calendar-alt"></i>
+                    <i class="nav-icon fas fa-calendar"></i>
                     <p>
                         Kegiatan
                         <i class="right fas fa-angle-left"></i>

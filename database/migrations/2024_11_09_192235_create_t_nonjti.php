@@ -4,18 +4,17 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
-    public function up(): void
-    {
+return new class extends Migration{
+
+    public function up(): void{
+
         Schema::create('t_non_jti', function (Blueprint $table) {
             $table->id('non_jti_id');
             $table->unsignedBigInteger('user_id');
             $table->string('nama_lengkap', 100);
             $table->string('nama_kegiatan', 100);
             $table->text('deskripsi_kegiatan')->nullable();
-            $table->enum('status_kegiatan', ['Direncanakan', 'Berlangsung', 'Selesai', 'Dibatalkan'])
-                  ->default('Direncanakan');
+            $table->enum('status_kegiatan', ['Direncanakan', 'Berlangsung', 'Selesai', 'Dibatalkan'])->default('Direncanakan');
             $table->date('tanggal_mulai');
             $table->date('tanggal_selesai');
             $table->string('lokasi_kegiatan', 200)->nullable();
@@ -39,8 +38,8 @@ return new class extends Migration
         });
     }
 
-    public function down(): void
-    {
+    public function down(): void{
+
         Schema::dropIfExists('t_non_jti');
     }
 };

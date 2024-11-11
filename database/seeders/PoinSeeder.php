@@ -129,7 +129,6 @@ class PoinSeeder extends Seeder
            ]
        ];
 
-       // Insert ke database
        DB::table('t_poin')->insert($data);
    }
 }

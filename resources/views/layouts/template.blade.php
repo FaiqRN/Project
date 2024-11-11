@@ -5,9 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{config('app.name','PWL Laravel Starter Code')}}</title>
 
-
-<meta name="csrf-token" content="{{csrf_token()}}">
-
+  <meta name="csrf-token" content="{{csrf_token()}}">
 
   <!-- Google Font: Source Sans Pro -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
@@ -20,7 +18,6 @@
   <!-- Theme style -->
   <link rel="stylesheet" href="{{asset('adminlte/dist/css/adminlte.min.css')}}">
 
-
   @stack('css')
 </head>
 <body class="hold-transition sidebar-mini">
@@ -30,7 +27,6 @@
   @include('layouts.header')
   <!-- /.navbar -->
 
-
   <!-- Main Sidebar Container -->
   <aside class="main-sidebar sidebar-dark-primary elevation-4">
     <!-- Brand Logo -->
@@ -39,20 +35,23 @@
       <span class="brand-text font-weight-light">AstepGang</span>
     </a>
 
-
     <!-- Sidebar -->
-    @include('layouts.sidebar')
+    @if(session('level_nama') == 'Admin')
+        @include('layouts.sidebar-admin')
+    @elseif(session('level_nama') == 'Kaprodi')
+        @include('layouts.sidebar-kaprodi')
+    @else
+        @include('layouts.sidebar-dosen')
+    @endif
     <link rel="stylesheet" href="{{ asset('css/custom.css') }}">
     <!-- /.sidebar -->
     <link rel="stylesheet" href="{{ asset('css/custom-sidebar.css') }}">
   </aside>
 
-
   <!-- Content Wrapper. Contains page content -->
   <div class="content-wrapper">
     <!-- Content Header (Page header) -->
     @include('layouts.breadcrumb')
-
 
     <!-- Main content -->
     <section class="content">
@@ -68,17 +67,14 @@
     </style>
       @yield('content')
 
-
     </section>
     <!-- /.content -->
   </div>
   <!-- /.content-wrapper -->
-    @include('layouts.footer')
-
+  @include('layouts.footer')
 
 </div>
 <!-- ./wrapper -->
-
 
 <!-- jQuery -->
 <script src="{{asset('adminlte/plugins/jquery/jquery.min.js')}}"></script>
@@ -100,14 +96,9 @@
 <!-- AdminLTE App -->
 <script src="{{asset('adminlte/dist/js/adminlte.min.js')}}"></script>
 
-
 <script>
   $.ajaxSetup({headers:{'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')}})
 </script>
 @stack('js')
 </body>
 </html>
-
-
-
-
