@@ -11,6 +11,12 @@ use Illuminate\Support\Facades\Session;
 
 class LoginController extends Controller
 {
+
+    public function __construct()
+    {
+        $this->middleware('guest')->except('logout');
+    }
+
     /**
      * Show login form
      */
@@ -73,9 +79,18 @@ class LoginController extends Controller
     /**
      * Handle logout request
      */
-    public function logout()
+    public function logout(Request $request)
     {
         Session::flush();
-        return redirect('/login')->with('success', 'Berhasil logout');
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        
+        $response = redirect()->route('login')
+            ->with('success', 'Berhasil logout');
+            
+        // Tambahkan header no-cache
+        return $response->header('Cache-Control','no-store, no-cache, must-revalidate, post-check=0, pre-check=0')
+            ->header('Pragma','no-cache')
+            ->header('Expires','Sat, 01 Jan 2000 00:00:00 GMT');
     }
 }

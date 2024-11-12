@@ -4,6 +4,9 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Login - POLINEMA</title>
     
     <style>
@@ -186,5 +189,33 @@
             </div>
         </form>
     </div>
+    <script>
+        // Mencegah back button
+        window.onload = function() {
+            if(typeof history.pushState === "function") {
+                history.pushState("jibberish", null, null);
+                window.onpopstate = function () {
+                    history.pushState('newjibberish', null, null);
+                };
+            }
+        }
+
+        // Mencegah akses halaman yang di-cache
+        window.onpageshow = function(event) {
+            if (event.persisted) {
+                window.location.reload();
+            }
+        };
+
+        // Disable back button
+        function disableBack() { 
+            window.history.forward() 
+        }
+        disableBack();
+        window.onload = disableBack;
+        window.onpageshow = function(evt) { 
+            if (evt.persisted) disableBack() 
+        }
+        window.onunload = function() { void (0) }
 </body>
 </html>

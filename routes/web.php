@@ -4,85 +4,129 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\UserController;
 
+/*
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
+*/
+
 // Guest Routes (untuk user yang belum login)
 Route::middleware(['guest'])->group(function () {
+    // Redirect ke login jika mengakses root URL
     Route::get('/', function () {
         return redirect('/login');
     });
-    Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
-    Route::post('/login', [LoginController::class, 'login'])->name('login.post');
+
+    // Route Login
+    Route::controller(LoginController::class)->group(function () {
+        Route::get('/login', 'showLoginForm')->name('login');
+        Route::post('/login', 'login')->name('login.post');
+    });
 });
 
 // Protected Routes (harus login untuk mengakses)
 Route::middleware(['auth.check'])->group(function () {
-    // Route untuk logout
+    // Logout Route
     Route::get('/logout', [LoginController::class, 'logout'])->name('logout');
-    
-    // Route Default setelah login (redirect ke dashboard sesuai role/level pengguna)
-    Route::get('/', function () {
-        $levelNama = session('level_nama');
-        switch ($levelNama) {
-            case 'Admin':
-                return redirect()->route('admin.dashboard');
-            case 'Kaprodi':
-                return redirect()->route('kaprodi.dashboard');
-            case 'Dosen':
-                return redirect()->route('dosen.dashboard');
-            default:
-                return redirect()->route('login');
-        }
-    })->name('home');
 
-    // Route Profile (harus login)
+    // Profile Route
     Route::get('/profile', [UserController::class, 'profile'])->name('profile');
 
     // Dosen Routes
-    Route::group(['prefix' => 'dosen', 'middleware' => 'auth.role:Dosen'], function () {
+    Route::middleware(['auth.role:Dosen'])->prefix('dosen')->group(function () {
         Route::get('/', function () {
             return redirect()->route('dosen.dashboard');
         });
+        
         Route::get('/dashboard', function () {
             return view('dosen.dashboard', [
                 'breadcrumb' => (object)[
-                    'title' => 'Dashboard',
+                    'title' => 'Dashboard Dosen',
                     'list' => ['Home', 'Dashboard']
                 ]
             ]);
         })->name('dosen.dashboard');
+
+        // Tambahkan route Dosen lainnya di sini
+        Route::get('/agenda', function () {
+            return view('dosen.agenda.index', [
+                'breadcrumb' => (object)[
+                    'title' => 'Agenda',
+                    'list' => ['Home', 'Agenda']
+                ]
+            ]);
+        })->name('dosen.agenda');
     });
 
-    // Kaprodi Routes (harus login)
-    Route::group(['prefix' => 'kaprodi', 'middleware' => 'auth.role:Kaprodi'], function () {
+    // Kaprodi Routes
+    Route::middleware(['auth.role:Kaprodi'])->prefix('kaprodi')->group(function () {
         Route::get('/', function () {
             return redirect()->route('kaprodi.dashboard');
         });
+        
         Route::get('/dashboard', function () {
             return view('kaprodi.dashboard', [
                 'breadcrumb' => (object)[
-                    'title' => 'Dashboard',
+                    'title' => 'Dashboard Kaprodi',
                     'list' => ['Home', 'Dashboard']
                 ]
             ]);
         })->name('kaprodi.dashboard');
+
+        // Tambahkan route Kaprodi lainnya di sini
+        Route::get('/kegiatan', function () {
+            return view('kaprodi.kegiatan.index', [
+                'breadcrumb' => (object)[
+                    'title' => 'Daftar Kegiatan',
+                    'list' => ['Home', 'Kegiatan']
+                ]
+            ]);
+        })->name('kaprodi.kegiatan');
     });
 
-    // Admin Routes (harus login)
-    Route::group(['prefix' => 'admin', 'middleware' => 'auth.role:Admin'], function () {
+    // Admin Routes
+    Route::middleware(['auth.role:Admin'])->prefix('admin')->group(function () {
         Route::get('/', function () {
             return redirect()->route('admin.dashboard');
         });
+        
         Route::get('/dashboard', function () {
             return view('admin.dashboard', [
                 'breadcrumb' => (object)[
-                    'title' => 'Dashboard',
+                    'title' => 'Dashboard Admin',
                     'list' => ['Home', 'Dashboard']
                 ]
             ]);
         })->name('admin.dashboard');
+
+        // Tambahkan route Admin lainnya di sini
+        Route::get('/users', function () {
+            return view('admin.users.index', [
+                'breadcrumb' => (object)[
+                    'title' => 'Manajemen User',
+                    'list' => ['Home', 'Users']
+                ]
+            ]);
+        })->name('admin.users');
     });
+
+    // Default Route setelah login (redirect berdasarkan role)
+    Route::get('/home', function () {
+        switch (session('level_nama')) {
+            case 'Admin':
+                return redirect()->route('admin.dashboard');
+            case 'Kaprodi':
+                return redirect()->route('kaprodi.dashboard');
+            default:
+                return redirect()->route('dosen.dashboard');
+        }
+    })->name('home');
 });
 
-// Jika mencoba akses URL yang tidak ada
+// Fallback route untuk URL yang tidak ditemukan
 Route::fallback(function () {
+    if (session()->has('user_id')) {
+        return redirect()->route('home');
+    }
     return redirect()->route('login');
 });
