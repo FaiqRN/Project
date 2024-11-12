@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\SuratTugasController;
+use App\Http\Controllers\PoinController;
 
 // Guest Routes (untuk user yang belum login)
 Route::middleware(['guest'])->group(function () {
@@ -64,6 +66,12 @@ Route::middleware(['auth.check'])->group(function () {
                 ]
             ]);
         })->name('kaprodi.dashboard');
+        Route::get('/surat', [SuratTugasController::class, 'index'])->name('surat.index');
+        Route::get('/surat/{id}', [SuratTugasController::class, 'show'])->name('surat.show');
+        Route::get('/surat/download/{id}', [SuratTugasController::class, 'download'])->name('surat.download');
+        Route::get('/statistik/beban-kerja', [PoinController::class, 'bebanKerja'])->name('statistik.beban-kerja');
+        Route::get('/statistik/hasil', [PoinController::class, 'hasil'])->name('statistik.hasil');
+
     });
 
     // Admin Routes (harus login)

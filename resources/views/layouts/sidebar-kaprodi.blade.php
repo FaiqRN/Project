@@ -43,13 +43,13 @@
                 </a>
                 <ul class="nav nav-treeview">
                     <li class="nav-item">
-                        <a href="{{ url('/statistik/beban-kerja') }}" class="nav-link">
+                        <a href="{{ url('kaprodi/statistik/beban-kerja') }}" class="nav-link">
                             <i class="far fa-circle nav-icon"></i>
                             <p>Melihat Beban Kerja</p>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="{{ url('/statistik/hasil') }}" class="nav-link">
+                        <a href="{{ url('kaprodi/statistik/hasil') }}" class="nav-link">
                             <i class="far fa-circle nav-icon"></i>
                             <p>Hasil Statistik</p>
                         </a>
@@ -59,22 +59,11 @@
 
             <!-- Surat Tugas -->
             <li class="nav-item">
-                <a href="#" class="nav-link {{ ($activemenu == 'surat-tugas')? 'active' : '' }}">
+                <a href="{{ url('/kaprodi/surat') }}" class="nav-link {{ ($activemenu == 'surat-tugas') ? 'active' : '' }}">
                     <i class="nav-icon fas fa-file-alt"></i>
-                    <p>
-                        Surat Tugas
-                        <i class="right fas fa-angle-left"></i>
-                    </p>
+                    <p>Surat Tugas</p>
                 </a>
-                <ul class="nav nav-treeview">
-                    <li class="nav-item">
-                        <a href="{{ url('/surat-tugas/download') }}" class="nav-link">
-                            <i class="far fa-circle nav-icon"></i>
-                            <p>Download Dokumen</p>
-                        </a>
-                    </li>
-                </ul>
-            </li>
+            </li>            
         </ul>
     </nav>
 </div>
