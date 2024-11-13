@@ -33,9 +33,15 @@ class UserModel extends Model
         'alamat',
         'email',
         'created_by',
-        'updated_by'
+        'updated_by',
+        'last_activity'
     ];
-
+    protected $dates = [
+        'created_at',
+        'updated_at',
+        'deleted_at',
+        'last_activity'
+    ];
     public function level()
     {
         return $this->belongsTo(LevelModel::class, 'level_id', 'level_id');

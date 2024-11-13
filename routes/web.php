@@ -31,6 +31,9 @@ Route::middleware(['auth.check'])->group(function () {
 
     // Profile Route
     Route::get('/profile', [UserController::class, 'profile'])->name('profile');
+    Route::get('/profile', [UserController::class, 'profile'])->name('profile');
+    Route::get('/profile/edit', [UserController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile/update', [UserController::class, 'update'])->name('profile.update');
 
     // Dosen Routes
     Route::middleware(['auth.role:Dosen'])->prefix('dosen')->group(function () {

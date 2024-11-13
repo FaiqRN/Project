@@ -10,7 +10,7 @@ use Symfony\Component\HttpFoundation\Response;
 class SessionTimeout
 {
     protected $session;
-    protected $timeout =1800; 
+    protected $timeout = 1200; // 20 menit
 
     public function __construct(Store $session)
     {
@@ -19,15 +19,23 @@ class SessionTimeout
 
     public function handle(Request $request, Closure $next): Response
     {
-        if (!session('last_activity')) {
+        $isLoggedIn = $request->path() != 'logout';
+        
+        if (!session('last_activity') && $isLoggedIn) {
             $this->session->put('last_activity', time());
         }
-        elseif (time() - $this->session->get('last_activity') > $this->timeout) {
-            $this->session->flush();
-            return redirect('login')->with('error', 'Sesi Anda telah berakhir. Silahkan login kembali.');
+        
+        if (session('last_activity') && time() - session('last_activity') > $this->timeout) {
+            $this->session->forget('last_activity');
+            $this->session->forget(['user_id', 'username', 'level_id', 'level_nama', 'nama_lengkap']);
+            auth()->logout();
+            return redirect()->route('login')->with('timeout', 'Sesi Anda telah berakhir');
         }
 
-        $this->session->put('last_activity', time());
+        // Jangan simpan request yang berisi file ke session
+        if (!$request->hasFile('foto')) {
+            $this->session->put('last_activity', time());
+        }
 
         return $next($request);
     }
