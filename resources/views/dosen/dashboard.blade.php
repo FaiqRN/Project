@@ -1,4 +1,3 @@
-<!-- resources/views/dosen/dashboard.blade.php -->
 @extends('layouts.template')
 
 @section('content')
@@ -12,7 +11,7 @@
         </div>
     @endif
 
-    <!-- Info boxes -->
+    
     <div class="row">
         <div class="col-12 col-sm-6 col-md-4">
             <div class="info-box mb-3">
@@ -43,7 +42,6 @@
         </div>
     </div>
 
-    <!-- Profil Card -->
     <div class="card">
         <div class="card-body">
             <div class="row">

@@ -61,6 +61,8 @@ Route::middleware(['auth.check'])->group(function () {
         })->name('dosen.agenda');
     });
 
+
+    
     // Kaprodi Routes
     Route::middleware(['auth.role:Kaprodi'])->prefix('kaprodi')->group(function () {
         Route::get('/', function () {
@@ -76,6 +78,7 @@ Route::middleware(['auth.check'])->group(function () {
             ]);
         })->name('kaprodi.dashboard');
 
+    
         // Tambahkan route Kaprodi lainnya di sini
         Route::get('/kegiatan', function () {
             return view('kaprodi.kegiatan.index', [
@@ -86,6 +89,8 @@ Route::middleware(['auth.check'])->group(function () {
             ]);
         })->name('kaprodi.kegiatan');
     });
+
+
 
     // Admin Routes
     Route::middleware(['auth.role:Admin'])->prefix('admin')->group(function () {

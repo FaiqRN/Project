@@ -33,7 +33,6 @@
                         </div>
                         <div class="col-md-9">
                             <div class="row">
-                                <!-- Kolom Kiri -->
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label class="font-weight-bold">Username</label>
@@ -68,8 +67,6 @@
                                         <p class="form-control-static bg-light p-2 rounded">{{ $user->agama }}</p>
                                     </div>
                                 </div>
-                                
-                                <!-- Kolom Kanan -->
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label class="font-weight-bold">Program Studi</label>
@@ -97,8 +94,6 @@
                                     </div>
                                 </div>
                             </div>
-                            
-                            <!-- Alamat Full Width -->
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="form-group">

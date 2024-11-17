@@ -10,7 +10,7 @@ use Symfony\Component\HttpFoundation\Response;
 class SessionTimeout
 {
     protected $session;
-    protected $timeout = 1200; // 20 menit
+    protected $timeout = 1200; 
 
     public function __construct(Store $session)
     {

@@ -71,12 +71,24 @@ class UserController extends Controller
             return redirect()
                 ->back()
                 ->withErrors($validator)
-                ->withInput($request->except('foto'));
+                ->withInput($request->except(['foto', 'current_password', 'new_password', 'password_confirmation']));
         }
 
         try {
             $user = UserModel::find(session('user_id'));
-            $userData = $request->except(['foto', '_token', '_method']);
+            $userData = $request->except(['foto', '_token', '_method','current_password', 'new_password', 'password_confirmation']);
+
+            if ($request->filled('current_password')) {
+                if (!Hash::check($request->current_password, $user->password)) {
+                    return redirect()
+                        ->back()
+                        ->withErrors(['current_password' => 'Password saat ini tidak sesuai'])
+                        ->withInput($request->except(['foto', 'current_password', 'new_password', 'password_confirmation']));
+                }
+                
+                // Update password baru
+                $userData['password'] = Hash::make($request->new_password);
+            }
 
             // Handle foto upload
             if ($request->hasFile('foto')) {
@@ -103,7 +115,7 @@ class UserController extends Controller
                     return redirect()
                         ->back()
                         ->with('error', 'Gagal memproses foto: ' . $e->getMessage())
-                        ->withInput($request->except('foto'));
+                        ->withInput($request->except(['foto', 'current_password', 'new_password', 'password_confirmation']));
                 }
             }
 
@@ -128,6 +140,11 @@ class UserController extends Controller
 
             session($sessionData);
 
+            $message = 'Profil berhasil diperbarui';
+            if ($request->filled('current_password')) {
+                $message .= ' dan password berhasil diganti';
+            }
+
             return redirect()
                 ->route('profile')
                 ->with('success', 'Profil berhasil diperbarui');
@@ -136,7 +153,7 @@ class UserController extends Controller
             return redirect()
                 ->back()
                 ->with('error', 'Terjadi kesalahan saat memperbarui profil: ' . $e->getMessage())
-                ->withInput($request->except('foto'));
+                ->withInput($request->except(['foto', 'current_password', 'new_password', 'password_confirmation']));
         }
     }
 }

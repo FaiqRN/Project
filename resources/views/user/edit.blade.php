@@ -1,4 +1,3 @@
-<!-- resources/views/user/edit.blade.php -->
 @extends('layouts.template')
 
 @section('content')
@@ -201,7 +200,96 @@
                             </div>
                         </div>
                     </div>
-
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <h3 class="card-title">Ganti Password</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>Password Saat Ini</label>
+                                        <div class="input-group">
+                                            <input type="password" name="current_password" class="form-control @error('current_password') is-invalid @enderror" id="current_password">
+                                            <div class="input-group-append">
+                                                <span class="input-group-text" onclick="togglePassword('current_password')">
+                                                    <i class="fas fa-eye" id="current_password_icon"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        @error('current_password')
+                                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>Password Baru</label>
+                                        <div class="input-group">
+                                            <input type="password" name="new_password" class="form-control @error('new_password') is-invalid @enderror" id="new_password">
+                                            <div class="input-group-append">
+                                                <span class="input-group-text" onclick="togglePassword('new_password')">
+                                                    <i class="fas fa-eye" id="new_password_icon"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        @error('new_password')
+                                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>Konfirmasi Password Baru</label>
+                                        <div class="input-group">
+                                            <input type="password" name="password_confirmation" class="form-control @error('password_confirmation') is-invalid @enderror" id="password_confirmation">
+                                            <div class="input-group-append">
+                                                <span class="input-group-text" onclick="togglePassword('password_confirmation')">
+                                                    <i class="fas fa-eye" id="password_confirmation_icon"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        @error('password_confirmation')
+                                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                            </div>
+                            <small class="text-muted">
+                                * Kosongkan semua field password jika tidak ingin mengubah password
+                            </small>
+                        </div>
+                    </div>
+                    
+                    @push('js')
+                    <script>
+                    function togglePassword(fieldId) {
+                        const field = document.getElementById(fieldId);
+                        const icon = document.getElementById(fieldId + '_icon');
+                        
+                        if (field.type === 'password') {
+                            field.type = 'text';
+                            icon.classList.remove('fa-eye');
+                            icon.classList.add('fa-eye-slash');
+                        } else {
+                            field.type = 'password';
+                            icon.classList.remove('fa-eye-slash');
+                            icon.classList.add('fa-eye');
+                        }
+                    }
+                    </script>
+                    @endpush
+                    
+                    @push('css')
+                    <style>
+                    .input-group-text {
+                        cursor: pointer;
+                    }
+                    .invalid-feedback.d-block {
+                        display: block !important;
+                    }
+                    </style>
+                    @endpush
                     <div class="card-footer text-right">
                         <button type="submit" class="btn btn-success">
                             <i class="fas fa-save mr-1"></i> Simpan
@@ -232,6 +320,7 @@
 @endpush
 
 @push('js')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 function previewImage() {
     const foto = document.querySelector('#foto');
@@ -239,6 +328,16 @@ function previewImage() {
     
     if (foto.files && foto.files[0]) {
         const reader = new FileReader();
+        if (foto.files[0].size > 2 * 1024 * 1024) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Ukuran File Terlalu Besar',
+                text: 'Ukuran file tidak boleh lebih dari 2MB',
+                confirmButtonText: 'OK'
+            });
+            foto.value = ''; // Reset input file
+            return;
+        }
         
         reader.onload = function(e) {
             preview.src = e.target.result;

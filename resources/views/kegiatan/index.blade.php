@@ -6,7 +6,6 @@
         <h3 class="card-title">Daftar Kegiatan</h3>
     </div>
     <div class="card-body">
-        <!-- Search Form -->
         <div class="row mb-3">
             <div class="col-md-6">
                 <form action="{{ url('/kegiatan') }}" method="GET" class="form-inline">
@@ -20,7 +19,6 @@
             </div>
         </div>
 
-        <!-- Table -->
         <div class="table-responsive">
             <table class="table table-bordered table-hover">
                 <thead>
@@ -78,7 +76,6 @@
             </table>
         </div>
 
-        <!-- Pagination -->
         <div class="mt-3">
             {{ $kegiatans->links() }}
         </div>

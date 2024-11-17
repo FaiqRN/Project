@@ -1,4 +1,3 @@
-<!-- resources/views/auth/login.blade.php -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -126,7 +125,7 @@
 <body>
     <div class="login-container">
         <div class="logo-container">
-            <!-- Ganti path sesuai dengan lokasi logo Anda -->
+            
             <img src="{{ asset('images/logo_kampus.png') }}" alt="Logo Polinema" class="logo">
         </div>
         
@@ -207,7 +206,7 @@
             }
         };
 
-        // Disable back button
+        // mematikan back button
         function disableBack() { 
             window.history.forward() 
         }
