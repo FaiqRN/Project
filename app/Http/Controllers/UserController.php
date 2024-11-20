@@ -8,10 +8,9 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Intervention\Image\Facades\Image;
 
-class UserController extends Controller
-{
-    public function dashboard()
-    {
+class UserController extends Controller{
+
+    public function dashboard(){
         $breadcrumb = (object) [
             'title' => 'Dashboard',
             'list' => ['Home', 'Dashboard']
@@ -23,8 +22,7 @@ class UserController extends Controller
         return view('dosen.dashboard', compact('breadcrumb', 'user'));
     }
 
-    public function profile()
-    {
+    public function profile(){
         $breadcrumb = (object) [
             'title' => 'Profil',
             'list' => ['Beranda', 'Profil']
@@ -34,8 +32,7 @@ class UserController extends Controller
         return view('user.profile', compact('breadcrumb', 'user'));
     }
 
-    public function edit()
-    {
+    public function edit(){
         $breadcrumb = (object) [
             'title' => 'Edit Profil',
             'list' => ['Beranda', 'Profil', 'Edit']
@@ -45,8 +42,7 @@ class UserController extends Controller
         return view('user.edit', compact('breadcrumb', 'user'));
     }
 
-    public function update(Request $request)
-    {
+    public function update(Request $request){
         $validator = Validator::make($request->all(), [
             'username' => 'required|string|max:20',
             'nama_lengkap' => 'required|string|max:100',

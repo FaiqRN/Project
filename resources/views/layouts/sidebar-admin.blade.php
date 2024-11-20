@@ -25,7 +25,7 @@
                 <ul class="nav nav-treeview">
                     <!-- Profile -->
                     <li class="nav-item">
-                        <a href="{{ route('admin.dosen.profile') }}" class="nav-link {{ ($activemenu == 'profile')? 'active' : '' }}">
+                        <a href="{{ route('admin.users.index') }}" class="nav-link {{ ($activemenu == 'profile')? 'active' : '' }}">
                             <i class="far fa-circle nav-icon"></i>
                             <p>Profile</p>
                         </a>
@@ -114,16 +114,6 @@
                 </ul>
             </li>
 
-            <!-- Logout -->
-            <li class="nav-item">
-                <a href="{{ route('logout') }}" class="nav-link" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                    <i class="nav-icon fas fa-sign-out-alt"></i>
-                    <p>Logout</p>
-                </a>
-                <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-                    @csrf
-                </form>
-            </li>
         </ul>
     </nav>
 </div>

@@ -13,7 +13,7 @@ class LevelSeeder extends Seeder{
         $data=[
             ['level_id' => 1, 
             'level_kode' => 'ADM', 
-            'level_nama' => 'Administrator'],
+            'level_nama' => 'Admin'],
             
             ['level_id' => 2, 
             'level_kode' => 'KPR', 

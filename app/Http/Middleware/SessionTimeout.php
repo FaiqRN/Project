@@ -7,18 +7,16 @@ use Illuminate\Http\Request;
 use Illuminate\Session\Store;
 use Symfony\Component\HttpFoundation\Response;
 
-class SessionTimeout
-{
+class SessionTimeout{
+
     protected $session;
     protected $timeout = 1200; 
 
-    public function __construct(Store $session)
-    {
+    public function __construct(Store $session){
         $this->session = $session;
     }
 
-    public function handle(Request $request, Closure $next): Response
-    {
+    public function handle(Request $request, Closure $next): Response{
         $isLoggedIn = $request->path() != 'logout';
         
         if (!session('last_activity') && $isLoggedIn) {

@@ -17,7 +17,12 @@ class SuratModel extends Model
         'file_surat',
         'tanggal_surat'
     ];
-
+    protected $dates = [
+        'tanggal_surat',
+        'created_at',
+        'updated_at',
+        'deleted_at'
+    ];
     public function kegiatans()
     {
         return $this->hasMany(KegiatanModel::class, 'surat_id', 'surat_id');

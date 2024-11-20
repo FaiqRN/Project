@@ -3,11 +3,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-
+use Laravel\Sanctum\HasApiTokens;
 class UserModel extends Model
 {
     use SoftDeletes;
-    
+    use HasApiTokens;
     protected $table = 'm_user';
     protected $primaryKey = 'user_id';
     
@@ -34,7 +34,8 @@ class UserModel extends Model
         'email',
         'created_by',
         'updated_by',
-        'last_activity'
+        'last_activity',
+        'deleted_by'
     ];
     protected $dates = [
         'created_at',

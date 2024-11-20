@@ -9,21 +9,18 @@ use App\Models\LevelModel;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
 
-class LoginController extends Controller
-{
-    public function __construct()
-    {
+class LoginController extends Controller{
+    
+    public function __construct(){
         $this->middleware('guest')->except('logout');
     }
 
-    public function showLoginForm()
-    {
+    public function showLoginForm(){
         $levels = LevelModel::all();
         return view('auth.login', compact('levels'));
     }
 
-    public function login(Request $request)
-    {
+    public function login(Request $request){
         $request->validate([
             'level_id' => 'required|exists:m_level,level_id',
             'username' => 'required|string',
@@ -97,8 +94,7 @@ class LoginController extends Controller
         }
     }
 
-    public function logout(Request $request)
-    {
+    public function logout(Request $request){
         // Update last activity sebelum logout 
         if (session('user_id')) {
             UserModel::where('user_id', session('user_id'))
@@ -121,8 +117,7 @@ class LoginController extends Controller
             ->header('Expires','Sat, 01 Jan 2000 00:00:00 GMT');
     }
 
-    private function checkSessionTimeout()
-    {
+    private function checkSessionTimeout(){
         $lastActivity = session('last_activity');
         $timeout = config('session.lifetime') * 1200; // Convert minutes to seconds
 
