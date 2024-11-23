@@ -23,8 +23,4 @@ class SuratModel extends Model
         'updated_at',
         'deleted_at'
     ];
-    public function kegiatans()
-    {
-        return $this->hasMany(KegiatanModel::class, 'surat_id', 'surat_id');
-    }
 }

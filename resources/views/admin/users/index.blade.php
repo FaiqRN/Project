@@ -23,6 +23,7 @@
                         <th>Username</th>
                         <th>Jabatan Fungsional</th>
                         <th>Program Studi</th>
+                        <th>Posisi</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -55,8 +56,9 @@
                                 <label>Pilih Posisi <span class="text-danger">*</span></label>
                                 <select name="level_id" id="level_id" class="form-control">
                                     <option value="">Pilih Posisi Jabatan</option>
-                                    <option value="3">Dosen</option>
                                     <option value="2">Kaprodi</option>
+                                    <option value="3">Dosen</option>
+                                    <option value="4">PIC</option>
                                 </select>
                             </div>
                         </div>
@@ -172,6 +174,7 @@ $(document).ready(function() {
         serverSide: true,
         responsive: true,
         ajax: "{{ route('admin.users.index') }}",
+        order: [],
         columns: [
             {data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false},
             {
@@ -189,19 +192,20 @@ $(document).ready(function() {
             {data: 'username', name: 'username'},
             {data: 'jabatan_fungsional', name: 'jabatan_fungsional'},
             {data: 'program_studi', name: 'program_studi'},
+            {data: 'level.level_nama', name: 'level.level_nama',orderable: false},
             {
-                data: 'action', 
+                data: 'user_id', 
                 name: 'action', 
                 orderable: false, 
                 searchable: false,
                 render: function(data, type, row) {
                     return `
-                        <button type="button" class="btn btn-warning btn-sm" onclick="showEditModal(${row.user_id, row.level_id})">
-                            <i class="fas fa-edit"></i> Edit
-                        </button>
-                        <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete(${row.user_id , row.level_id})">
-                            <i class="fas fa-trash"></i> Hapus
-                        </button>
+                            <button type="button" class="btn btn-warning btn-sm" onclick="showEditModal('${data}')">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete('${data}')">
+                                <i class="fas fa-trash"></i> Hapus
+                            </button>
                     `;
                 }
             }
@@ -278,37 +282,148 @@ function showAddModal() {
 
 // Function untuk modal edit
 function showEditModal(id) {
-    $('#userModal').find('.modal-title').text('Edit User');
-    $('#userForm').trigger('reset');
-    $('#userForm').find('input[name="_method"]').val('PUT');
-    $('#userForm').attr('action', "{{ route('admin.users.index') }}/" + id);
-    $('.password-required').hide();
+    // Reset form dan hapus pesan error sebelumnya
+    $('#userForm')[0].reset();
+    $('.is-invalid').removeClass('is-invalid');
+    $('.invalid-feedback').remove();
     
+    // Set judul modal dan method
+    $('#userModalLabel').text('Edit User');
+    $('input[name="_method"]').val('PUT');
+    $('#user_id').val(id);
+    
+    // Set action URL
+    $('#userForm').attr('action', `/admin/users/${id}`);
+    
+    // Sembunyikan asterisk password karena opsional saat edit
+    $('.password-required').hide();
+    $('#password').removeAttr('required');
+    
+    // Tampilkan loading
+    Swal.fire({
+        title: 'Loading...',
+        text: 'Mengambil data user',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+
+    // Ambil data user
     $.ajax({
-        url: "{{ route('admin.users.index') }}/" + id,
+        url: `/admin/users/${id}`,
         type: 'GET',
         success: function(response) {
+            Swal.close();
+            
             if(response.status === 'success') {
-                var user = response.data;
-                $.each(user, function(key, value) {
-                    if($('#' + key).length) {
-                        $('#' + key).val(value);
-                    }
-                });
+                let user = response.data;
+                
+                // Set nilai untuk semua field
+                $('#level_id').val(user.level_id);
+                $('#username').val(user.username);
+                $('#nama_lengkap').val(user.nama_lengkap);
+                $('#nidn').val(user.nidn);
+                $('#gelar_depan').val(user.gelar_depan);
+                $('#gelar_belakang').val(user.gelar_belakang);
+                $('#jabatan_fungsional').val(user.jabatan_fungsional);
+                $('#program_studi').val(user.program_studi);
+                
+                // Tampilkan foto jika ada
                 if(user.foto) {
-                    $('#preview-container').html('<img src="' + user.foto + '" class="img-thumbnail" style="max-height: 200px">');
+                    $('#preview-container').html(`
+                        <img src="${user.foto}" class="img-thumbnail" style="max-height: 200px">
+                    `);
                 }
+                
+                // Tampilkan modal
                 $('#userModal').modal('show');
             }
         },
-        error: function() {
-            Swal.fire('Error!', 'Gagal mengambil data user', 'error');
+        error: function(xhr) {
+            Swal.close();
+            Swal.fire(
+                'Error!',
+                xhr.responseJSON?.message || 'Gagal mengambil data user',
+                'error'
+            );
         }
     });
 }
 
+// Tambahkan ini untuk handle form submission
+$('#userForm').on('submit', function(e) {
+    e.preventDefault();
+    
+    let formData = new FormData(this);
+    let url = $(this).attr('action');
+    
+    // Reset error states
+    $('.is-invalid').removeClass('is-invalid');
+    $('.invalid-feedback').remove();
+    
+    // Tampilkan loading
+    Swal.fire({
+        title: 'Loading...',
+        text: 'Menyimpan data user',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+    
+    $.ajax({
+        url: url,
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(response) {
+            Swal.close();
+            
+            if(response.status === 'success') {
+                $('#userModal').modal('hide');
+                $('#users-table').DataTable().ajax.reload();
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: response.message,
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+            }
+        },
+        error: function(xhr) {
+            Swal.close();
+            
+            if(xhr.status === 422) {
+                // Validation errors
+                let errors = xhr.responseJSON.errors;
+                $.each(errors, function(key, value) {
+                    $(`#${key}`)
+                        .addClass('is-invalid')
+                        .after(`<div class="invalid-feedback">${value[0]}</div>`);
+                });
+            } else {
+                Swal.fire(
+                    'Error!',
+                    xhr.responseJSON?.message || 'Terjadi kesalahan pada server',
+                    'error'
+                );
+            }
+        }
+    });
+});
+
 // Function untuk menghapus data
 function confirmDelete(id) {
+    if (!id) {
+        console.error('ID tidak valid:', id);
+        Swal.fire('Error!', 'ID user tidak valid', 'error');
+        return;
+    }
+
     Swal.fire({
         title: 'Apakah Anda yakin?',
         text: "Data yang dihapus tidak dapat dikembalikan!",
@@ -320,30 +435,74 @@ function confirmDelete(id) {
         cancelButtonText: 'Batal'
     }).then((result) => {
         if (result.isConfirmed) {
+            // Tampilkan loading
+            Swal.fire({
+                title: 'Mohon tunggu',
+                text: 'Sedang menghapus data...',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                allowEnterKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            // Lakukan request delete
             $.ajax({
-                url: "{{ route('admin.users.destroy', '') }}/" + id,
+                url: "{{ url('admin/users') }}/" + id,
                 type: 'DELETE',
-                data: {
-                    _token: $('meta[name="csrf-token"]').attr('content')
-                },
+                dataType: 'json',
                 success: function(response) {
+                    console.log('Success Response:', response);
+                    
                     if(response.status === 'success') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil!',
+                            text: response.message,
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                        // Reload tabel
                         $('#users-table').DataTable().ajax.reload();
-                        Swal.fire('Sukses!', response.message, 'success');
                     } else {
                         Swal.fire('Error!', response.message || 'Terjadi kesalahan', 'error');
                     }
                 },
-                error: function(xhr) {
-                    let errorMessage = 'Gagal menghapus data';
+                error: function(xhr, status, error) {
+                    console.error('Error Details:', {
+                        xhr: xhr,
+                        status: status,
+                        error: error
+                    });
+                    
+                    let errorMessage = 'Terjadi kesalahan saat menghapus data';
                     if (xhr.responseJSON && xhr.responseJSON.message) {
                         errorMessage = xhr.responseJSON.message;
                     }
-                    Swal.fire('Error!', errorMessage, 'error');
+                    
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: errorMessage
+                    });
                 }
             });
         }
     });
+}
+
+// Tambahkan fungsi untuk debugging
+function handleDeleteError(error) {
+    console.error('Delete Error:', error);
+    let errorMessage = 'Terjadi kesalahan saat menghapus data';
+    
+    if (error.responseJSON && error.responseJSON.message) {
+        errorMessage = error.responseJSON.message;
+    }
+    
+    Swal.fire('Error!', errorMessage, 'error');
 }
 </script>
 @endpush

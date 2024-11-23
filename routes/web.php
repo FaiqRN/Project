@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserManagementController;
+use App\Http\Controllers\SuratTugasController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -194,14 +195,13 @@ Route::middleware(['auth.role:Admin'])->prefix('admin')->name('admin.')->group(f
     // Kaprodi Management Routes
     Route::prefix('kaprodi')->name('kaprodi.')->group(function () {
         // Surat Tugas
-        Route::get('/surat-tugas', function () {
-            return view('admin.kaprodi.surat-tugas', [
-                'breadcrumb' => (object)[
-                    'title' => 'Surat Tugas',
-                    'list' => ['Home', 'Kaprodi', 'Surat Tugas']
-                ]
-            ]);
-        })->name('surat-tugas');
+        Route::controller(SuratTugasController::class)->group(function () {
+            Route::get('/surat-tugas', 'index')->name('surat-tugas');
+            Route::post('/surat-tugas', 'store')->name('surat-tugas.store');
+            Route::get('/surat-tugas/{id}', 'show')->name('surat-tugas.show');
+            Route::put('/surat-tugas/{id}', 'update')->name('surat-tugas.update');
+            Route::delete('/surat-tugas/{id}', 'destroy')->name('surat-tugas.destroy');
+        });
     });
 
 });

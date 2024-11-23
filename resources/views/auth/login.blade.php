@@ -145,21 +145,6 @@
             @csrf
             
             <div class="form-group">
-                <label>User</label>
-                <select name="level_id" class="select-user" required>
-                    <option value="">Pilih User</option>
-                    @foreach($levels as $level)
-                        <option value="{{ $level->level_id }}" {{ old('level_id') == $level->level_id ? 'selected' : '' }}>
-                            {{ $level->level_nama }}
-                        </option>
-                    @endforeach
-                </select>
-                @error('level_id')
-                    <div class="alert alert-danger">{{ $message }}</div>
-                @enderror
-            </div>
-
-            <div class="form-group">
                 <label>Username</label>
                 <input type="text" name="username" class="form-control" 
                        placeholder="Enter username" value="{{ old('username') }}" required>

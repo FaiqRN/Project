@@ -2,11 +2,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
+
 use Laravel\Sanctum\HasApiTokens;
 class UserModel extends Model
 {
-    use SoftDeletes;
+
     use HasApiTokens;
     protected $table = 'm_user';
     protected $primaryKey = 'user_id';
@@ -36,6 +36,7 @@ class UserModel extends Model
         'updated_by',
         'last_activity',
         'deleted_by'
+
     ];
     protected $dates = [
         'created_at',
@@ -43,28 +44,14 @@ class UserModel extends Model
         'deleted_at',
         'last_activity'
     ];
+    public function getLevelNamaAttribute()
+    {
+        return $this->level ? $this->level->level_nama : null;
+    }
+
     public function level()
     {
         return $this->belongsTo(LevelModel::class, 'level_id', 'level_id');
     }
 
-    public function kegiatans()
-    {
-        return $this->hasMany(KegiatanModel::class, 'user_id', 'user_id');
-    }
-
-    public function nonJTIs()
-    {
-        return $this->hasMany(NonJTIModel::class, 'user_id', 'user_id');
-    }
-
-    public function agendas()
-    {
-        return $this->hasMany(AgendaModel::class, 'user_id', 'user_id');
-    }
-
-    public function poins()
-    {
-        return $this->hasMany(PoinModel::class, 'user_id', 'user_id');
-    }
 }

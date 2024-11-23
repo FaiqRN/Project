@@ -18,12 +18,12 @@ class UserManagementController extends Controller
     {
         if ($request->ajax()) {
             $users = UserModel::with('level')
-                ->whereIn('level_id', [2, 3]);
-    
+                ->whereIn('level_id', [2, 3,4]);
+
             return DataTables::of($users)
                 ->addIndexColumn()
-                ->addColumn('nama_level', function($row) {  
-                    return $row->level->nama_level;
+                ->addColumn('level_nama', function($row) {  
+                    return $row->level->level_nama;
                 })
                 ->addColumn('action', function($row){
                     return '
@@ -52,7 +52,7 @@ class UserManagementController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'level_id' => 'required|in:2,3',
+            'level_id' => 'required|in:2,3,4',
             'username' => 'required|string|max:20|unique:m_user',
             'password' => 'required|min:6',
             'nama_lengkap' => 'required|string|max:100',
@@ -146,7 +146,7 @@ class UserManagementController extends Controller
         $user = UserModel::findOrFail($id);
 
         $validator = Validator::make($request->all(), [
-            'level_id' => 'required|in:2,3',
+            'level_id' => 'required|in:2,3,4',
             'username' => 'required|string|max:20|unique:m_user,username,' . $id . ',user_id',
             'password' => 'nullable|min:6',
             'nama_lengkap' => 'required|string|max:100',
@@ -233,18 +233,18 @@ class UserManagementController extends Controller
                     'message' => 'Tidak dapat menghapus akun administrator'
                 ], 403);
             }
-    
-            // Catat informasi penghapusan
-            $user->deleted_by = session('username');
-            $user->save();
             
-            // Lakukan penghapusan
-            $user->delete();
+            if($user->delete()) {
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'User berhasil dihapus'
+                ]);
+            }
     
             return response()->json([
-                'status' => 'success',
-                'message' => 'User berhasil dihapus'
-            ]);
+                'status' => 'error',
+                'message' => 'Gagal menghapus user'
+            ], 500);
     
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json([

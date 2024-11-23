@@ -22,12 +22,9 @@ class LoginController extends Controller{
 
     public function login(Request $request){
         $request->validate([
-            'level_id' => 'required|exists:m_level,level_id',
             'username' => 'required|string',
             'password' => 'required|string',
         ], [
-            'level_id.required' => 'Silahkan pilih user level',
-            'level_id.exists' => 'User level tidak valid',
             'username.required' => 'Username wajib diisi',
             'password.required' => 'Password wajib diisi',
         ]);
@@ -36,7 +33,6 @@ class LoginController extends Controller{
             // mengambil relasi level
             $user = UserModel::with('level')
                         ->where('username', $request->username)
-                        ->where('level_id', $request->level_id)
                         ->first();
 
             if ($user && Hash::check($request->password, $user->password)) {
@@ -84,12 +80,12 @@ class LoginController extends Controller{
             }
 
             return back()
-                ->withInput($request->only('username', 'level_id'))
+                ->withInput($request->only('username'))
                 ->withErrors(['login' => 'Username atau password salah']);
 
         } catch (\Exception $e) {
             return back()
-                ->withInput($request->only('username', 'level_id'))
+                ->withInput($request->only('username'))
                 ->withErrors(['error' => 'Terjadi kesalahan saat login: ' . $e->getMessage()]);
         }
     }
@@ -119,7 +115,7 @@ class LoginController extends Controller{
 
     private function checkSessionTimeout(){
         $lastActivity = session('last_activity');
-        $timeout = config('session.lifetime') * 1200; // Convert minutes to seconds
+        $timeout = config('session.lifetime') * 1800;
 
         if ($lastActivity && time() - $lastActivity > $timeout) {
             Session::flush();

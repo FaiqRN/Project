@@ -22,6 +22,10 @@ class LevelSeeder extends Seeder{
             ['level_id' => 3, 
             'level_kode' => 'DSN', 
             'level_nama' => 'Dosen'],
+
+            ['level_id' => 4, 
+            'level_kode' => 'PIC', 
+            'level_nama' => 'PIC'],
         ];
         
         DB::table('m_level')->insert($data);

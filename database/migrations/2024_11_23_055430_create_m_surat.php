@@ -11,13 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('users', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
-            $table->rememberToken();
+        Schema::create('m_surat', function (Blueprint $table) {
+            $table->id('surat_id');
+            $table->string('nomer_surat', 100)->unique();
+            $table->string('judul_surat', 200);
+            $table->text('file_surat');
+            $table->date('tanggal_surat');
+            $table->softDeletes();
             $table->timestamps();
         });
     }
@@ -27,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('users');
+        Schema::dropIfExists('m_surat');
     }
 };
