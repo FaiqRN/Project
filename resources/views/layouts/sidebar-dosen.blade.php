@@ -39,13 +39,13 @@
                     <li class="nav-item">
                         <a href="{{ url('/pembagian-poin') }}" class="nav-link">
                             <i class="far fa-circle nav-icon"></i>
-                            <p>Pembagian Poin</p>
+                            <p>Penambahan Poin</p>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="{{ url('/unggah-dokumen') }}" class="nav-link">
                             <i class="far fa-circle nav-icon"></i>
-                            <p>Unggah Dokumen</p>
+                            <p>Unggah Dokumen Akhir</p>
                         </a>
                     </li>
                 </ul>

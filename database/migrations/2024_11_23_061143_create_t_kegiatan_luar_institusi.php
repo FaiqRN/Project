@@ -14,6 +14,8 @@ return new class extends Migration
         Schema::create('t_kegiatan_luar_institusi', function (Blueprint $table) {
             $table->id('kegiatan_luar_institusi_id');
             $table->unsignedBigInteger('surat_id');
+            $table->unsignedBigInteger('user_id');
+
             $table->string('nama_kegiatan_luar_institusi', 200);
             $table->text('deskripsi_kegiatan');
             $table->text('lokasi_kegiatan');
@@ -24,6 +26,12 @@ return new class extends Migration
             $table->text('surat_penugasan')->nullable();
             $table->timestamps();
         
+
+            $table->foreign('user_id')
+                  ->references('user_id')
+                  ->on('m_user')
+                  ->onDelete('restrict');
+
             $table->foreign('surat_id')
                   ->references('surat_id')
                   ->on('m_surat')

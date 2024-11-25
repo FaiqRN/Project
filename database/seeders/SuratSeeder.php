@@ -10,26 +10,35 @@ class SuratSeeder extends Seeder{
 
    public function run(): void{
     
-       $data = [
-           [
-               'surat_id' => 1,
-               'nomer_surat' => '001/JTI/POLIJE/2024',
-               'judul_surat' => 'Surat Tugas Mengikuti Seminar Nasional Artificial Intelligence',
-               'file_surat' => 'surat_tugas_seminar_ai.pdf',
-               'tanggal_surat' => '2024-01-10', 
-               'created_at' => Carbon::now(),
-               'updated_at' => Carbon::now()
-           ],
-           [
-               'surat_id' => 2,
-               'nomer_surat' => '002/JTI/POLIJE/2024',
-               'judul_surat' => 'Surat Tugas Workshop Data Science for Industry 4.0',
-               'file_surat' => 'surat_tugas_workshop_ds.pdf',
-               'tanggal_surat' => '2024-02-25', 
-               'created_at' => Carbon::now(),
-               'updated_at' => Carbon::now()
-           ]
-       ];
+    $data = [
+        [
+            'surat_id' => 1,
+            'nomer_surat' => '001/PAN/TI/2024',
+            'judul_surat' => 'Undangan Seminar AI',
+            'file_surat' => 'surat_seminar_ai.pdf',
+            'tanggal_surat' => '2024-01-10',
+            'created_at' => now(),
+            'updated_at' => now()
+        ],
+        [
+            'surat_id' => 2,
+            'nomer_surat' => '002/PAN/TI/2024',
+            'judul_surat' => 'Undangan Workshop Data Science',
+            'file_surat' => 'surat_workshop_ds.pdf',
+            'tanggal_surat' => '2024-02-15',
+            'created_at' => now(),
+            'updated_at' => now()
+        ],
+        [
+            'surat_id' => 3,
+            'nomer_surat' => '003/PAN/TI/2024',
+            'judul_surat' => 'Undangan Konferensi Internasional',
+            'file_surat' => 'surat_conference.pdf',
+            'tanggal_surat' => '2024-03-20',
+            'created_at' => now(),
+            'updated_at' => now()
+        ]
+    ];
 
        DB::table('m_surat')->insert($data);
    }

@@ -8,11 +8,23 @@
             <!-- Dashboard -->
             <li class="nav-item">
                 <a href="{{ route('admin.dashboard') }}" class="nav-link {{ ($activemenu == 'dashboard')? 'active' : '' }}">
-                    <i class="nav-icon fas fa-tachometer-alt"></i>
-                    <p>Dashboard</p>
+                    <i class="fas fa-home nav-icon"></i>
+                    <p>Home</p>
                 </a>
             </li>
 
+            <li class="nav-item">
+                <a href="{{ route('admin.users.index') }}" class="nav-link {{ ($activemenu == 'profile')? 'active' : '' }}">
+                    <i class="fas fa-user nav-icon"></i>
+                    <p>Profile</p>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ route('admin.dosen.agenda.persetujuan-poin') }}" class="nav-link {{ ($activemenu == 'persetujuan-poin')? 'active' : '' }}">
+                    <i class="fas fa-coins nav-icon"></i>
+                    <p>Persetujuan Poin</p>
+                </a>
+            </li>
             <!-- Menu Dosen -->
             <li class="nav-item {{ in_array($activemenu, ['profile', 'agenda', 'progress', 'kegiatan-non-jti']) ? 'menu-open' : '' }}">
                 <a href="#" class="nav-link {{ in_array($activemenu, ['profile', 'agenda', 'progress', 'kegiatan-non-jti']) ? 'active' : '' }}">
@@ -23,24 +35,24 @@
                     </p>
                 </a>
                 <ul class="nav nav-treeview">
-                    <!-- Profile -->
-                    <li class="nav-item">
-                        <a href="{{ route('admin.users.index') }}" class="nav-link {{ ($activemenu == 'profile')? 'active' : '' }}">
-                            <i class="far fa-circle nav-icon"></i>
-                            <p>Profile</p>
-                        </a>
-                    </li>
 
                     <!-- Agenda -->
                     <li class="nav-item">
                         <a href="#" class="nav-link {{ ($activemenu == 'agenda')? 'active' : '' }}">
                             <i class="far fa-circle nav-icon"></i>
                             <p>
-                                Agenda
+                                Kegiatan & Agenda
                                 <i class="right fas fa-angle-left"></i>
                             </p>
                         </a>
                         <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="{{ route('admin.dosen.agenda.jabatan') }}" class="nav-link">
+                                    <i class="far fa-dot-circle nav-icon"></i>
+                                    <p>Pilih Jabatan</p>
+                                </a>
+                            </li>
+
                             <li class="nav-item">
                                 <a href="{{ route('admin.dosen.agenda.kegiatan') }}" class="nav-link">
                                     <i class="far fa-dot-circle nav-icon"></i>
@@ -51,12 +63,6 @@
                                 <a href="{{ route('admin.dosen.agenda.pilih-anggota') }}" class="nav-link">
                                     <i class="far fa-dot-circle nav-icon"></i>
                                     <p>Pilih Anggota</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="{{ route('admin.dosen.agenda.pembagian-poin') }}" class="nav-link">
-                                    <i class="far fa-dot-circle nav-icon"></i>
-                                    <p>Pembagian Poin</p>
                                 </a>
                             </li>
                             <li class="nav-item">

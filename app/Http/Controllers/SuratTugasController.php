@@ -15,8 +15,8 @@ class SuratTugasController extends Controller
             'title' => 'Surat Tugas',
             'list' => ['Home', 'Kaprodi', 'Surat Tugas']
         ];
-
-        $suratTugas = SuratModel::all();
+    
+        $suratTugas = SuratModel::orderBy('created_at', 'desc')->get();
         return view('admin.kaprodi.surat-tugas.index', compact('breadcrumb', 'suratTugas'));
     }
 
@@ -56,8 +56,19 @@ class SuratTugasController extends Controller
 
     public function show($id)
     {
-        $surat = SuratModel::findOrFail($id);
-        return response()->json($surat);
+        try {
+            $surat = SuratModel::findOrFail($id);
+            return response()->json([
+                'status' => 200,
+                'data' => $surat,
+                'file_url' => asset('storage/' . $surat->file_surat)
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'Data tidak ditemukan'
+            ]);
+        }
     }
 
     public function update(Request $request, $id)

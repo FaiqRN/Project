@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class SuratModel extends Model
 {
-    use SoftDeletes;
+
     
     protected $table = 'm_surat';
     protected $primaryKey = 'surat_id';

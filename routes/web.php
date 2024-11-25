@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\SuratTugasController;
+use App\Http\Controllers\JabatanController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -121,9 +122,19 @@ Route::middleware(['auth.role:Admin'])->prefix('admin')->name('admin.')->group(f
     // Dosen Management Routes
     Route::prefix('dosen')->name('dosen.')->group(function () {
 
-
         // Agenda Routes
         Route::prefix('agenda')->name('agenda.')->group(function () {
+
+            Route::controller(JabatanController::class)->group(function () {
+                Route::get('/jabatan/get-user-level/{userId}', 'getUserLevel')->name('jabatan.getUserLevel');
+                Route::get('/jabatan', 'index')->name('jabatan');
+                Route::post('/jabatan', 'store')->name('jabatan.store');
+                Route::get('/jabatan/{id}/edit', 'edit')->name('jabatan.edit');
+                Route::put('/jabatan/{id}', 'update')->name('jabatan.update');
+                Route::delete('/jabatan/{id}', 'destroy')->name('jabatan.destroy');
+                Route::get('/jabatan/get-kegiatan', 'getKegiatan')->name('jabatan.getKegiatan');
+            });
+
             Route::get('/kegiatan', function () {
                 return view('admin.dosen.agenda.kegiatan', [
                     'breadcrumb' => (object)[
@@ -142,14 +153,14 @@ Route::middleware(['auth.role:Admin'])->prefix('admin')->name('admin.')->group(f
                 ]);
             })->name('pilih-anggota');
 
-            Route::get('/pembagian-poin', function () {
-                return view('admin.dosen.agenda.pembagian-poin', [
+            Route::get('/persetujuan-poin', function () {
+                return view('admin.dosen.agenda.persetujuan-poin', [
                     'breadcrumb' => (object)[
-                        'title' => 'Pembagian Poin',
-                        'list' => ['Home', 'Dosen', 'Agenda', 'Pembagian Poin']
+                        'title' => 'persetujuan Poin',
+                        'list' => ['Home', 'Dosen', 'Agenda', 'persetujuan Poin']
                     ]
                 ]);
-            })->name('pembagian-poin');
+            })->name('persetujuan-poin');
 
             Route::get('/unggah-dokumen', function () {
                 return view('admin.dosen.agenda.unggah-dokumen', [

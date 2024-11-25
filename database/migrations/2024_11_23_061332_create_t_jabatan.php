@@ -16,16 +16,13 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('level_id');
             $table->enum('jabatan', ['ketua_pelaksana', 'sekertaris', 'bendahara', 'anggota']);
-            
-            // References ke berbagai jenis kegiatan
             $table->unsignedBigInteger('kegiatan_luar_institusi_id')->nullable();
             $table->unsignedBigInteger('kegiatan_institusi_id')->nullable();
             $table->unsignedBigInteger('kegiatan_jurusan_id')->nullable();
             $table->unsignedBigInteger('kegiatan_program_studi_id')->nullable();
-            
+
             $table->timestamps();
 
-            // Foreign keys
             $table->foreign('user_id')->references('user_id')->on('m_user')->onDelete('restrict');
             $table->foreign('level_id')->references('level_id')->on('m_level')->onDelete('restrict');
             $table->foreign('kegiatan_luar_institusi_id')
