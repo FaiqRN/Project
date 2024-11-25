@@ -5,11 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{config('app.name','SDM')}}</title>
 
+
   <meta name="csrf-token" content="{{csrf_token()}}">
+
 
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
+
 
   <!-- Google Font: Source Sans Pro -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
@@ -31,6 +34,7 @@
   @include('layouts.header')
   <!-- /.navbar -->
 
+
   <!-- Main Sidebar Container -->
   <aside class="main-sidebar sidebar-dark-primary elevation-4">
     <!-- Brand Logo -->
@@ -38,6 +42,7 @@
       <img src="{{asset('adminlte/dist/img/logo_kampus.png')}}" alt="logo kampus" class="brand-image img-circle elevation-3" style="opacity: .8">
       <span class="brand-text font-weight-light">POLINEMA</span>
     </a>
+
 
     <!-- Sidebar -->
     @if(session('level_nama') == 'Admin')
@@ -52,10 +57,12 @@
     <link rel="stylesheet" href="{{ asset('css/custom-sidebar.css') }}">
   </aside>
 
+
   <!-- Content Wrapper. Contains page content -->
   <div class="content-wrapper">
     <!-- Content Header (Page header) -->
     @include('layouts.breadcrumb')
+
 
     <!-- Main content -->
     <section class="content">
@@ -63,7 +70,7 @@
         .content-wrapper {
             background-color: #ECDFCC !important;
         }
-        
+       
         .card {
             background-color: white !important;
             box-shadow: 0 0 10px rgba(0,0,0,0.1) !important;
@@ -71,14 +78,17 @@
     </style>
       @yield('content')
 
+
     </section>
     <!-- /.content -->
   </div>
   <!-- /.content-wrapper -->
   @include('layouts.footer')
 
+
 </div>
 <!-- ./wrapper -->
+
 
 <!-- jQuery -->
 <script src="{{asset('adminlte/plugins/jquery/jquery.min.js')}}"></script>
@@ -100,6 +110,7 @@
 <!-- AdminLTE App -->
 <script src="{{asset('adminlte/dist/js/adminlte.min.js')}}"></script>
 
+
 <script>
   $.ajaxSetup({headers:{'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')}})
 </script>
@@ -109,7 +120,7 @@
   if (window.history.replaceState) {
       window.history.replaceState(null, null, window.location.href);
   }
-  
+ 
   // Mencegah back button setelah logout
   window.onpageshow = function(event) {
       if (event.persisted) {
@@ -119,3 +130,6 @@
 </script>
 </body>
 </html>
+
+
+
