@@ -54,6 +54,34 @@ class SuratTugasController extends Controller
         ]);
     }
 
+    public function showkaprodi($id)
+    {
+        try {
+            $surat = SuratModel::findOrFail($id);
+            $filePath = storage_path('app/public/' . $surat->file_surat);
+            
+            if (file_exists($filePath)) {
+                $headers = [
+                    'Content-Type' => 'application/pdf',
+                ];
+                
+                return response()->file($filePath, $headers);
+            }
+            
+            return response()->json([
+                'status' => 404,
+                'message' => 'File tidak ditemukan'
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 500,
+                'message' => 'Terjadi kesalahan saat membuka file'
+            ]);
+        }
+    }
+
+
     public function show($id)
     {
         try {
@@ -73,44 +101,52 @@ class SuratTugasController extends Controller
 
     public function update(Request $request, $id)
     {
-        $validator = Validator::make($request->all(), [
-            'nomer_surat' => 'required|unique:m_surat,nomer_surat,' . $id . ',surat_id',
-            'judul_surat' => 'required',
-            'file_surat' => 'nullable|mimes:pdf|max:2048',
-            'tanggal_surat' => 'required|date'
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 400,
-                'errors' => $validator->errors()
+        try {
+            $validator = Validator::make($request->all(), [
+                'nomer_surat' => 'required|unique:m_surat,nomer_surat,' . $id . ',surat_id',
+                'judul_surat' => 'required',
+                'file_surat' => 'nullable|mimes:pdf|max:2048',
+                'tanggal_surat' => 'required|date'
             ]);
-        }
-
-        $surat = SuratModel::findOrFail($id);
-        
-        // Handle file upload if new file is provided
-        if ($request->hasFile('file_surat')) {
-            // Delete old file
-            Storage::disk('public')->delete($surat->file_surat);
+    
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => 422,
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+    
+            $surat = SuratModel::findOrFail($id);
             
-            // Store new file
-            $file = $request->file('file_surat');
-            $fileName = time() . '_' . $file->getClientOriginalName();
-            $filePath = $file->storeAs('surat-tugas', $fileName, 'public');
-            
-            $surat->file_surat = $filePath;
+            // Handle file upload jika ada file baru
+            if ($request->hasFile('file_surat')) {
+                // Hapus file lama jika ada
+                if ($surat->file_surat && Storage::disk('public')->exists($surat->file_surat)) {
+                    Storage::disk('public')->delete($surat->file_surat);
+                }
+                
+                $file = $request->file('file_surat');
+                $fileName = time() . '_' . $file->getClientOriginalName();
+                $filePath = $file->storeAs('surat-tugas', $fileName, 'public');
+                
+                $surat->file_surat = $filePath;
+            }
+    
+            $surat->nomer_surat = $request->nomer_surat;
+            $surat->judul_surat = $request->judul_surat;
+            $surat->tanggal_surat = $request->tanggal_surat;
+            $surat->save();
+    
+            return response()->json([
+                'status' => 200,
+                'message' => 'Surat Tugas berhasil diperbarui'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 500,
+                'message' => 'Terjadi kesalahan pada server'
+            ], 500);
         }
-
-        $surat->nomer_surat = $request->nomer_surat;
-        $surat->judul_surat = $request->judul_surat;
-        $surat->tanggal_surat = $request->tanggal_surat;
-        $surat->save();
-
-        return response()->json([
-            'status' => 200,
-            'message' => 'Surat Tugas berhasil diperbarui'
-        ]);
     }
 
     public function destroy($id)
@@ -123,5 +159,37 @@ class SuratTugasController extends Controller
             'status' => 200,
             'message' => 'Surat Tugas berhasil dihapus'
         ]);
+    }
+
+    public function download()
+    {
+        try {
+            $breadcrumb = (object)[
+                'title' => 'Download Dokumen Surat Tugas',
+                'list' => ['Home', 'Surat Tugas', 'Download Dokumen']
+            ];
+
+            $suratTugas = SuratModel::orderBy('tanggal_surat', 'desc')->paginate(10);
+            return view('kaprodi.surat-tugas.download', compact('breadcrumb', 'suratTugas'));
+        } catch (\Exception $e) {
+            return back()->with('error', 'Terjadi kesalahan saat mengambil data');
+        }
+    }
+
+    public function downloadSurat($id)
+    {
+        try {
+            $surat = SuratModel::findOrFail($id);
+            $filePath = storage_path('app/public/' . $surat->file_surat);
+            
+            if (file_exists($filePath)) {
+                return response()->download($filePath)->deleteFileAfterSend(false);
+            }
+            
+            return back()->with('error', 'File tidak ditemukan');
+            
+        } catch (\Exception $e) {
+            return back()->with('error', 'Terjadi kesalahan saat mengunduh file');
+        }
     }
 }
