@@ -307,12 +307,23 @@ $(document).on('click', '#detail_file_surat', function(e) {
 
 
 function editSurat(id) {
-    $.get("{{ url('admin/kaprodi/surat-tugas') }}/" + id, function(response) {
-        $('#edit-id').val(response.surat_id);
-        $('#edit-nomer').val(response.nomer_surat);
-        $('#edit-judul').val(response.judul_surat);
-        $('#edit-tanggal').val(response.tanggal_surat);
-        $('#modalEdit').modal('show');
+    $.ajax({
+        url: `{{ url('admin/kaprodi/surat-tugas') }}/${id}`,
+        type: 'GET',
+        success: function(response) {
+            if(response.status == 200) {
+                $('#edit-id').val(response.data.surat_id);
+                $('#edit-nomer').val(response.data.nomer_surat);
+                $('#edit-judul').val(response.data.judul_surat);
+                $('#edit-tanggal').val(response.data.tanggal_surat);
+                $('#modalEdit').modal('show');
+            } else {
+                Swal.fire('Error!', response.message || 'Terjadi kesalahan', 'error');
+            }
+        },
+        error: function(xhr) {
+            Swal.fire('Error!', 'Terjadi kesalahan saat mengambil data', 'error');
+        }
     });
 }
 
@@ -353,27 +364,44 @@ $('#formEdit').on('submit', function(e) {
     let formData = new FormData(this);
     let id = $('#edit-id').val();
     
+    formData.append('_method', 'PUT'); // Menambahkan method PUT
+    
     $.ajax({
-        url: "{{ url('admin/kaprodi/surat-tugas') }}/" + id,
-        type: "POST",
+        url: `{{ url('admin/kaprodi/surat-tugas') }}/${id}`,
+        type: 'POST',
         data: formData,
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
         contentType: false,
         processData: false,
         success: function(response) {
             if(response.status == 200) {
-                Swal.fire('Sukses!', response.message, 'success')
-                    .then(() => location.reload());
+                $('#modalEdit').modal('hide');
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Sukses!',
+                    text: response.message,
+                    showConfirmButton: false,
+                    timer: 1500
+                }).then(() => {
+                    window.location.reload();
+                });
             } else {
-                Swal.fire('Error!', 'Terjadi kesalahan', 'error');
+                Swal.fire('Error!', response.message || 'Terjadi kesalahan', 'error');
             }
         },
-        error: function(response) {
-            let errors = response.responseJSON.errors;
-            let errorMessage = '';
-            $.each(errors, function(key, value) {
-                errorMessage += value[0] + '\n';
-            });
-            Swal.fire('Error!', errorMessage, 'error');
+        error: function(xhr) {
+            if(xhr.status === 422) { // Validation error
+                let errors = xhr.responseJSON.errors;
+                let errorMessage = '';
+                $.each(errors, function(key, value) {
+                    errorMessage += value[0] + '\n';
+                });
+                Swal.fire('Error!', errorMessage, 'error');
+            } else {
+                Swal.fire('Error!', 'Terjadi kesalahan pada server', 'error');
+            }
         }
     });
 });
