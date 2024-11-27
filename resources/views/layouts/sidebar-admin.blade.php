@@ -55,7 +55,7 @@
                             </li>
 
                             <li class="nav-item">
-                                <a href="{{ route('admin.dosen.agenda.kegiatan') }}" class="nav-link">
+                                <a href="{{ route('admin.dosen.agenda.kegiatan') }}" class="nav-link {{ ($activemenu == 'kegiatan')? 'active' : '' }}">
                                     <i class="fa fa-circle-o nav-icon"></i>
                                     <p>Kegiatan</p>
                                 </a>

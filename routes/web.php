@@ -6,6 +6,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\SuratTugasController;
 use App\Http\Controllers\JabatanController;
+use App\Http\Controllers\KegiatanController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -135,14 +136,22 @@ Route::middleware(['auth.role:Admin'])->prefix('admin')->name('admin.')->group(f
                 Route::get('/jabatan/get-kegiatan', 'getKegiatan')->name('jabatan.getKegiatan');
             });
 
-            Route::get('/kegiatan', function () {
-                return view('admin.dosen.agenda.kegiatan', [
-                    'breadcrumb' => (object)[
-                        'title' => 'Kegiatan Dosen',
-                        'list' => ['Home', 'Dosen', 'Agenda', 'Kegiatan']
-                    ]
-                ]);
-            })->name('kegiatan');
+            Route::get('/kegiatan', [KegiatanController::class, 'index'])->name('kegiatan');
+            Route::prefix('jurusan')->group(function () {
+                Route::get('/get-data', [KegiatanController::class, 'getKegiatanJurusan'])->name('jurusan.data');
+                Route::post('/store', [KegiatanController::class, 'storeKegiatanJurusan'])->name('jurusan.store');
+                Route::get('/{id}', [KegiatanController::class, 'showKegiatanJurusan'])->name('jurusan.show');
+                Route::put('/update/{id}', [KegiatanController::class, 'updateKegiatanJurusan'])->name('jurusan.update');
+                Route::delete('/delete/{id}', [KegiatanController::class, 'destroyKegiatanJurusan'])->name('jurusan.destroy');
+            });
+
+            Route::prefix('prodi')->group(function () {
+                Route::get('/get-data', [KegiatanController::class, 'getKegiatanProdi'])->name('prodi.data');
+                Route::post('/store', [KegiatanController::class, 'storeKegiatanProdi'])->name('prodi.store');
+                Route::get('/{id}', [KegiatanController::class, 'showKegiatanProdi'])->name('prodi.show');
+                Route::put('/update/{id}', [KegiatanController::class, 'updateKegiatanProdi'])->name('prodi.update');
+                Route::delete('/delete/{id}', [KegiatanController::class, 'destroyKegiatanProdi'])->name('prodi.destroy');
+            });
 
             Route::get('/pilih-anggota', function () {
                 return view('admin.dosen.agenda.pilih-anggota', [

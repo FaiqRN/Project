@@ -23,4 +23,15 @@ class SuratModel extends Model
         'updated_at',
         'deleted_at'
     ];
+
+    public function kegiatanJurusan()
+    {
+        return $this->hasOne(KegiatanJurusanModel::class, 'surat_id');
+    }
+
+    // Relasi ke KegiatanProgramStudi
+    public function kegiatanProgramStudi()
+    {
+        return $this->hasOne(KegiatanProgramStudiModel::class, 'surat_id');
+    }
 }
