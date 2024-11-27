@@ -26,25 +26,25 @@
                 <ul class="nav nav-treeview">
                     <li class="nav-item">
                         <a href="{{ url('/kegiatan') }}" class="nav-link">
-                            <i class="far fa-circle nav-icon"></i>
+                            <i class="fa fa-fw fa-university"></i>
                             <p>Kegiatan</p>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="{{ url('/pilih-anggota') }}" class="nav-link">
-                            <i class="far fa-circle nav-icon"></i>
+                            <i class="fa fa-fw fa-users"></i>
                             <p>Pilih Anggota</p>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="{{ url('/pembagian-poin') }}" class="nav-link">
-                            <i class="far fa-circle nav-icon"></i>
+                            <i class="fa fa-fw fa-plus-square"></i>
                             <p>Penambahan Poin</p>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="{{ url('/unggah-dokumen') }}" class="nav-link">
-                            <i class="far fa-circle nav-icon"></i>
+                            <i class="fa fa-fw fa-clipboard"></i>
                             <p>Unggah Dokumen Akhir</p>
                         </a>
                     </li>
@@ -54,7 +54,7 @@
             <!-- Progress Kegiatan -->
             <li class="nav-item">
                 <a href="{{ url('/progress-kegiatan') }}" class="nav-link {{ ($activemenu == 'progress-kegiatan')? 'active' : '' }}">
-                    <i class="nav-icon fas fa-tasks"></i>
+                    <i class="fa fa-tasks nav-icon"></i>
                     <p>Progress Kegiatan</p>
                 </a>
             </li>
@@ -62,7 +62,7 @@
             <!-- Update Progress Agenda -->
             <li class="nav-item">
                 <a href="{{ url('/update-progress') }}" class="nav-link {{ ($activemenu == 'update-progress')? 'active' : '' }}">
-                    <i class="nav-icon fas fa-chart-line"></i>
+                    <i class="fa fa-fw fa-hourglass-half"></i>
                     <p>Update Progress Agenda</p>
                 </a>
             </li>
@@ -70,7 +70,7 @@
             <!-- Kegiatan Non-JTI -->
             <li class="nav-item">
                 <a href="{{ url('/kegiatan-non-jti') }}" class="nav-link {{ ($activemenu == 'kegiatan-non-jti')? 'active' : '' }}">
-                    <i class="nav-icon fas fa-external-link-alt"></i>
+                    <i class="fa fa-fw fa-university"></i>
                     <p>Kegiatan Non-JTI</p>
                 </a>
             </li>
