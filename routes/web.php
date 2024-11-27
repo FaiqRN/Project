@@ -67,31 +67,44 @@ Route::middleware(['auth.check'])->group(function () {
 
     
     // Kaprodi Routes
-    Route::middleware(['auth.role:Kaprodi'])->prefix('kaprodi')->group(function () {
-        Route::get('/', function () {
-            return redirect()->route('kaprodi.dashboard');
-        });
-        
-        Route::get('/dashboard', function () {
-            return view('kaprodi.dashboard', [
-                'breadcrumb' => (object)[
-                    'title' => 'Dashboard Kaprodi',
-                    'list' => ['Home', 'Dashboard']
-                ]
-            ]);
-        })->name('kaprodi.dashboard');
 
-    
-        // Tambahkan route Kaprodi lainnya di sini
-        Route::get('/kegiatan', function () {
-            return view('kaprodi.kegiatan.index', [
-                'breadcrumb' => (object)[
-                    'title' => 'Daftar Kegiatan',
-                    'list' => ['Home', 'Kegiatan']
-                ]
-            ]);
-        })->name('kaprodi.kegiatan');
+Route::middleware(['auth.role:Kaprodi'])->prefix('kaprodi')->group(function () {
+    Route::get('/', function () {
+        return redirect()->route('kaprodi.dashboard');
     });
+    
+    Route::get('/dashboard', function () {
+        return view('kaprodi.dashboard', [
+            'breadcrumb' => (object)[
+                'title' => 'Dashboard Kaprodi',
+                'list' => ['Home', 'Dashboard']
+            ]
+        ]);
+    })->name('kaprodi.dashboard');
+
+    // Tambahkan route Kaprodi lainnya di sini
+    Route::get('/kegiatan', function () {
+        return view('kaprodi.kegiatan.index', [
+            'breadcrumb' => (object)[
+                'title' => 'Daftar Kegiatan',
+                'list' => ['Home', 'Kegiatan']
+            ]
+        ]);
+    })->name('kaprodi.kegiatan');
+
+    // Route untuk menu download surat tugas
+    Route::get('/surat-tugas/download', [SuratTugasController::class, 'download'])
+        ->name('kaprodi.surat-tugas.download');
+        
+    // Route untuk download file surat
+    Route::get('/surat-tugas/download-file/{id}', [SuratTugasController::class, 'downloadSurat'])
+        ->name('kaprodi.surat-tugas.download-file');
+
+    // Route untuk preview/lihat surat
+    Route::get('/surat-tugas/{id}', [SuratTugasController::class, 'showkaprodi'])
+        ->name('kaprodi.surat-tugas.showkaprodi');
+    
+});
 
 
 

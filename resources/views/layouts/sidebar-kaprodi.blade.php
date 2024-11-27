@@ -68,7 +68,7 @@
                 </a>
                 <ul class="nav nav-treeview">
                     <li class="nav-item">
-                        <a href="{{ url('/surat-tugas/download') }}" class="nav-link">
+                        <a href="{{ url('/kaprodi/surat-tugas/download') }}" class="nav-link">
                             <i class="fa fa-fw fa-file-download nav-icon"></i>
                             <p>Download Dokumen</p>
                         </a>
