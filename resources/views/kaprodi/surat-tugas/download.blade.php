@@ -44,7 +44,7 @@
                     </div>
                 </div>
             </div>
-        @empty
+        @empty 
             <div class="alert alert-info">
                 Belum ada surat tugas yang tersedia.
             </div>

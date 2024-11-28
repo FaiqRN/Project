@@ -15,7 +15,7 @@
 
             <li class="nav-item">
                 <a href="{{ route('admin.users.index') }}" class="nav-link {{ ($activemenu == 'profile')? 'active' : '' }}">
-                    <i class="nav-icon fa fa-user"></i>
+                    <i class="nav-icon fas fa-user-cog"></i>
                     <p>Profile</p>
                 </a>
             </li>
@@ -30,7 +30,7 @@
             <!-- Menu Dosen -->
             <li class="nav-item {{ in_array($activemenu, ['profile', 'agenda', 'progress', 'kegiatan-non-jti']) ? 'menu-open' : '' }}">
                 <a href="#" class="nav-link {{ in_array($activemenu, ['profile', 'agenda', 'progress', 'kegiatan-non-jti']) ? 'active' : '' }}">
-                    <i class="nav-icon fa fa-user-md"></i>
+                    <i class="nav-icon fas fa-chalkboard-teacher"></i>
                     <p>
                         Dosen
                         <i class="right fa fa-angle-left"></i>
@@ -49,26 +49,26 @@
                         <ul class="nav nav-treeview">
                             <li class="nav-item">
                                 <a href="{{ route('admin.dosen.agenda.jabatan') }}" class="nav-link">
-                                    <i class="fa fa-circle-o nav-icon"></i>
+                                            <i class="fa fa-fw fa-circle"></i>
                                     <p>Pilih Jabatan</p>
                                 </a>
                             </li>
 
                             <li class="nav-item">
                                 <a href="{{ route('admin.dosen.agenda.kegiatan') }}" class="nav-link">
-                                    <i class="fa fa-circle-o nav-icon"></i>
+                                            <i class="fa fa-fw fa-circle"></i>
                                     <p>Kegiatan</p>
                                 </a>
                             </li>
                             <li class="nav-item">
                                 <a href="{{ route('admin.dosen.agenda.pilih-anggota') }}" class="nav-link">
-                                    <i class="fa fa-circle-o nav-icon"></i>
+                                            <i class="fa fa-fw fa-circle"></i>
                                     <p>Pilih Anggota</p>
                                 </a>
                             </li>
                             <li class="nav-item">
                                 <a href="{{ route('admin.dosen.agenda.unggah-dokumen') }}" class="nav-link">
-                                    <i class="fa fa-circle-o nav-icon"></i>
+                                            <i class="fa fa-fw fa-circle"></i>
                                     <p>Unggah Dokumen</p>
                                 </a>
                             </li>
@@ -104,7 +104,7 @@
             <!-- Menu Kaprodi -->
             <li class="nav-item {{ in_array($activemenu, ['surat-tugas']) ? 'menu-open' : '' }}">
                 <a href="#" class="nav-link {{ in_array($activemenu, ['surat-tugas']) ? 'active' : '' }}">
-                    <i class="nav-icon fa fa-user-md"></i>
+                    <i class="nav-icon fas fa-user-tie"></i>
                     <p>
                         Kaprodi
                         <i class="right fa fa-angle-left"></i>

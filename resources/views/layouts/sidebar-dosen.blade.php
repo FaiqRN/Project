@@ -44,7 +44,7 @@
                     </li>
                     <li class="nav-item">
                         <a href="{{ url('/unggah-dokumen') }}" class="nav-link">
-                            <i class="fa fa-fw fa-clipboard"></i>
+                            <i class="fas fa-file-upload"></i>
                             <p>Unggah Dokumen Akhir</p>
                         </a>
                     </li>

@@ -25,7 +25,7 @@
                 <ul class="nav nav-treeview">
                     <li class="nav-item">
                         <a href="{{ url('/kegiatan/lihat') }}" class="nav-link">
-                            <i class="fa fa-fw fa-list-alt nav-icon"></i>
+                            <i class="fas fa-eye nav-icon"></i>
                             <p>Melihat Kegiatan</p>
                         </a>
                     </li>
@@ -44,13 +44,13 @@
                 <ul class="nav nav-treeview">
                     <li class="nav-item">
                         <a href="{{ url('/statistik/beban-kerja') }}" class="nav-link">
-                            <i class="fa fa-fw fa-binoculars nav-icon"></i>
+                            <i class="fas fa-briefcase nav-icon"></i>
                             <p>Melihat Beban Kerja</p>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="{{ url('/statistik/hasil') }}" class="nav-link">
-                            <i class="fa fa-fw fa-sitemap"></i>
+                            <i class="fas fa-layer-group"></i>
                             <p>Hasil Statistik</p>
                         </a>
                     </li>
