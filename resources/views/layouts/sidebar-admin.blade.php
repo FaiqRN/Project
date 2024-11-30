@@ -1,16 +1,7 @@
 @php
-    // Ensure $activemenu is always defined
     $activemenu = $activemenu ?? '';
-    
-    // Helper function to check if menu is active
-    function isMenuActive($menu, $activemenu) {
-        return $activemenu === $menu ? 'active' : '';
-    }
-    
-    // Helper function to check if menu should be open
-    function isMenuOpen($menuItems, $activemenu) {
-        return in_array($activemenu, $menuItems) ? 'menu-open' : '';
-    }
+    $agendaMenus = ['agenda', 'progress', 'kegiatan-non-jti'];
+    $currentRoute = request()->route()->getName();
 @endphp
 
 <div class="sidebar">
@@ -18,7 +9,7 @@
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
             {{-- Dashboard --}}
             <li class="nav-item">
-                <a href="{{ route('admin.dashboard') }}" class="nav-link {{ isMenuActive('dashboard', $activemenu) }}">
+                <a href="{{ route('admin.dashboard') }}" class="nav-link {{ $activemenu === 'dashboard' ? 'active' : '' }}">
                     <i class="nav-icon fa fa-home"></i>
                     <p>Home</p>
                 </a>
@@ -26,26 +17,15 @@
 
             {{-- Profile --}}
             <li class="nav-item">
-                <a href="{{ route('admin.users.index') }}" class="nav-link {{ isMenuActive('profile', $activemenu) }}">
+                <a href="{{ route('admin.users.index') }}" class="nav-link {{ $activemenu === 'users' ? 'active' : '' }}">
                     <i class="nav-icon fas fa-user-cog"></i>
-                    <p>Profile</p>
-                </a>
-            </li>
-            
-            {{-- Persetujuan Poin --}}
-            <li class="nav-item">
-                <a href="{{ route('admin.dosen.agenda.persetujuan-poin') }}" class="nav-link {{ isMenuActive('persetujuan-poin', $activemenu) }}">
-                    <i class="fa fa-fw fa-star"></i>
-                    <p>Persetujuan Poin</p>
+                    <p>Manajemen User</p>
                 </a>
             </li>
 
             {{-- Menu Dosen --}}
-            @php
-                $dosenMenuItems = ['profile', 'agenda', 'progress', 'kegiatan-non-jti'];
-            @endphp
-            <li class="nav-item {{ isMenuOpen($dosenMenuItems, $activemenu) }}">
-                <a href="#" class="nav-link {{ isMenuOpen($dosenMenuItems, $activemenu) ? 'active' : '' }}">
+            <li class="nav-item {{ in_array($activemenu, $agendaMenus) ? 'menu-open' : '' }}">
+                <a href="#" class="nav-link {{ in_array($activemenu, $agendaMenus) ? 'active' : '' }}">
                     <i class="nav-icon fas fa-chalkboard-teacher"></i>
                     <p>
                         Dosen
@@ -55,7 +35,7 @@
                 <ul class="nav nav-treeview">
                     {{-- Agenda --}}
                     <li class="nav-item">
-                        <a href="#" class="nav-link {{ isMenuActive('agenda', $activemenu) }}">
+                        <a href="#" class="nav-link {{ $activemenu === 'agenda' ? 'active' : '' }}">
                             <i class="fa fa-calendar nav-icon"></i>
                             <p>
                                 Kegiatan & Agenda
@@ -64,26 +44,32 @@
                         </a>
                         <ul class="nav nav-treeview">
                             <li class="nav-item">
-                                <a href="{{ route('admin.dosen.agenda.jabatan') }}" class="nav-link">
-                                    <i class="fa fa-fw fa-circle"></i>
+                                <a href="{{ route('admin.dosen.agenda.jabatan') }}" class="nav-link {{ $currentRoute === 'admin.dosen.agenda.jabatan' ? 'active' : '' }}">
+                                    <i class="fa fa-fw fa-circle nav-icon"></i>
                                     <p>Pilih Jabatan</p>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="{{ route('admin.dosen.agenda.kegiatan') }}" class="nav-link">
-                                    <i class="fa fa-fw fa-circle"></i>
+                                <a href="{{ route('admin.dosen.agenda.kegiatan') }}" class="nav-link {{ $currentRoute === 'admin.dosen.agenda.kegiatan' ? 'active' : '' }}">
+                                    <i class="fa fa-fw fa-circle nav-icon"></i>
                                     <p>Kegiatan</p>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="{{ route('admin.dosen.agenda.pilih-anggota') }}" class="nav-link">
-                                    <i class="fa fa-fw fa-circle"></i>
+                                <a href="{{ route('admin.dosen.agenda.pilih-anggota') }}" class="nav-link {{ $currentRoute === 'admin.dosen.agenda.pilih-anggota' ? 'active' : '' }}">
+                                    <i class="fa fa-fw fa-circle nav-icon"></i>
                                     <p>Pilih Anggota</p>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="{{ route('admin.dosen.agenda.unggah-dokumen') }}" class="nav-link">
-                                    <i class="fa fa-fw fa-circle"></i>
+                                <a href="{{ route('admin.dosen.agenda.persetujuan-poin') }}" class="nav-link {{ $currentRoute === 'admin.dosen.agenda.persetujuan-poin' ? 'active' : '' }}">
+                                    <i class="fa fa-fw fa-circle nav-icon"></i>
+                                    <p>Persetujuan Poin</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('admin.dosen.agenda.unggah-dokumen') }}" class="nav-link {{ $currentRoute === 'admin.dosen.agenda.unggah-dokumen' ? 'active' : '' }}">
+                                    <i class="fa fa-fw fa-circle nav-icon"></i>
                                     <p>Unggah Dokumen</p>
                                 </a>
                             </li>
@@ -92,24 +78,24 @@
 
                     {{-- Progress Kegiatan --}}
                     <li class="nav-item">
-                        <a href="{{ route('admin.dosen.progress-kegiatan') }}" class="nav-link {{ isMenuActive('progress', $activemenu) }}">
+                        <a href="{{ route('admin.dosen.progress-kegiatan') }}" class="nav-link {{ $currentRoute === 'admin.dosen.progress-kegiatan' ? 'active' : '' }}">
                             <i class="fa fa-tasks nav-icon"></i>
                             <p>Progress Kegiatan</p>
                         </a>
                     </li>
 
-                    {{-- Update Progress Kegiatan --}}
+                    {{-- Update Progress --}}
                     <li class="nav-item">
-                        <a href="{{ route('admin.dosen.update-progress') }}" class="nav-link {{ isMenuActive('update-progress', $activemenu) }}">
-                            <i class="fa fa-fw fa-hourglass-half"></i>
+                        <a href="{{ route('admin.dosen.update-progress') }}" class="nav-link {{ $currentRoute === 'admin.dosen.update-progress' ? 'active' : '' }}">
+                            <i class="fa fa-fw fa-hourglass-half nav-icon"></i>
                             <p>Update Progress</p>
                         </a>
                     </li>
 
                     {{-- Kegiatan Non-JTI --}}
                     <li class="nav-item">
-                        <a href="{{ route('admin.dosen.kegiatan-non-jti') }}" class="nav-link {{ isMenuActive('kegiatan-non-jti', $activemenu) }}">
-                            <i class="fa fa-fw fa-university"></i>
+                        <a href="{{ route('admin.dosen.kegiatan-non-jti') }}" class="nav-link {{ $currentRoute === 'admin.dosen.kegiatan-non-jti' ? 'active' : '' }}">
+                            <i class="fa fa-fw fa-university nav-icon"></i>
                             <p>Kegiatan Non-JTI</p>
                         </a>
                     </li>
@@ -117,11 +103,8 @@
             </li>
 
             {{-- Menu Kaprodi --}}
-            @php
-                $kaprodiMenuItems = ['surat-tugas'];
-            @endphp
-            <li class="nav-item {{ isMenuOpen($kaprodiMenuItems, $activemenu) }}">
-                <a href="#" class="nav-link {{ isMenuOpen($kaprodiMenuItems, $activemenu) ? 'active' : '' }}">
+            <li class="nav-item">
+                <a href="#" class="nav-link {{ str_contains($currentRoute, 'admin.kaprodi') ? 'active' : '' }}">
                     <i class="nav-icon fas fa-user-tie"></i>
                     <p>
                         Kaprodi
@@ -131,8 +114,8 @@
                 <ul class="nav nav-treeview">
                     {{-- Surat Tugas --}}
                     <li class="nav-item">
-                        <a href="{{ route('admin.kaprodi.surat-tugas') }}" class="nav-link {{ isMenuActive('surat-tugas', $activemenu) }}">
-                            <i class="fa fa-fw fa-file"></i>
+                        <a href="{{ route('admin.kaprodi.surat-tugas') }}" class="nav-link {{ $currentRoute === 'admin.kaprodi.surat-tugas' ? 'active' : '' }}">
+                            <i class="fa fa-fw fa-file nav-icon"></i>
                             <p>Surat Tugas</p>
                         </a>
                     </li>

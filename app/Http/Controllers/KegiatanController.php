@@ -354,4 +354,121 @@ class KegiatanController extends Controller
             ], 500);
         }
     }
+
+    // Method untuk menampilkan kegiatan PIC
+    public function showKegiatanPIC()
+    {
+        try {
+            // Mendapatkan ID user yang sedang login
+            $userId = session('user_id');
+            
+            // Mengambil kegiatan jurusan dimana user adalah PIC
+            $kegiatanJurusan = KegiatanJurusanModel::with(['user', 'surat'])
+                ->where('user_id', $userId)
+                ->where('status_kegiatan', 'berlangsung')
+                ->first();
+
+            // Mengambil kegiatan prodi dimana user adalah PIC
+            $kegiatanProdi = KegiatanProgramStudiModel::with(['user', 'surat'])
+                ->where('user_id', $userId)
+                ->where('status_kegiatan', 'berlangsung')
+                ->first();
+
+            $breadcrumb = (object)[
+                'title' => 'Kegiatan',
+                'list' => ['Home', 'Agenda', 'Kegiatan']
+            ];
+
+            return view('pic.kegiatan', compact('kegiatanJurusan', 'kegiatanProdi', 'breadcrumb'));
+
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
+    }
+
+    // Method untuk mengunduh surat tugas
+    public function downloadSuratTugas($type, $id)
+    {
+        try {
+            $kegiatan = null;
+            
+            if ($type === 'jurusan') {
+                $kegiatan = KegiatanJurusanModel::with('surat')->findOrFail($id);
+            } else if ($type === 'prodi') {
+                $kegiatan = KegiatanProgramStudiModel::with('surat')->findOrFail($id);
+            }
+
+            if (!$kegiatan || !$kegiatan->surat_penugasan) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Surat tugas tidak ditemukan'
+                ], 404);
+            }
+
+            $filePath = storage_path('app/' . $kegiatan->surat_penugasan);
+            
+            if (!file_exists($filePath)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'File surat tugas tidak ditemukan'
+                ], 404);
+            }
+
+            return response()->download($filePath);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    // Method untuk validasi tanggal agenda
+    public function validateTanggalAgenda(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'tanggal_agenda' => 'required|date',
+                'kegiatan_type' => 'required|in:jurusan,prodi',
+                'kegiatan_id' => 'required'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => 'error',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $kegiatan = null;
+            if ($request->kegiatan_type === 'jurusan') {
+                $kegiatan = KegiatanJurusanModel::findOrFail($request->kegiatan_id);
+            } else {
+                $kegiatan = KegiatanProgramStudiModel::findOrFail($request->kegiatan_id);
+            }
+
+            $tanggalAgenda = strtotime($request->tanggal_agenda);
+            $tanggalMulai = strtotime($kegiatan->tanggal_mulai);
+            $tanggalSelesai = strtotime($kegiatan->tanggal_selesai);
+
+            if ($tanggalAgenda < $tanggalMulai || $tanggalAgenda > $tanggalSelesai) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Tanggal agenda harus berada dalam rentang waktu kegiatan'
+                ], 422);
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Tanggal agenda valid'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
  }

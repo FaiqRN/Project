@@ -63,16 +63,14 @@ class LoginController extends Controller{
                 ]);
 
                 // Redirect based on user level
-                switch ($user->level->level_nama) {
-                    case 'Admin':
-                        return redirect()->route('admin.dashboard')
-                            ->with('success', 'Selamat datang, ' . $user->nama_lengkap);
-                    case 'Kaprodi':
-                        return redirect()->route('kaprodi.dashboard')
-                            ->with('success', 'Selamat datang, ' . $user->nama_lengkap);
-                    case 'Dosen':
-                        return redirect()->route('dosen.dashboard')
-                            ->with('success', 'Selamat datang, ' . $user->nama_lengkap);
+                switch (strtoupper($user->level->level_nama)) {
+                    case 'ADMIN':
+                        return redirect()->route('admin.dashboard');
+                    case 'KAPRODI':
+                        return redirect()->route('kaprodi.dashboard');
+                    case 'DOSEN':
+                    case 'PIC':
+                        return redirect()->route('dosen.dashboard');
                     default:
                         return redirect()->route('login')
                             ->with('error', 'Level pengguna tidak valid');

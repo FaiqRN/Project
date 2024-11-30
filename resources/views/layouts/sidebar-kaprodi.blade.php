@@ -1,11 +1,6 @@
+{{-- First, set default value for $activemenu if it's not set --}}
 @php
-    // Ensure $activemenu is always defined
     $activemenu = $activemenu ?? '';
-    
-    // Helper function to check if menu is active
-    function isMenuActive($menu, $activemenu) {
-        return $activemenu === $menu ? 'active' : '';
-    }
 @endphp
 
 <div class="sidebar">
@@ -13,7 +8,7 @@
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
             {{-- Beranda --}}
             <li class="nav-item">
-                <a href="{{ url('/') }}" class="nav-link {{ isMenuActive('beranda', $activemenu) }}">
+                <a href="{{ url('/') }}" class="nav-link {{ $activemenu === 'beranda' ? 'active' : '' }}">
                     <i class="fa fa-fw fa-home nav-icon"></i>
                     <p>Beranda</p>
                 </a>
@@ -21,7 +16,7 @@
 
             {{-- Kegiatan --}}
             <li class="nav-item">
-                <a href="#" class="nav-link {{ isMenuActive('kegiatan', $activemenu) }}">
+                <a href="#" class="nav-link {{ $activemenu === 'kegiatan' ? 'active' : '' }}">
                     <i class="fa fa-fw fa-calendar nav-icon"></i>
                     <p>
                         Kegiatan
@@ -40,7 +35,7 @@
 
             {{-- Statistik --}}
             <li class="nav-item">
-                <a href="#" class="nav-link {{ isMenuActive('statistik', $activemenu) }}">
+                <a href="#" class="nav-link {{ $activemenu === 'statistik' ? 'active' : '' }}">
                     <i class="fa fa-fw fa-chart-bar nav-icon"></i>
                     <p>
                         Statistik
@@ -65,7 +60,7 @@
 
             {{-- Surat Tugas --}}
             <li class="nav-item">
-                <a href="#" class="nav-link {{ isMenuActive('surat-tugas', $activemenu) }}">
+                <a href="#" class="nav-link {{ $activemenu === 'surat-tugas' ? 'active' : '' }}">
                     <i class="fa fa-fw fa-file-alt nav-icon"></i>
                     <p>
                         Surat Tugas
