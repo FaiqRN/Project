@@ -30,7 +30,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="{{ url('/dosen/pilih-anggota') }}" class="nav-link">
+                        <a href="{{ route('pic.pilih-anggota.index') }}" class="nav-link {{ isMenuActive('pilih-anggota', $activemenu) }}">
                             <i class="nav-icon fa fa-fw fa-users"></i>
                             <p>Pilih Anggota</p>
                         </a>
