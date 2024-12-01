@@ -59,24 +59,34 @@ Route::middleware(['auth.check'])->group(function () {
                 ]);
             })->name('dosen.agenda');
 
-        // Route khusus PIC
-        Route::middleware(['auth.role:PIC'])->group(function () {
-            // Kegiatan Routes
-            Route::get('/kegiatan', [KegiatanController::class, 'showKegiatanPIC'])->name('pic.kegiatan');
-            Route::get('/kegiatan/download-surat-tugas/{type}/{id}', [KegiatanController::class, 'downloadSuratTugas'])->name('kegiatan.download.surat');
-            Route::post('/kegiatan/validate-tanggal-agenda', [KegiatanController::class, 'validateTanggalAgenda'])->name('kegiatan.validate.tanggal');
+            // Route khusus PIC
+            Route::middleware(['auth.role:PIC'])->group(function () {
+                // Kegiatan Routes
+                Route::get('/kegiatan', [KegiatanController::class, 'showKegiatanPIC'])->name('pic.kegiatan');
+                Route::get('/kegiatan/download-surat-tugas/{type}/{id}', [KegiatanController::class, 'downloadSuratTugas'])->name('kegiatan.download.surat');
+                Route::post('/kegiatan/validate-tanggal-agenda', [KegiatanController::class, 'validateTanggalAgenda'])->name('kegiatan.validate.tanggal');
 
-            // Agenda Routes
-            Route::prefix('kegiatan/agenda')->name('agenda.')->group(function () {
-                Route::get('/{type}/{id}', [AgendaController::class, 'index'])->name('index');
-                Route::post('/', [AgendaController::class, 'store'])->name('store');
-                Route::get('/{id}', [AgendaController::class, 'show'])->name('show');
-                Route::put('/{id}', [AgendaController::class, 'update'])->name('update');
-                Route::delete('/{id}', [AgendaController::class, 'destroy'])->name('destroy');
+                // Agenda Routes
+                Route::prefix('kegiatan/agenda')->name('agenda.')->group(function () {
+                    Route::get('/{type}/{id}', [AgendaController::class, 'index'])->name('index');
+                    Route::post('/', [AgendaController::class, 'store'])->name('store');
+                    Route::get('/{id}', [AgendaController::class, 'show'])->name('show');
+                    Route::put('/{id}', [AgendaController::class, 'update'])->name('update');
+                    Route::delete('/{id}', [AgendaController::class, 'destroy'])->name('destroy');
+                });
+
+                // Route untuk Pilih Anggota
+                Route::prefix('pilih-anggota')->name('pic.pilih-anggota.')->group(function () {
+                    Route::get('/', [PilihAnggotaController::class, 'index'])->name('index');
+                    Route::get('/data', [PilihAnggotaController::class, 'getAnggota'])->name('data');
+                    Route::post('/store', [PilihAnggotaController::class, 'store'])->name('store');
+                    Route::get('/edit/{id}', [PilihAnggotaController::class, 'edit'])->name('edit');
+                    Route::put('/update/{id}', [PilihAnggotaController::class, 'update'])->name('update');
+                    Route::delete('/delete/{id}', [PilihAnggotaController::class, 'destroy'])->name('delete');
+                });
             });
         });
     });
-});
 
     // Kaprodi Routes
     Route::middleware(['auth.role:Kaprodi'])->prefix('kaprodi')->group(function () {
