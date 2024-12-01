@@ -62,16 +62,28 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
         Route::middleware(['auth.role:PIC'])->group(function () {
             // Kegiatan Routes
             Route::get('/kegiatan', [KegiatanController::class, 'showKegiatanPIC'])->name('pic.kegiatan');
-            Route::get('/kegiatan/download-surat-tugas/{type}/{id}', [KegiatanController::class, 'downloadSuratTugas'])->name('kegiatan.download.surat');
+            Route::get('/surat-tugas/download-file/{id}', [SuratTugasController::class, 'downloadSurat'])->name('surat-tugas.download-file');
             Route::post('/kegiatan/validate-tanggal-agenda', [KegiatanController::class, 'validateTanggalAgenda'])->name('kegiatan.validate.tanggal');
-
+        
             // Agenda Routes
             Route::prefix('kegiatan/agenda')->name('agenda.')->group(function () {
+                // Route untuk menampilkan daftar agenda berdasarkan tipe (jurusan/prodi)
                 Route::get('/{type}/{id}', [AgendaController::class, 'index'])->name('index');
-                Route::post('/', [AgendaController::class, 'store'])->name('store');
-                Route::get('/{id}', [AgendaController::class, 'show'])->name('show');
-                Route::put('/{id}', [AgendaController::class, 'update'])->name('update');
-                Route::delete('/{id}', [AgendaController::class, 'destroy'])->name('destroy');
+                
+                // Route untuk menyimpan agenda baru
+                Route::post('/store', [AgendaController::class, 'store'])->name('store');
+                
+                // Route untuk melihat detail agenda
+                Route::get('/show/{id}', [AgendaController::class, 'show'])->name('show');
+                
+                // Route untuk mengupdate agenda
+                Route::put('/update/{id}', [AgendaController::class, 'update'])->name('update');
+                
+                // Route untuk menghapus agenda
+                Route::delete('/delete/{id}', [AgendaController::class, 'destroy'])->name('destroy');
+                
+                // Route untuk download file agenda jika diperlukan
+                Route::get('/download/{id}', [AgendaController::class, 'downloadFile'])->name('download');
             });
         });
     });

@@ -362,25 +362,25 @@ class KegiatanController extends Controller
             // Mendapatkan ID user yang sedang login
             $userId = session('user_id');
             
-            // Mengambil kegiatan jurusan dimana user adalah PIC
+            // Mengambil kegiatan jurusan dengan relasi surat
             $kegiatanJurusan = KegiatanJurusanModel::with(['user', 'surat'])
                 ->where('user_id', $userId)
                 ->where('status_kegiatan', 'berlangsung')
                 ->first();
-
-            // Mengambil kegiatan prodi dimana user adalah PIC
+    
+            // Mengambil kegiatan prodi dengan relasi surat
             $kegiatanProdi = KegiatanProgramStudiModel::with(['user', 'surat'])
                 ->where('user_id', $userId)
                 ->where('status_kegiatan', 'berlangsung')
                 ->first();
-
+    
             $breadcrumb = (object)[
                 'title' => 'Kegiatan',
                 'list' => ['Home', 'Agenda', 'Kegiatan']
             ];
-
+    
             return view('pic.kegiatan', compact('kegiatanJurusan', 'kegiatanProdi', 'breadcrumb'));
-
+    
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
