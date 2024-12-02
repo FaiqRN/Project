@@ -366,32 +366,24 @@
 
 @push('scripts')
 <!-- DataTables & Plugins -->
+<script src="{{ asset('adminlte/plugins/jquery/jquery.min.js') }}"></script>
+<script src="{{ asset('adminlte/plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
 <script src="{{ asset('adminlte/plugins/datatables/jquery.dataTables.min.js') }}"></script>
 <script src="{{ asset('adminlte/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
-<script src="{{ asset('adminlte/plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
-<!-- SweetAlert2 -->
 <script src="{{ asset('adminlte/plugins/sweetalert2/sweetalert2.min.js') }}"></script>
-<!-- bs-custom-file-input -->
 <script src="{{ asset('adminlte/plugins/bs-custom-file-input/bs-custom-file-input.min.js') }}"></script>
 
 <script>
+// Inisialisasi variabel global
+let tempAgendaJurusan = [];
+let tempAgendaProdi = [];
+
 $(function () {
-    // Initialize Bootstrap custom file input
+    // Inisialisasi komponen
     bsCustomFileInput.init();
-    
-    // CSRF token setup for all AJAX requests
-    $.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        }
-    });
-    
-    // Temporary storage arrays for both Jurusan and Prodi agendas
-    let tempAgendaJurusan = [];
-    let tempAgendaProdi = [];
-    
-    // Initialize DataTable for Jurusan Agenda
-    let tableAgendaJurusan = $('#tabelAgendaJurusan').DataTable({
+
+    // Inisialisasi DataTables
+    const tableAgendaJurusan = $('#tabelAgendaJurusan').DataTable({
         responsive: true,
         autoWidth: false,
         processing: true,
@@ -405,36 +397,12 @@ $(function () {
             { data: 'nama_agenda' },
             { data: 'tanggal_agenda' },
             { data: 'deskripsi' },
-            { 
-                data: 'file_surat_agenda',
-                render: function(data) {
-                    return data ? `<a href="/storage/${data}" class="btn btn-info btn-sm" target="_blank">
-                                    <i class="fas fa-download"></i> Download
-                                </a>` : '-';
-                }
-            },
-            {
-                data: 'action',
-                render: function(data, type, row) {
-                    return `
-                        <div class="btn-group">
-                            <button type="button" class="btn btn-warning btn-sm btn-edit" 
-                                    data-id="${row.id}" data-type="jurusan">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button type="button" class="btn btn-danger btn-sm btn-delete" 
-                                    data-id="${row.id}" data-type="jurusan">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    `;
-                }
-            }
+            { data: 'dokumentasi', orderable: false, searchable: false },
+            { data: 'action', orderable: false, searchable: false }
         ]
     });
 
-    // Initialize DataTable for Prodi Agenda
-    let tableAgendaProdi = $('#tabelAgendaProdi').DataTable({
+    const tableAgendaProdi = $('#tabelAgendaProdi').DataTable({
         responsive: true,
         autoWidth: false,
         processing: true,
@@ -448,67 +416,31 @@ $(function () {
             { data: 'nama_agenda' },
             { data: 'tanggal_agenda' },
             { data: 'deskripsi' },
-            { 
-                data: 'file_surat_agenda',
-                render: function(data) {
-                    return data ? `<a href="/storage/${data}" class="btn btn-info btn-sm" target="_blank">
-                                    <i class="fas fa-download"></i> Download
-                                </a>` : '-';
-                }
-            },
-            {
-                data: 'action',
-                render: function(data, type, row) {
-                    return `
-                        <div class="btn-group">
-                            <button type="button" class="btn btn-warning btn-sm btn-edit" 
-                                    data-id="${row.id}" data-type="prodi">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button type="button" class="btn btn-danger btn-sm btn-delete" 
-                                    data-id="${row.id}" data-type="prodi">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    `;
-                }
-            }
+            { data: 'dokumentasi', orderable: false, searchable: false },
+            { data: 'action', orderable: false, searchable: false }
         ]
     });
 
-    // Handle "Tambah ke Daftar" button for both Jurusan and Prodi
-    $('#btnTambahAgendaJurusan').click(function() {
-        handleTambahAgenda('jurusan');
+    // Event Handlers
+    $('#btnTambahAgendaJurusan, #btnTambahAgendaProdi').click(function() {
+        const type = $(this).attr('id').includes('Jurusan') ? 'jurusan' : 'prodi';
+        handleTambahAgenda(type);
     });
 
-    $('#btnTambahAgendaProdi').click(function() {
-        handleTambahAgenda('prodi');
+    $('#btnUnggahAgendaJurusan, #btnUnggahAgendaProdi').click(function() {
+        const type = $(this).attr('id').includes('Jurusan') ? 'jurusan' : 'prodi';
+        handleUnggahAgenda(type);
     });
 
+    // Fungsi untuk menangani penambahan agenda
     function handleTambahAgenda(type) {
         const form = type === 'jurusan' ? $('#formAgendaJurusan') : $('#formAgendaProdi');
         
-        // Form validation
         if (!form[0].checkValidity()) {
             form[0].reportValidity();
             return;
         }
 
-        // Validasi tanggal
-        const tanggalMulai = new Date(form.find('input[name="tanggal_mulai"]').val());
-        const tanggalSelesai = new Date(form.find('input[name="tanggal_selesai"]').val());
-        const tanggalAgenda = new Date(form.find('input[name="tanggal_agenda"]').val());
-
-        if (tanggalAgenda < tanggalMulai || tanggalAgenda > tanggalSelesai) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Tanggal agenda harus berada dalam rentang tanggal kegiatan'
-            });
-            return;
-        }
-
-        // Create agenda data object
         const agendaData = {
             nama_agenda: form.find('input[name="nama_agenda"]').val(),
             tanggal_agenda: form.find('input[name="tanggal_agenda"]').val(),
@@ -517,7 +449,6 @@ $(function () {
             temp_id: Date.now()
         };
 
-        // Add to temporary array
         if (type === 'jurusan') {
             tempAgendaJurusan.push(agendaData);
             refreshTempTable('jurusan');
@@ -526,10 +457,9 @@ $(function () {
             refreshTempTable('prodi');
         }
 
-        // Reset form
         form[0].reset();
         form.find('.custom-file-label').text('Pilih file');
-
+        
         Swal.fire({
             icon: 'success',
             title: 'Berhasil',
@@ -539,24 +469,22 @@ $(function () {
         });
     }
 
-    // Refresh temporary table function
+    // Fungsi untuk refresh tabel temporary
     function refreshTempTable(type) {
-        const table = type === 'jurusan' ? $('#tabelAgendaJurusan tbody') : $('#tabelAgendaProdi tbody');
         const tempData = type === 'jurusan' ? tempAgendaJurusan : tempAgendaProdi;
+        const table = $(`#tabelAgenda${type === 'jurusan' ? 'Jurusan' : 'Prodi'} tbody`);
         
         table.empty();
-        
         tempData.forEach((item, index) => {
             table.append(`
-                <tr data-temp-id="${item.temp_id}">
+                <tr>
                     <td>${index + 1}</td>
                     <td>${item.nama_agenda}</td>
                     <td>${item.tanggal_agenda}</td>
                     <td>${item.deskripsi}</td>
                     <td>${item.file ? item.file.name : '-'}</td>
                     <td>
-                        <button type="button" class="btn btn-danger btn-sm btn-remove-temp" 
-                                data-id="${item.temp_id}" data-type="${type}">
+                        <button type="button" class="btn btn-danger btn-sm" onclick="removeTempAgenda('${item.temp_id}', '${type}')">
                             <i class="fas fa-trash"></i>
                         </button>
                     </td>
@@ -565,29 +493,7 @@ $(function () {
         });
     }
 
-    // Handle temporary agenda deletion
-    $(document).on('click', '.btn-remove-temp', function() {
-        const id = $(this).data('id');
-        const type = $(this).data('type');
-        
-        if (type === 'jurusan') {
-            tempAgendaJurusan = tempAgendaJurusan.filter(item => item.temp_id !== id);
-            refreshTempTable('jurusan');
-        } else {
-            tempAgendaProdi = tempAgendaProdi.filter(item => item.temp_id !== id);
-            refreshTempTable('prodi');
-        }
-    });
-
-    // Handle "Unggah ke Database" button for both Jurusan and Prodi
-    $('#btnUnggahAgendaJurusan').click(function() {
-        handleUnggahAgenda('jurusan');
-    });
-
-    $('#btnUnggahAgendaProdi').click(function() {
-        handleUnggahAgenda('prodi');
-    });
-
+    // Fungsi untuk handle unggah agenda
     function handleUnggahAgenda(type) {
         const tempData = type === 'jurusan' ? tempAgendaJurusan : tempAgendaProdi;
         
@@ -600,311 +506,227 @@ $(function () {
             return;
         }
 
-        // Create FormData
         const formData = new FormData();
         formData.append('kegiatan_type', type);
         formData.append('kegiatan_id', $(`#formAgenda${type === 'jurusan' ? 'Jurusan' : 'Prodi'} input[name="kegiatan_id"]`).val());
-        
-        tempData.forEach((item, index) => {
-            formData.append(`agenda[${index}][nama_agenda]`, item.nama_agenda);
-            formData.append(`agenda[${index}][tanggal_agenda]`, item.tanggal_agenda);
-            formData.append(`agenda[${index}][deskripsi]`, item.deskripsi);
-            if (item.file) {
-                formData.append(`agenda[${index}][file_surat_agenda]`, item.file);
-            }
-        });
 
-        // Send to server
-        $.ajax({
-            url: '/dosen/kegiatan/agenda/store',
-            type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            beforeSend: function() {
-                Swal.fire({
-                    title: 'Mohon tunggu',
-                    text: 'Sedang mengunggah agenda...',
-                    allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
-                });
-            },
-            success: function(response) {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Berhasil',
-                    text: 'Agenda berhasil diunggah ke database'
-                });
-                
-                // Reset data
-                if (type === 'jurusan') {
-                    tempAgendaJurusan = [];
-                    tableAgendaJurusan.ajax.reload();
-                } else {
-                    tempAgendaProdi = [];
-                    tableAgendaProdi.ajax.reload();
-                }
-                
-                refreshTempTable(type);
-            },
-            error: function(xhr) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: xhr.responseJSON?.message || 'Terjadi kesalahan saat mengunggah agenda'
-                });
-            }
-        });
+tempData.forEach((item, index) => {
+    formData.append(`agenda[${index}][nama_agenda]`, item.nama_agenda);
+    formData.append(`agenda[${index}][tanggal_agenda]`, item.tanggal_agenda);
+    formData.append(`agenda[${index}][deskripsi]`, item.deskripsi);
+    if (item.file) {
+        formData.append(`agenda[${index}][file_surat_agenda]`, item.file);
     }
+});
 
-    // Handle edit button click
-    $(document).on('click', '.btn-edit', function() {
-        const id = $(this).data('id');
-        const type = $(this).data('type');
-        
-        $.get(`/dosen/kegiatan/agenda/${type}/show/${id}`, function(data) {
-            $('#edit_agenda_id').val(data.id);
-            $('#edit_nama_agenda').val(data.nama_agenda);
-            $('#edit_tanggal_agenda').val(data.tanggal_agenda);
-            $('#edit_deskripsi').val(data.deskripsi);
-            $('#edit_type').val(type);
-            
-            $('#modalEditAgenda').modal('show');
-        });
-    });
-
-    // Handle edit form submission
-    $('#formEditAgenda').submit(function(e) {
-        e.preventDefault();
-        
-        const id = $('#edit_agenda_id').val();
-        const type = $('#edit_type').val();
-        const formData = new FormData(this);
-
-        $.ajax({
-            url: `/dosen/kegiatan/agenda/${type}/update/${id}`,
-            type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function(response) {
-                $('#modalEditAgenda').modal('hide');
-                
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Berhasil',
-                    text: 'Agenda berhasil diperbarui'
-                });
-
-                if (type === 'jurusan') {
-                    tableAgendaJurusan.ajax.reload();
-                } else {
-                    tableAgendaProdi.ajax.reload();
-                }
-            },
-            error: function(xhr) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: xhr.responseJSON?.message || 'Terjadi kesalahan saat memperbarui agenda'
-                });
-            }
-        });
-    });
-
-    // Handle delete button click
-    $(document).on('click', '.btn-delete', function() {
-        const id = $(this).data('id');
-        const type = $(this).data('type');
-        
+$.ajax({
+    url: '/dosen/kegiatan/agenda/store',
+    type: 'POST',
+    data: formData,
+    processData: false,
+    contentType: false,
+    headers: {
+        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+    },
+    beforeSend: function() {
         Swal.fire({
-            title: 'Konfirmasi Hapus',
-            text: 'Apakah Anda yakin ingin menghapus agenda ini?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Ya, Hapus',
-            cancelButtonText: 'Batal'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                $.ajax({
-                    url: `/dosen/kegiatan/agenda/${type}/delete/${id}`,
-                    type: 'DELETE',
-                    success: function(response) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Berhasil',
-                            text: 'Agenda berhasil dihapus'
-                        });
-                        
-                        if (type === 'jurusan') {
-                            tableAgendaJurusan.ajax.reload();
-                        } else {
-                            tableAgendaProdi.ajax.reload();
-                        }
-                    },
-                    error: function(xhr) {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: xhr.responseJSON?.message || 'Terjadi kesalahan saat menghapus agenda'
-                        });
-                    }
-                });
-            }
-        });
-    });
-
-    // File input change handler
-    $('.custom-file-input').on('change', function() {
-        const fileName = $(this).val().split('\\').pop();
-        $(this).next('.custom-file-label').addClass("selected").html(fileName);
-    });
-
-// Global error handler for AJAX requests
-$(document).ajaxError(function(event, jqXHR, settings, error) {
-        console.error('Ajax Error:', error);
-        if (!jqXHR.responseJSON) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Terjadi kesalahan pada server'
-            });
-            return;
-        }
-
-        const message = jqXHR.responseJSON.message;
-        const errors = jqXHR.responseJSON.errors;
-
-        if (errors) {
-            let errorMessage = '<ul>';
-            Object.keys(errors).forEach(key => {
-                errorMessage += `<li>${errors[key][0]}</li>`;
-            });
-            errorMessage += '</ul>';
-
-            Swal.fire({
-                icon: 'error',
-                title: 'Validasi Error',
-                html: errorMessage
-            });
-        } else {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: message || 'Terjadi kesalahan pada server'
-            });
-        }
-    });
-
-    // Date validation function for both Jurusan and Prodi
-    function validateTanggalAgenda(tanggalAgenda, tanggalMulai, tanggalSelesai) {
-        const agendaDate = new Date(tanggalAgenda);
-        const startDate = new Date(tanggalMulai);
-        const endDate = new Date(tanggalSelesai);
-
-        if (agendaDate < startDate || agendaDate > endDate) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Tanggal agenda harus berada dalam rentang tanggal kegiatan'
-            });
-            return false;
-        }
-        return true;
-    }
-
-    // File validation function for both Jurusan and Prodi
-    function validateFile(file) {
-        if (!file) return true;
-
-        const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-        const maxSize = 2 * 1024 * 1024; // 2MB
-
-        if (!allowedTypes.includes(file.type)) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'File harus berupa PDF, DOC, atau DOCX'
-            });
-            return false;
-        }
-
-        if (file.size > maxSize) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Ukuran file maksimal 2MB'
-            });
-            return false;
-        }
-
-        return true;
-    }
-
-    // Function to format date for display
-    function formatDate(date) {
-        if (!date) return '';
-        const d = new Date(date);
-        const month = '' + (d.getMonth() + 1);
-        const day = '' + d.getDate();
-        const year = d.getFullYear();
-
-        return [day.padStart(2, '0'), month.padStart(2, '0'), year].join('-');
-    }
-
-    // Function to reset form
-    function resetForm(type) {
-        const form = type === 'jurusan' ? $('#formAgendaJurusan') : $('#formAgendaProdi');
-        form[0].reset();
-        form.find('.custom-file-label').text('Pilih file');
-        form.find('.is-invalid').removeClass('is-invalid');
-        form.find('.invalid-feedback').remove();
-    }
-
-    // Function to show loading state
-    function showLoading(message = 'Mohon tunggu...') {
-        Swal.fire({
-            title: 'Loading',
-            text: message,
+            title: 'Mohon tunggu',
+            text: 'Sedang mengunggah agenda...',
             allowOutsideClick: false,
             didOpen: () => {
                 Swal.showLoading();
             }
         });
-    }
+    },
+    success: function(response) {
+        Swal.fire({
+            icon: 'success',
+            title: 'Berhasil',
+            text: 'Agenda berhasil disimpan'
+        });
 
-    // Function to hide loading state
-    function hideLoading() {
-        Swal.close();
-    }
-
-    // Initialize date pickers if needed
-    if ($.fn.datepicker) {
-        $('.datepicker').datepicker({
-            format: 'yyyy-mm-dd',
-            autoclose: true,
-            todayHighlight: true
+        // Reset data temporary dan refresh tabel
+        if (type === 'jurusan') {
+            tempAgendaJurusan = [];
+            $('#tabelAgendaJurusan').DataTable().ajax.reload();
+        } else {
+            tempAgendaProdi = [];
+            $('#tabelAgendaProdi').DataTable().ajax.reload();
+        }
+        refreshTempTable(type);
+    },
+    error: function(xhr) {
+        let errorMessage = 'Terjadi kesalahan saat menyimpan agenda';
+        if (xhr.responseJSON && xhr.responseJSON.message) {
+            errorMessage = xhr.responseJSON.message;
+        }
+        
+        Swal.fire({
+            icon: 'error',
+            title: 'Gagal',
+            text: errorMessage
         });
     }
+});
+}
+});
 
-    // Initialize rich text editor if needed
-    if (typeof CKEDITOR !== 'undefined') {
-        CKEDITOR.replace('deskripsi');
-    }
+// Fungsi global untuk menghapus agenda temporary
+function removeTempAgenda(tempId, type) {
+if (type === 'jurusan') {
+tempAgendaJurusan = tempAgendaJurusan.filter(item => item.temp_id !== parseInt(tempId));
+refreshTempTable('jurusan');
+} else {
+tempAgendaProdi = tempAgendaProdi.filter(item => item.temp_id !== parseInt(tempId));
+refreshTempTable('prodi');
+}
+}
 
-    // Handle tab changes to refresh tables
-    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
-        const target = $(e.target).attr('href');
-        if (target === '#jurusan') {
-            tableAgendaJurusan.ajax.reload();
-        } else if (target === '#prodi') {
-            tableAgendaProdi.ajax.reload();
+// Event handler untuk edit agenda
+$(document).on('click', '.edit-agenda', function() {
+const id = $(this).data('id');
+const nama = $(this).data('nama');
+const tanggal = $(this).data('tanggal');
+const deskripsi = $(this).data('deskripsi');
+
+$('#edit_agenda_id').val(id);
+$('#edit_nama_agenda').val(nama);
+$('#edit_tanggal_agenda').val(tanggal);
+$('#edit_deskripsi').val(deskripsi);
+
+$('#modalEditAgenda').modal('show');
+});
+
+// Submit handler untuk form edit
+$('#formEditAgenda').submit(function(e) {
+e.preventDefault();
+
+const formData = new FormData(this);
+const id = $('#edit_agenda_id').val();
+
+$.ajax({
+url: `/dosen/kegiatan/agenda/update/${id}`,
+type: 'POST',
+data: formData,
+processData: false,
+contentType: false,
+headers: {
+    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+},
+beforeSend: function() {
+    Swal.fire({
+        title: 'Mohon tunggu',
+        text: 'Sedang memperbarui agenda...',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
         }
     });
+},
+success: function(response) {
+    $('#modalEditAgenda').modal('hide');
+    
+    Swal.fire({
+        icon: 'success',
+        title: 'Berhasil',
+        text: 'Agenda berhasil diperbarui'
+    });
+
+    // Refresh kedua tabel
+    $('#tabelAgendaJurusan').DataTable().ajax.reload();
+    $('#tabelAgendaProdi').DataTable().ajax.reload();
+},
+error: function(xhr) {
+    let errorMessage = 'Terjadi kesalahan saat memperbarui agenda';
+    if (xhr.responseJSON && xhr.responseJSON.message) {
+        errorMessage = xhr.responseJSON.message;
+    }
+    
+    Swal.fire({
+        icon: 'error',
+        title: 'Gagal',
+        text: errorMessage
+    });
+}
+});
+});
+
+// Event handler untuk delete agenda
+$(document).on('click', '.delete-agenda', function() {
+const id = $(this).data('id');
+
+Swal.fire({
+title: 'Apakah Anda yakin?',
+text: "Agenda yang dihapus tidak dapat dikembalikan!",
+icon: 'warning',
+showCancelButton: true,
+confirmButtonColor: '#d33',
+cancelButtonColor: '#3085d6',
+confirmButtonText: 'Ya, hapus!',
+cancelButtonText: 'Batal'
+}).then((result) => {
+if (result.isConfirmed) {
+    $.ajax({
+        url: `/dosen/kegiatan/agenda/delete/${id}`,
+        type: 'DELETE',
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        success: function(response) {
+            Swal.fire(
+                'Terhapus!',
+                'Agenda berhasil dihapus.',
+                'success'
+            );
+            
+            // Refresh kedua tabel
+            $('#tabelAgendaJurusan').DataTable().ajax.reload();
+            $('#tabelAgendaProdi').DataTable().ajax.reload();
+        },
+        error: function(xhr) {
+            let errorMessage = 'Terjadi kesalahan saat menghapus agenda';
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+                errorMessage = xhr.responseJSON.message;
+            }
+            
+            Swal.fire(
+                'Gagal!',
+                errorMessage,
+                'error'
+            );
+        }
+    });
+}
+});
+});
+
+// Validasi file upload
+$('input[type="file"]').change(function() {
+const file = this.files[0];
+const maxSize = 2 * 1024 * 1024; // 2MB
+const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+
+if (file) {
+if (file.size > maxSize) {
+    Swal.fire({
+        icon: 'error',
+        title: 'File terlalu besar',
+        text: 'Ukuran file maksimal 2MB'
+    });
+    this.value = '';
+    return false;
+}
+
+if (!allowedTypes.includes(file.type)) {
+    Swal.fire({
+        icon: 'error',
+        title: 'Format file tidak valid',
+        text: 'File harus berformat PDF, DOC, atau DOCX'
+    });
+    this.value = '';
+    return false;
+}
+}
 });
 </script>
 @endpush

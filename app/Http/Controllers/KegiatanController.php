@@ -18,7 +18,7 @@ class KegiatanController extends Controller
         $pic = UserModel::where('level_id', 4)
                        ->whereNull('deleted_at')
                        ->get();
-        
+        $kegiatan_id = 4;
         $breadcrumb = (object)[
             'title' => 'Kegiatan',
             'list' => ['Home', 'Dosen', 'Agenda', 'Kegiatan']

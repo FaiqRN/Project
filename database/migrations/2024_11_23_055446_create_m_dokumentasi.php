@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('m_dokumentasi', function (Blueprint $table) {
             $table->id('dokumentasi_id');
             $table->string('nama_dokumentasi');
+            $table->text('deskripsi_dokumentasi');
             $table->text('file_dokumentasi');
             $table->date('tanggal');
             $table->timestamps();

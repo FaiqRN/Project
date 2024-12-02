@@ -67,13 +67,14 @@ Route::middleware(['auth.check'])->group(function () {
                 Route::post('/kegiatan/validate-tanggal-agenda', [KegiatanController::class, 'validateTanggalAgenda'])->name('kegiatan.validate.tanggal');
 
                 // Agenda Routes
-                Route::prefix('kegiatan/agenda')->name('agenda.')->group(function () {
-                    Route::get('/{type}/{id}', [AgendaController::class, 'index'])->name('index');
-                    Route::post('/store', [AgendaController::class, 'store'])->name('store');
-                    Route::get('/show/{id}', [AgendaController::class, 'show'])->name('show');
-                    Route::put('/update/{id}', [AgendaController::class, 'update'])->name('update');
-                    Route::delete('/delete/{id}', [AgendaController::class, 'destroy'])->name('destroy');
-                    Route::get('/download/{id}', [AgendaController::class, 'downloadFile'])->name('download');
+                Route::prefix('dosen/kegiatan')->group(function () {
+                    Route::get('/agenda', [AgendaController::class, 'index'])->name('dosen.agenda.index');
+                    Route::get('/agenda/{type}/{id}', [AgendaController::class, 'getAgendaList'])->name('dosen.agenda.list');
+                    Route::post('/agenda/store', [AgendaController::class, 'store'])->name('agenda.store');
+                    Route::put('/agenda/update/{id}', [AgendaController::class, 'update'])->name('dosen.agenda.update');
+                    Route::delete('/agenda/delete/{id}', [AgendaController::class, 'destroy'])->name('dosen.agenda.delete');
+                    Route::get('/kegiatan/create', [AgendaController::class, 'create'])->name('kegiatan.create');
+
                 });
 
                 // Route untuk Pilih Anggota
