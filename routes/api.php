@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\MobileLoginController;
 use App\Http\Controllers\Api\MobileUserController;
 use App\Http\Controllers\Api\MobileDokumentasiController;
 use App\Http\Controllers\Api\MobileProgressKegiatanController;
+use App\Http\Controllers\Api\MobileSuratTugasController;
 
 Route::prefix('v1')->group(function () {
     // Auth Routes
@@ -35,6 +36,15 @@ Route::prefix('v1')->group(function () {
                 Route::get('/{id}/{type}', [MobileProgressKegiatanController::class, 'getDetailProgress']);
             });
         });
-        // Di dalam group middleware auth:sanctum dan role:Dosen
+        Route::prefix('Kaprodi')->middleware(['role:Kaprodi'])->group(function () {
+            Route::prefix('mobile/surat-tugas')->group(function () {
+                Route::get('/', [MobileSuratTugasController::class, 'index']);
+                Route::post('/', [MobileSuratTugasController::class, 'store']);
+                Route::get('/{id}', [MobileSuratTugasController::class, 'show']);
+                Route::post('/{id}', [MobileSuratTugasController::class, 'update']);
+                Route::delete('/{id}', [MobileSuratTugasController::class, 'destroy']);
+                Route::get('/{id}/download', [MobileSuratTugasController::class, 'download']);
+            });
+        });
     });
 });
