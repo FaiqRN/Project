@@ -48,4 +48,15 @@ class JabatanModel extends Model
     {
         return $this->belongsTo(KegiatanProgramStudiModel::class, 'kegiatan_program_studi_id');
     }
+        // Relasi ke poin jurusan
+        public function poinJurusan()
+        {
+            return $this->hasMany(PoinJurusanModel::class, 'jabatan_id');
+        }
+    
+        // Relasi ke poin prodi
+        public function poinProdi()
+        {
+            return $this->hasMany(PoinProgramStudiModel::class, 'jabatan_id');
+        }
 }

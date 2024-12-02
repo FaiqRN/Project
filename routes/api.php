@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\MobileUserController;
 use App\Http\Controllers\Api\MobileDokumentasiController;
 use App\Http\Controllers\Api\MobileProgressKegiatanController;
 use App\Http\Controllers\Api\MobileSuratTugasController;
+use App\Http\Controllers\Api\MobileSAWController;
 
 Route::prefix('v1')->group(function () {
     // Auth Routes
@@ -44,6 +45,11 @@ Route::prefix('v1')->group(function () {
                 Route::post('/{id}', [MobileSuratTugasController::class, 'update']);
                 Route::delete('/{id}', [MobileSuratTugasController::class, 'destroy']);
                 Route::get('/{id}/download', [MobileSuratTugasController::class, 'download']);
+            });
+            Route::prefix('saw')->group(function () {
+                Route::get('/latest', [MobileSAWController::class, 'getLatestEvaluation']);
+                Route::get('/history', [MobileSAWController::class, 'getEvaluationHistory']);
+                Route::get('/detail/{evaluasiId}', [MobileSAWController::class, 'getEvaluationDetail']);
             });
         });
     });
