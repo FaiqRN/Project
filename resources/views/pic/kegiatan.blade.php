@@ -1,367 +1,183 @@
 @extends('layouts.template')
 
+
+
+
 @section('content')
-<div class="container-fluid">
-    <section class="content-header">
-        <div class="container-fluid">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <h1>Detail Kegiatan</h1>
-                </div>
-            </div>
+<div class="container-fluid p-0">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Detail Kegiatan</h3>
         </div>
-    </section>
+        <div class="card-body">
+            <!-- Info Jenis Kegiatan -->
+            <div class="alert alert-info" role="alert">
+                <h5 class="alert-heading">{{ $kegiatanJurusan ? 'Kegiatan Jurusan' : 'Kegiatan Program Studi' }}</h5>
+                <p class="mb-0">Silakan isi detail kegiatan sesuai dengan surat tugas yang telah ditentukan.</p>
+            </div>
 
-    <section class="content">
-        <div class="container-fluid">
-            <!-- Tab Navigation -->
-            <ul class="nav nav-tabs mb-3" id="kegiatanTab" role="tablist">
-                @if($kegiatanJurusan)
-                <li class="nav-item">
-                    <a class="nav-link active" id="jurusan-tab" data-toggle="tab" href="#jurusan" role="tab">
-                        Kegiatan Jurusan
-                    </a>
-                </li>
-                @endif
-                @if($kegiatanProdi)
-                <li class="nav-item">
-                    <a class="nav-link {{ !$kegiatanJurusan ? 'active' : '' }}" id="prodi-tab" data-toggle="tab" href="#prodi" role="tab">
-                        Kegiatan Program Studi
-                    </a>
-                </li>
-                @endif
-            </ul>
-
-            <!-- Tab Content -->
-            <div class="tab-content" id="kegiatanTabContent">
-                <!-- Kegiatan Jurusan -->
-                @if($kegiatanJurusan)
-                <div class="tab-pane fade show active" id="jurusan" role="tabpanel">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Data Kegiatan Jurusan</h3>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label>Nama Kegiatan:</label>
-                                        <p class="form-control">{{ $kegiatanJurusan->nama_kegiatan_jurusan }}</p>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Tanggal Mulai:</label>
-                                        <p class="form-control">{{ date('d-m-Y', strtotime($kegiatanJurusan->tanggal_mulai)) }}</p>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Tanggal Selesai:</label>
-                                        <p class="form-control">{{ date('d-m-Y', strtotime($kegiatanJurusan->tanggal_selesai)) }}</p>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label>Penyelenggara:</label>
-                                        <p class="form-control">{{ $kegiatanJurusan->penyelenggara }}</p>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Lokasi:</label>
-                                        <p class="form-control">{{ $kegiatanJurusan->lokasi_kegiatan }}</p>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Deskripsi:</label>
-                                        <p class="form-control">{{ $kegiatanJurusan->deskripsi_kegiatan }}</p>
-                                    </div>
-                                </div>
-
-                                <!-- Download Surat -->
-                                <div class="col-12 mb-4">
-                                    @if($kegiatanJurusan->surat)
-                                        <a href="{{ route('surat-tugas.download-file', $kegiatanJurusan->surat->surat_id) }}" 
-                                           class="btn btn-primary btn-block">
-                                            <i class="fas fa-download mr-2"></i>Download Surat Tugas ({{ $kegiatanJurusan->surat->nomer_surat }})
-                                        </a>
-                                    @else
-                                        <button type="button" class="btn btn-secondary btn-block" disabled>
-                                            <i class="fas fa-exclamation-circle mr-2"></i>Surat Tugas Belum Tersedia
-                                        </button>
-                                    @endif
-                                </div>
-
-                                <!-- Form Agenda Jurusan -->
-                                <div class="col-md-4">
-                                    <div class="card">
-                                        <div class="card-header">
-                                            <h3 class="card-title">Tambah Agenda</h3>
-                                        </div>
-                                        <div class="card-body">
-                                            <form id="formAgendaJurusan" class="form-horizontal">
-                                                @csrf
-                                                <input type="hidden" name="kegiatan_type" value="jurusan">
-                                                <input type="hidden" name="kegiatan_id" value="{{ $kegiatanJurusan->kegiatan_jurusan_id }}">
-                                                
-                                                <div class="form-group">
-                                                    <label>Judul Agenda</label>
-                                                    <input type="text" class="form-control" name="nama_agenda" required>
-                                                </div>
-                                                
-                                                <div class="form-group">
-                                                    <label>Deskripsi</label>
-                                                    <textarea class="form-control" name="deskripsi" rows="3" required></textarea>
-                                                </div>
-                                                
-                                                <div class="form-group">
-                                                    <label>Tanggal Agenda</label>
-                                                    <input type="date" class="form-control" name="tanggal_agenda" 
-                                                           min="{{ $kegiatanJurusan->tanggal_mulai }}" 
-                                                           max="{{ $kegiatanJurusan->tanggal_selesai }}" required>
-                                                </div>
-                                                
-                                                <div class="form-group">
-                                                    <label>Dokumen Pendukung</label>
-                                                    <div class="custom-file">
-                                                        <input type="file" class="custom-file-input" name="file_surat_agenda" id="fileAgendaJurusan">
-                                                        <label class="custom-file-label" for="fileAgendaJurusan">Pilih file</label>
-                                                    </div>
-                                                    <small class="form-text text-muted">Format: PDF, DOC, DOCX (Maks. 2MB)</small>
-                                                </div>
-
-                                                <div class="form-group">
-                                                    <button type="button" class="btn btn-success btn-block mb-2" id="btnTambahAgendaJurusan">
-                                                        <i class="fas fa-plus mr-2"></i>Tambah ke Daftar
-                                                    </button>
-                                                    <button type="button" class="btn btn-primary btn-block" id="btnUnggahAgendaJurusan">
-                                                        <i class="fas fa-upload mr-2"></i>Unggah ke Database
-                                                    </button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Tabel Agenda Jurusan -->
-                                <div class="col-md-8">
-                                    <div class="card">
-                                        <div class="card-header">
-                                            <h3 class="card-title">Daftar Agenda</h3>
-                                        </div>
-                                        <div class="card-body">
-                                            <div class="alert alert-info">
-                                                <i class="fas fa-info-circle mr-2"></i>Agenda yang belum diunggah akan hilang saat halaman di-refresh
-                                            </div>
-                                            <div class="table-responsive">
-                                                <table id="tabelAgendaJurusan" class="table table-bordered table-striped">
-                                                    <thead>
-                                                        <tr>
-                                                            <th width="5%">No</th>
-                                                            <th width="20%">Judul</th>
-                                                            <th width="15%">Tanggal</th>
-                                                            <th>Deskripsi</th>
-                                                            <th width="15%">Dokumen</th>
-                                                            <th width="10%">Aksi</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody></tbody>
-                                                </table>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+            <!-- Form Data Dari Admin (Readonly) -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Surat Tugas</label>
+                        <input type="text" class="form-control" value="{{ $kegiatanJurusan ? $kegiatanJurusan->surat->judul_surat : $kegiatanProdi->surat->judul_surat }}" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Penanggung Jawab</label>
+                        <input type="text" class="form-control" value="{{ $kegiatanJurusan ? $kegiatanJurusan->user->nama_lengkap : $kegiatanProdi->user->nama_lengkap }}" readonly>
                     </div>
                 </div>
-                @endif
-                @if($kegiatanProdi)
-                <div class="tab-pane fade {{ !$kegiatanJurusan ? 'show active' : '' }}" id="prodi" role="tabpanel">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Data Kegiatan Program Studi</h3>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label>Nama Kegiatan:</label>
-                                        <p class="form-control">{{ $kegiatanProdi->nama_kegiatan_program_studi }}</p>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Tanggal Mulai:</label>
-                                        <p class="form-control">{{ date('d-m-Y', strtotime($kegiatanProdi->tanggal_mulai)) }}</p>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Tanggal Selesai:</label>
-                                        <p class="form-control">{{ date('d-m-Y', strtotime($kegiatanProdi->tanggal_selesai)) }}</p>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label>Penyelenggara:</label>
-                                        <p class="form-control">{{ $kegiatanProdi->penyelenggara }}</p>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Lokasi:</label>
-                                        <p class="form-control">{{ $kegiatanProdi->lokasi_kegiatan }}</p>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Deskripsi:</label>
-                                        <p class="form-control">{{ $kegiatanProdi->deskripsi_kegiatan }}</p>
-                                    </div>
-                                </div>
-                
-                                <!-- Download Surat -->
-                                <div class="col-12 mb-4">
-                                    @if($kegiatanProdi->surat)
-                                        <a href="{{ route('surat-tugas.download-file', $kegiatanProdi->surat->surat_id) }}" 
-                                           class="btn btn-primary btn-block">
-                                            <i class="fas fa-download mr-2"></i>Download Surat Tugas ({{ $kegiatanProdi->surat->nomer_surat }})
-                                        </a>
-                                    @else
-                                        <button type="button" class="btn btn-secondary btn-block" disabled>
-                                            <i class="fas fa-exclamation-circle mr-2"></i>Surat Tugas Belum Tersedia
-                                        </button>
-                                    @endif
-                                </div>
-                
-                                <!-- Form Agenda Prodi -->
-                                <div class="col-md-4">
-                                    <div class="card">
-                                        <div class="card-header">
-                                            <h3 class="card-title">Tambah Agenda</h3>
-                                        </div>
-                                        <div class="card-body">
-                                            <form id="formAgendaProdi" class="form-horizontal">
-                                                @csrf
-                                                <input type="hidden" name="kegiatan_type" value="prodi">
-                                                <input type="hidden" name="kegiatan_id" value="{{ $kegiatanProdi->kegiatan_prodi_id }}">
-                                                
-                                                <div class="form-group">
-                                                    <label>Judul Agenda</label>
-                                                    <input type="text" class="form-control" name="nama_agenda" required>
-                                                </div>
-                                                
-                                                <div class="form-group">
-                                                    <label>Deskripsi</label>
-                                                    <textarea class="form-control" name="deskripsi" rows="3" required></textarea>
-                                                </div>
-                                                
-                                                <div class="form-group">
-                                                    <label>Tanggal Agenda</label>
-                                                    <input type="date" class="form-control" name="tanggal_agenda" 
-                                                           min="{{ $kegiatanProdi->tanggal_mulai }}" 
-                                                           max="{{ $kegiatanProdi->tanggal_selesai }}" required>
-                                                </div>
-                                                
-                                                <div class="form-group">
-                                                    <label>Dokumen Pendukung</label>
-                                                    <div class="custom-file">
-                                                        <input type="file" class="custom-file-input" name="file_surat_agenda" id="fileAgendaProdi">
-                                                        <label class="custom-file-label" for="fileAgendaProdi">Pilih file</label>
-                                                    </div>
-                                                    <small class="form-text text-muted">Format: PDF, DOC, DOCX (Maks. 2MB)</small>
-                                                </div>
-                
-                                                <div class="form-group">
-                                                    <button type="button" class="btn btn-success btn-block mb-2" id="btnTambahAgendaProdi">
-                                                        <i class="fas fa-plus mr-2"></i>Tambah ke Daftar
-                                                    </button>
-                                                    <button type="button" class="btn btn-primary btn-block" id="btnUnggahAgendaProdi">
-                                                        <i class="fas fa-upload mr-2"></i>Unggah ke Database
-                                                    </button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                
-                                <!-- Tabel Agenda Prodi -->
-                                <div class="col-md-8">
-                                    <div class="card">
-                                        <div class="card-header">
-                                            <h3 class="card-title">Daftar Agenda</h3>
-                                        </div>
-                                        <div class="card-body">
-                                            <div class="alert alert-info">
-                                                <i class="fas fa-info-circle mr-2"></i>Agenda yang belum diunggah akan hilang saat halaman di-refresh
-                                            </div>
-                                            <div class="table-responsive">
-                                                <table id="tabelAgendaProdi" class="table table-bordered table-striped">
-                                                    <thead>
-                                                        <tr>
-                                                            <th width="5%">No</th>
-                                                            <th width="20%">Judul</th>
-                                                            <th width="15%">Tanggal</th>
-                                                            <th>Deskripsi</th>
-                                                            <th width="15%">Dokumen</th>
-                                                            <th width="10%">Aksi</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody></tbody>
-                                                </table>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Nama Kegiatan</label>
+                        <input type="text" class="form-control" value="{{ $kegiatanJurusan ? $kegiatanJurusan->nama_kegiatan_jurusan : $kegiatanProdi->nama_kegiatan_program_studi }}" readonly>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Penyelenggara</label>
+                        <input type="text" class="form-control" value="{{ $kegiatanJurusan ? $kegiatanJurusan->penyelenggara : $kegiatanProdi->penyelenggara }}" readonly>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Form Data Dari Admin (Readonly) Lanjutan -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Lokasi Kegiatan</label>
+                        <input type="text" class="form-control" value="{{ $kegiatanJurusan ? $kegiatanJurusan->lokasi_kegiatan : $kegiatanProdi->lokasi_kegiatan }}" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Tanggal Mulai</label>
+                        <input class="form-control" value="{{date('d-m-y',strtotime($kegiatanJurusan ? $kegiatanJurusan->tanggal_mulai : $kegiatanProdi->tanggal_mulai))}}" readonly>
                     </div>
                 </div>
+                <div class="col-md-6">
+                    <label>Deskripsi Kegiatan</label>
+                    <textarea class="form-control" readonly>{{ $kegiatanJurusan ? $kegiatanJurusan->deskripsi_kegiatan : $kegiatanProdi->deskripsi_kegiatan }}</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Tanggal Selesai</label>
+                            <input class="form-control" value="{{date('d-m-y',strtotime($kegiatanJurusan ? $kegiatanJurusan->tanggal_selesai : $kegiatanProdi->tanggal_selesai))}}" readonly>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 mb-4">
+                @if($kegiatanJurusan && $kegiatanJurusan->surat)
+                    <a href="{{ route('surat-tugas.download-file', $kegiatanJurusan->surat->surat_id) }}"
+                       class="btn btn-primary btn-block">
+                        <i class="fas fa-download mr-2"></i>Download Surat Tugas ({{ $kegiatanJurusan->surat->judul_surat }})
+                    </a>
+                @elseif($kegiatanProdi && $kegiatanProdi->surat)
+                    <a href="{{ route('surat-tugas.download-file', $kegiatanProdi->surat->surat_id) }}"
+                       class="btn btn-primary btn-block">
+                        <i class="fas fa-download mr-2"></i>Download Surat Tugas ({{ $kegiatanProdi->surat->judul_surat }})
+                    </a>
+                @else
+                    <button type="button" class="btn btn-secondary btn-block" disabled>
+                        <i class="fas fa-exclamation-circle mr-2"></i>Surat Tugas Belum Tersedia
+                    </button>
                 @endif
             </div>
-        </div>
-    </section>
-</div>
+           
+            <hr>
 
-<!-- Modal Edit Agenda -->
-<div class="modal fade" id="modalEditAgenda" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Edit Agenda</h5>
-                <button type="button" class="close" data-dismiss="modal">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <form id="formEditAgenda">
-                @csrf
-                @method('PUT')
-                <input type="hidden" name="agenda_id" id="edit_agenda_id">
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label>Judul Agenda</label>
-                        <input type="text" class="form-control" name="nama_agenda" id="edit_nama_agenda" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Tanggal</label>
-                        <input type="date" class="form-control" name="tanggal_agenda" id="edit_tanggal_agenda" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Deskripsi</label>
-                        <textarea class="form-control" name="deskripsi" id="edit_deskripsi" rows="3" required></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>File Baru (Opsional)</label>
-                        <div class="custom-file">
-                            <input type="file" class="custom-file-input" name="file_surat_agenda" id="edit_file_agenda">
-                            <label class="custom-file-label" for="edit_file_agenda">Pilih file</label>
+            <!-- Agenda Section -->
+            <div class="row">
+                <div class="col-md-4">
+                    <h5>Tambah Agenda</h5>
+                    <form id="formAgenda">
+                        <div class="form-group">
+                            <label>Judul Agenda</label>
+                            <input type="text" class="form-control" name="judul_agenda" required>
                         </div>
-                        <small class="form-text text-muted">Format: PDF, DOC, DOCX (Maks. 2MB)</small>
+                        <div class="form-group">
+                            <label>Deskripsi</label>
+                            <textarea class="form-control" name="deskripsi_agenda" rows="3" required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Tanggal Agenda</label>
+                            <input type="date" class="form-control" name="tanggal_agenda"
+                            min="{{ $kegiatanJurusan ? $kegiatanJurusan->tanggal_mulai : $kegiatanProdi->tanggal_mulai}}"
+                            max="{{ $kegiatanJurusan ? $kegiatanJurusan->tanggal_selesai : $kegiatanProdi->tanggal_selesai }}"
+                             required>
+                        </div>
+                        <div class="form-group">
+                            <label>Dokumen Pendukung</label>
+                            <input type="file" class="form-control-file" name="dokumen_agenda">
+                        </div>
+                        <button type="button" class="btn btn-success btn-block" id="tambahKeAgenda">
+                            Tambah ke Daftar
+                        </button>
+                    </form>
+                </div>
+                <div class="col-md-8">
+                    <h5>Daftar Agenda</h5>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>No</th>
+                                    <th>Judul</th>
+                                    <th>Tanggal</th>
+                                    <th>Deskripsi</th>
+                                    <th>Dokumen</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="daftarAgenda">
+                                <!-- Agenda items will be dynamically added here -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+            </div>
+
+            <div class="row mt-3">
+                <div class="col-12">
+                    <button type="button" class="btn btn-primary btn-block" id="unggahDatabase">
+                        Unggah ke Database
+                    </button>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 </div>
 @endsection
 
 @push('css')
-<!-- DataTables -->
-<link rel="stylesheet" href="{{ asset('adminlte/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
-<link rel="stylesheet" href="{{ asset('adminlte/plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
-<!-- SweetAlert2 -->
-<link rel="stylesheet" href="{{ asset('adminlte/plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css') }}">
+<style>
+    .card {
+        margin-bottom: 20px;
+    }
+    .form-control[readonly] {
+        background-color: #e9ecef;
+    }
+    .text-danger {
+        color: #dc3545;
+    }
+    .btn-block {
+        margin-top: 10px;
+    }
+    .table th {
+        background-color: #f8f9fa;
+    }
+    .alert-info {
+        color: #0c5460;
+        background-color: #d1ecf1;
+        border-color: #bee5eb;
+    }
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    .thead-light th {
+        background-color: #f8f9fa;
+        border-color: #dee2e6;
+    }
+</style>
 @endpush
 
 @push('scripts')
@@ -479,10 +295,10 @@ $(function () {
             table.append(`
                 <tr>
                     <td>${index + 1}</td>
-                    <td>${item.nama_agenda}</td>
-                    <td>${item.tanggal_agenda}</td>
-                    <td>${item.deskripsi}</td>
-                    <td>${item.file ? item.file.name : '-'}</td>
+                    <td>${agenda.judul}</td>
+                    <td>${agenda.tanggal}</td>
+                    <td>${agenda.deskripsi}</td>
+                    <td>${agenda.dokumen ? agenda.dokumen.name : '-'}</td>
                     <td>
                         <button type="button" class="btn btn-danger btn-sm" onclick="removeTempAgenda('${item.temp_id}', '${type}')">
                             <i class="fas fa-trash"></i>
@@ -730,3 +546,10 @@ if (!allowedTypes.includes(file.type)) {
 });
 </script>
 @endpush
+
+
+
+
+
+
+
