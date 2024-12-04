@@ -66,19 +66,20 @@ Route::middleware(['auth.check'])->group(function () {
 
             // Route khusus PIC
             Route::middleware(['auth.role:PIC'])->group(function () {
-                // Kegiatan Routes 
+                // Kegiatan Routes (tetap dipertahankan)
                 Route::get('/kegiatan', [KegiatanController::class, 'showKegiatanPIC'])->name('pic.kegiatan');
-                Route::get('/surat-tugas/download-file/{id}', [SuratTugasController::class, 'downloadSurat'])->name('surat-tugas.download-file');
-                Route::post('/kegiatan/validate-tanggal-agenda', [KegiatanController::class, 'validateTanggalAgenda'])->name('kegiatan.validate.tanggal');
-
-                // Agenda Routes
-                Route::prefix('dosen/kegiatan')->group(function () {
-                    Route::get('/agenda', [AgendaController::class, 'index'])->name('dosen.agenda.index');
-                    Route::get('/agenda/{type}/{id}', [AgendaController::class, 'getAgendaList'])->name('dosen.agenda.list');
-                    Route::post('/agenda/store', [AgendaController::class, 'store'])->name('agenda.store');
-                    Route::put('/agenda/update/{id}', [AgendaController::class, 'update'])->name('dosen.agenda.update');
-                    Route::delete('/agenda/delete/{id}', [AgendaController::class, 'destroy'])->name('dosen.agenda.delete');
-                    Route::get('/kegiatan/create', [AgendaController::class, 'create'])->name('kegiatan.create');
+                Route::get('/download-surat/{type}/{id}', [KegiatanController::class, 'downloadSuratTugas'])
+                     ->name('kegiatan.download-surat')
+                     ->middleware(['auth']);
+                
+                // Agenda Routes (tambahkan ini)
+                Route::prefix('agenda')->group(function () {
+                    Route::get('/', [AgendaController::class, 'index'])->name('pic.agenda.index');
+                    Route::post('/store', [AgendaController::class, 'store'])->name('pic.agenda.store');
+                    Route::put('/update/{id}', [AgendaController::class, 'update'])->name('pic.agenda.update');
+                    Route::delete('/delete/{id}', [AgendaController::class, 'destroy'])->name('pic.agenda.delete');
+                    Route::get('/download/{id}', [AgendaController::class, 'downloadDocument'])
+                         ->name('pic.agenda.download');
 
                 });
 

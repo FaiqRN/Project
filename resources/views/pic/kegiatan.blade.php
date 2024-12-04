@@ -1,8 +1,5 @@
 @extends('layouts.template')
 
-
-
-
 @section('content')
 <div class="container-fluid p-0">
     <div class="card">
@@ -21,7 +18,7 @@
                 <div class="col-md-6">
                     <div class="form-group">
                         <label>Surat Tugas</label>
-                        <input type="text" class="form-control" value="{{ $kegiatanJurusan ? $kegiatanJurusan->surat->judul_surat : $kegiatanProdi->surat->judul_surat }}" readonly>
+                        <input type="text" class="form-control" value="{{ $kegiatanJurusan ? $kegiatanJurusan->surat->nomer_surat : $kegiatanProdi->surat->nomer_surat }}" readonly>
                     </div>
                     <div class="form-group">
                         <label>Penanggung Jawab</label>
@@ -33,12 +30,10 @@
                         <label>Nama Kegiatan</label>
                         <input type="text" class="form-control" value="{{ $kegiatanJurusan ? $kegiatanJurusan->nama_kegiatan_jurusan : $kegiatanProdi->nama_kegiatan_program_studi }}" readonly>
                     </div>
-
                     <div class="form-group">
-                        <label>Penyelenggara</label>
-                        <input type="text" class="form-control" value="{{ $kegiatanJurusan ? $kegiatanJurusan->penyelenggara : $kegiatanProdi->penyelenggara }}" readonly>
+                        <label>Deskripsi Kegiatan</label>
+                        <textarea class="form-control" readonly>{{ $kegiatanJurusan ? $kegiatanJurusan->deskripsi_kegiatan : $kegiatanProdi->deskripsi_kegiatan }}</textarea>
                     </div>
-
                 </div>
             </div>
 
@@ -51,38 +46,29 @@
                     </div>
                     <div class="form-group">
                         <label>Tanggal Mulai</label>
-                        <input class="form-control" value="{{date('d-m-y',strtotime($kegiatanJurusan ? $kegiatanJurusan->tanggal_mulai : $kegiatanProdi->tanggal_mulai))}}" readonly>
+                        <input type="date" class="form-control" value="{{ $kegiatanJurusan ? $kegiatanJurusan->tanggal_mulai : $kegiatanProdi->tanggal_mulai }}" readonly>
                     </div>
                 </div>
                 <div class="col-md-6">
-                    <label>Deskripsi Kegiatan</label>
-                    <textarea class="form-control" readonly>{{ $kegiatanJurusan ? $kegiatanJurusan->deskripsi_kegiatan : $kegiatanProdi->deskripsi_kegiatan }}</textarea>
-                        </div>
-                        <div class="form-group">
-                            <label>Tanggal Selesai</label>
-                            <input class="form-control" value="{{date('d-m-y',strtotime($kegiatanJurusan ? $kegiatanJurusan->tanggal_selesai : $kegiatanProdi->tanggal_selesai))}}" readonly>
+                    <div class="form-group">
+                        <label>Penyelenggara</label>
+                        <input type="text" class="form-control" value="{{ $kegiatanJurusan ? $kegiatanJurusan->penyelenggara : $kegiatanProdi->penyelenggara }}" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Tanggal Selesai</label>
+                        <input type="date" class="form-control" value="{{ $kegiatanJurusan ? $kegiatanJurusan->tanggal_selesai : $kegiatanProdi->tanggal_selesai }}" readonly>
                     </div>
                 </div>
             </div>
 
-            <div class="col-12 mb-4">
-                @if($kegiatanJurusan && $kegiatanJurusan->surat)
-                    <a href="{{ route('surat-tugas.download-file', $kegiatanJurusan->surat->surat_id) }}"
-                       class="btn btn-primary btn-block">
-                        <i class="fas fa-download mr-2"></i>Download Surat Tugas ({{ $kegiatanJurusan->surat->judul_surat }})
-                    </a>
-                @elseif($kegiatanProdi && $kegiatanProdi->surat)
-                    <a href="{{ route('surat-tugas.download-file', $kegiatanProdi->surat->surat_id) }}"
-                       class="btn btn-primary btn-block">
-                        <i class="fas fa-download mr-2"></i>Download Surat Tugas ({{ $kegiatanProdi->surat->judul_surat }})
-                    </a>
-                @else
-                    <button type="button" class="btn btn-secondary btn-block" disabled>
-                        <i class="fas fa-exclamation-circle mr-2"></i>Surat Tugas Belum Tersedia
+            <div class="row mt-3 mb-4">
+                <div class="col-12">
+                    <button type="button" class="btn btn-primary" id="downloadSurat">
+                        <i class="fas fa-download"></i> Download Surat Tugas
                     </button>
-                @endif
+                </div>
             </div>
-           
+
             <hr>
 
             <!-- Agenda Section -->
@@ -100,10 +86,7 @@
                         </div>
                         <div class="form-group">
                             <label>Tanggal Agenda</label>
-                            <input type="date" class="form-control" name="tanggal_agenda"
-                            min="{{ $kegiatanJurusan ? $kegiatanJurusan->tanggal_mulai : $kegiatanProdi->tanggal_mulai}}"
-                            max="{{ $kegiatanJurusan ? $kegiatanJurusan->tanggal_selesai : $kegiatanProdi->tanggal_selesai }}"
-                             required>
+                            <input type="date" class="form-control" name="tanggal_agenda" required>
                         </div>
                         <div class="form-group">
                             <label>Dokumen Pendukung</label>
@@ -180,119 +163,54 @@
 </style>
 @endpush
 
-@push('scripts')
-<!-- DataTables & Plugins -->
-<script src="{{ asset('adminlte/plugins/jquery/jquery.min.js') }}"></script>
-<script src="{{ asset('adminlte/plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-<script src="{{ asset('adminlte/plugins/datatables/jquery.dataTables.min.js') }}"></script>
-<script src="{{ asset('adminlte/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
-<script src="{{ asset('adminlte/plugins/sweetalert2/sweetalert2.min.js') }}"></script>
-<script src="{{ asset('adminlte/plugins/bs-custom-file-input/bs-custom-file-input.min.js') }}"></script>
-
+@push('js')
 <script>
-// Inisialisasi variabel global
-let tempAgendaJurusan = [];
-let tempAgendaProdi = [];
+$(document).ready(function() {
+    let agendaList = [];
+    let currentAgendaId = 1;
 
-$(function () {
-    // Inisialisasi komponen
-    bsCustomFileInput.init();
-
-    // Inisialisasi DataTables
-    const tableAgendaJurusan = $('#tabelAgendaJurusan').DataTable({
-        responsive: true,
-        autoWidth: false,
-        processing: true,
-        serverSide: true,
-        ajax: {
-            url: `/dosen/kegiatan/agenda/jurusan/${$('#formAgendaJurusan input[name="kegiatan_id"]').val()}`,
-            type: 'GET'
-        },
-        columns: [
-            { data: 'DT_RowIndex', searchable: false },
-            { data: 'nama_agenda' },
-            { data: 'tanggal_agenda' },
-            { data: 'deskripsi' },
-            { data: 'dokumentasi', orderable: false, searchable: false },
-            { data: 'action', orderable: false, searchable: false }
-        ]
-    });
-
-    const tableAgendaProdi = $('#tabelAgendaProdi').DataTable({
-        responsive: true,
-        autoWidth: false,
-        processing: true,
-        serverSide: true,
-        ajax: {
-            url: `/dosen/kegiatan/agenda/prodi/${$('#formAgendaProdi input[name="kegiatan_id"]').val()}`,
-            type: 'GET'
-        },
-        columns: [
-            { data: 'DT_RowIndex', searchable: false },
-            { data: 'nama_agenda' },
-            { data: 'tanggal_agenda' },
-            { data: 'deskripsi' },
-            { data: 'dokumentasi', orderable: false, searchable: false },
-            { data: 'action', orderable: false, searchable: false }
-        ]
-    });
-
-    // Event Handlers
-    $('#btnTambahAgendaJurusan, #btnTambahAgendaProdi').click(function() {
-        const type = $(this).attr('id').includes('Jurusan') ? 'jurusan' : 'prodi';
-        handleTambahAgenda(type);
-    });
-
-    $('#btnUnggahAgendaJurusan, #btnUnggahAgendaProdi').click(function() {
-        const type = $(this).attr('id').includes('Jurusan') ? 'jurusan' : 'prodi';
-        handleUnggahAgenda(type);
-    });
-
-    // Fungsi untuk menangani penambahan agenda
-    function handleTambahAgenda(type) {
-        const form = type === 'jurusan' ? $('#formAgendaJurusan') : $('#formAgendaProdi');
+    // Download surat tugas
+    $('#downloadSurat').click(function() {
+        const type = '{{ $kegiatanJurusan ? "jurusan" : "prodi" }}';
+        const id = '{{ $kegiatanJurusan ? $kegiatanJurusan->kegiatan_jurusan_id : $kegiatanProdi->kegiatan_program_studi_id }}';
         
-        if (!form[0].checkValidity()) {
-            form[0].reportValidity();
+        window.location.href = `/dosen/download-surat/${type}/${id}`;
+    });
+
+    // Handle adding agenda to list
+    $('#tambahKeAgenda').click(function() {
+        const judulAgenda = $('input[name="judul_agenda"]').val();
+        const deskripsiAgenda = $('textarea[name="deskripsi_agenda"]').val();
+        const tanggalAgenda = $('input[name="tanggal_agenda"]').val();
+        const dokumenAgenda = $('input[name="dokumen_agenda"]').prop('files')[0];
+
+        if (!judulAgenda || !deskripsiAgenda || !tanggalAgenda) {
+            Swal.fire('Error', 'Semua field harus diisi', 'error');
             return;
         }
 
-        const agendaData = {
-            nama_agenda: form.find('input[name="nama_agenda"]').val(),
-            tanggal_agenda: form.find('input[name="tanggal_agenda"]').val(),
-            deskripsi: form.find('textarea[name="deskripsi"]').val(),
-            file: form.find('input[type="file"]')[0].files[0],
-            temp_id: Date.now()
+        const newAgenda = {
+            id: currentAgendaId++,
+            judul: judulAgenda,
+            tanggal: tanggalAgenda,
+            deskripsi: deskripsiAgenda,
+            dokumen: dokumenAgenda
         };
 
-        if (type === 'jurusan') {
-            tempAgendaJurusan.push(agendaData);
-            refreshTempTable('jurusan');
-        } else {
-            tempAgendaProdi.push(agendaData);
-            refreshTempTable('prodi');
-        }
+        agendaList.push(newAgenda);
+        refreshAgendaTable();
+        clearAgendaForm();
 
-        form[0].reset();
-        form.find('.custom-file-label').text('Pilih file');
-        
-        Swal.fire({
-            icon: 'success',
-            title: 'Berhasil',
-            text: 'Agenda berhasil ditambahkan ke daftar',
-            timer: 1500,
-            showConfirmButton: false
-        });
-    }
+        Swal.fire('Berhasil', 'Agenda berhasil ditambahkan', 'success');
+    });
 
-    // Fungsi untuk refresh tabel temporary
-    function refreshTempTable(type) {
-        const tempData = type === 'jurusan' ? tempAgendaJurusan : tempAgendaProdi;
-        const table = $(`#tabelAgenda${type === 'jurusan' ? 'Jurusan' : 'Prodi'} tbody`);
-        
-        table.empty();
-        tempData.forEach((item, index) => {
-            table.append(`
+    // Refresh agenda table
+    function refreshAgendaTable() {
+        const tbody = $('#daftarAgenda');
+        tbody.empty();
+
+        agendaList.forEach((agenda, index) => {
+            tbody.append(`
                 <tr>
                     <td>${index + 1}</td>
                     <td>${agenda.judul}</td>
@@ -300,7 +218,10 @@ $(function () {
                     <td>${agenda.deskripsi}</td>
                     <td>${agenda.dokumen ? agenda.dokumen.name : '-'}</td>
                     <td>
-                        <button type="button" class="btn btn-danger btn-sm" onclick="removeTempAgenda('${item.temp_id}', '${type}')">
+                        <button class="btn btn-warning btn-sm edit-agenda" data-id="${agenda.id}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-danger btn-sm delete-agenda" data-id="${agenda.id}">
                             <i class="fas fa-trash"></i>
                         </button>
                     </td>
@@ -309,240 +230,88 @@ $(function () {
         });
     }
 
-    // Fungsi untuk handle unggah agenda
-    function handleUnggahAgenda(type) {
-        const tempData = type === 'jurusan' ? tempAgendaJurusan : tempAgendaProdi;
+    // Clear agenda form
+    function clearAgendaForm() {
+        $('#formAgenda')[0].reset();
+        $('#tambahKeAgenda').text('Tambah ke Daftar').removeData('edit-id');
+    }
+
+    // Handle delete agenda
+    $(document).on('click', '.delete-agenda', function() {
+        const agendaId = $(this).data('id');
         
-        if (tempData.length === 0) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Peringatan',
-                text: 'Tidak ada agenda untuk diunggah'
-            });
+        Swal.fire({
+            title: 'Apakah Anda yakin?',
+            text: "Agenda akan dihapus dari daftar",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Ya, hapus!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                agendaList = agendaList.filter(agenda => agenda.id !== agendaId);
+                refreshAgendaTable();
+                Swal.fire('Terhapus', 'Agenda berhasil dihapus', 'success');
+            }
+        });
+    });
+
+    // Handle edit agenda
+    $(document).on('click', '.edit-agenda', function() {
+        const agendaId = $(this).data('id');
+        const agenda = agendaList.find(a => a.id === agendaId);
+
+        if (agenda) {
+            $('input[name="judul_agenda"]').val(agenda.judul);
+            $('textarea[name="deskripsi_agenda"]').val(agenda.deskripsi);
+            $('input[name="tanggal_agenda"]').val(agenda.tanggal);
+            
+            $('#tambahKeAgenda').text('Update Agenda').data('edit-id', agendaId);
+        }
+    });
+
+    // Handle upload to database
+    $('#unggahDatabase').click(function() {
+        if (agendaList.length === 0) {
+            Swal.fire('Error', 'Tambahkan minimal satu agenda', 'error');
             return;
         }
 
         const formData = new FormData();
-        formData.append('kegiatan_type', type);
-        formData.append('kegiatan_id', $(`#formAgenda${type === 'jurusan' ? 'Jurusan' : 'Prodi'} input[name="kegiatan_id"]`).val());
-
-tempData.forEach((item, index) => {
-    formData.append(`agenda[${index}][nama_agenda]`, item.nama_agenda);
-    formData.append(`agenda[${index}][tanggal_agenda]`, item.tanggal_agenda);
-    formData.append(`agenda[${index}][deskripsi]`, item.deskripsi);
-    if (item.file) {
-        formData.append(`agenda[${index}][file_surat_agenda]`, item.file);
-    }
-});
-
-$.ajax({
-    url: '/dosen/kegiatan/agenda/store',
-    type: 'POST',
-    data: formData,
-    processData: false,
-    contentType: false,
-    headers: {
-        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-    },
-    beforeSend: function() {
-        Swal.fire({
-            title: 'Mohon tunggu',
-            text: 'Sedang mengunggah agenda...',
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
-            }
-        });
-    },
-    success: function(response) {
-        Swal.fire({
-            icon: 'success',
-            title: 'Berhasil',
-            text: 'Agenda berhasil disimpan'
-        });
-
-        // Reset data temporary dan refresh tabel
-        if (type === 'jurusan') {
-            tempAgendaJurusan = [];
-            $('#tabelAgendaJurusan').DataTable().ajax.reload();
-        } else {
-            tempAgendaProdi = [];
-            $('#tabelAgendaProdi').DataTable().ajax.reload();
-        }
-        refreshTempTable(type);
-    },
-    error: function(xhr) {
-        let errorMessage = 'Terjadi kesalahan saat menyimpan agenda';
-        if (xhr.responseJSON && xhr.responseJSON.message) {
-            errorMessage = xhr.responseJSON.message;
-        }
         
-        Swal.fire({
-            icon: 'error',
-            title: 'Gagal',
-            text: errorMessage
-        });
-    }
-});
-}
-});
-
-// Fungsi global untuk menghapus agenda temporary
-function removeTempAgenda(tempId, type) {
-if (type === 'jurusan') {
-tempAgendaJurusan = tempAgendaJurusan.filter(item => item.temp_id !== parseInt(tempId));
-refreshTempTable('jurusan');
-} else {
-tempAgendaProdi = tempAgendaProdi.filter(item => item.temp_id !== parseInt(tempId));
-refreshTempTable('prodi');
-}
-}
-
-// Event handler untuk edit agenda
-$(document).on('click', '.edit-agenda', function() {
-const id = $(this).data('id');
-const nama = $(this).data('nama');
-const tanggal = $(this).data('tanggal');
-const deskripsi = $(this).data('deskripsi');
-
-$('#edit_agenda_id').val(id);
-$('#edit_nama_agenda').val(nama);
-$('#edit_tanggal_agenda').val(tanggal);
-$('#edit_deskripsi').val(deskripsi);
-
-$('#modalEditAgenda').modal('show');
-});
-
-// Submit handler untuk form edit
-$('#formEditAgenda').submit(function(e) {
-e.preventDefault();
-
-const formData = new FormData(this);
-const id = $('#edit_agenda_id').val();
-
-$.ajax({
-url: `/dosen/kegiatan/agenda/update/${id}`,
-type: 'POST',
-data: formData,
-processData: false,
-contentType: false,
-headers: {
-    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-},
-beforeSend: function() {
-    Swal.fire({
-        title: 'Mohon tunggu',
-        text: 'Sedang memperbarui agenda...',
-        allowOutsideClick: false,
-        didOpen: () => {
-            Swal.showLoading();
-        }
-    });
-},
-success: function(response) {
-    $('#modalEditAgenda').modal('hide');
-    
-    Swal.fire({
-        icon: 'success',
-        title: 'Berhasil',
-        text: 'Agenda berhasil diperbarui'
-    });
-
-    // Refresh kedua tabel
-    $('#tabelAgendaJurusan').DataTable().ajax.reload();
-    $('#tabelAgendaProdi').DataTable().ajax.reload();
-},
-error: function(xhr) {
-    let errorMessage = 'Terjadi kesalahan saat memperbarui agenda';
-    if (xhr.responseJSON && xhr.responseJSON.message) {
-        errorMessage = xhr.responseJSON.message;
-    }
-    
-    Swal.fire({
-        icon: 'error',
-        title: 'Gagal',
-        text: errorMessage
-    });
-}
-});
-});
-
-// Event handler untuk delete agenda
-$(document).on('click', '.delete-agenda', function() {
-const id = $(this).data('id');
-
-Swal.fire({
-title: 'Apakah Anda yakin?',
-text: "Agenda yang dihapus tidak dapat dikembalikan!",
-icon: 'warning',
-showCancelButton: true,
-confirmButtonColor: '#d33',
-cancelButtonColor: '#3085d6',
-confirmButtonText: 'Ya, hapus!',
-cancelButtonText: 'Batal'
-}).then((result) => {
-if (result.isConfirmed) {
-    $.ajax({
-        url: `/dosen/kegiatan/agenda/delete/${id}`,
-        type: 'DELETE',
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        },
-        success: function(response) {
-            Swal.fire(
-                'Terhapus!',
-                'Agenda berhasil dihapus.',
-                'success'
-            );
-            
-            // Refresh kedua tabel
-            $('#tabelAgendaJurusan').DataTable().ajax.reload();
-            $('#tabelAgendaProdi').DataTable().ajax.reload();
-        },
-        error: function(xhr) {
-            let errorMessage = 'Terjadi kesalahan saat menghapus agenda';
-            if (xhr.responseJSON && xhr.responseJSON.message) {
-                errorMessage = xhr.responseJSON.message;
+        // Add kegiatan info
+        formData.append('kegiatan_type', '{{ $kegiatanJurusan ? "jurusan" : "prodi" }}');
+        formData.append('kegiatan_id', '{{ $kegiatanJurusan ? $kegiatanJurusan->kegiatan_jurusan_id : $kegiatanProdi->kegiatan_program_studi_id }}');
+        
+        // Format agenda data
+        agendaList.forEach((agenda, index) => {
+            formData.append(`agenda[${index}][nama_agenda]`, agenda.judul);
+            formData.append(`agenda[${index}][tanggal_agenda]`, agenda.tanggal);
+            formData.append(`agenda[${index}][deskripsi]`, agenda.deskripsi);
+            if (agenda.dokumen) {
+                formData.append(`agenda[${index}][file_surat_agenda]`, agenda.dokumen);
             }
-            
-            Swal.fire(
-                'Gagal!',
-                errorMessage,
-                'error'
-            );
-        }
-    });
-}
-});
-});
+        });
 
-// Validasi file upload
-$('input[type="file"]').change(function() {
-const file = this.files[0];
-const maxSize = 2 * 1024 * 1024; // 2MB
-const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-
-if (file) {
-if (file.size > maxSize) {
-    Swal.fire({
-        icon: 'error',
-        title: 'File terlalu besar',
-        text: 'Ukuran file maksimal 2MB'
+        $.ajax({
+            url: '{{ route("pic.agenda.store") }}',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                Swal.fire('Berhasil', 'Agenda berhasil disimpan', 'success')
+                .then(() => {
+                    window.location.reload();
+                });
+            },
+            error: function(xhr) {
+                Swal.fire('Error', xhr.responseJSON?.message || 'Gagal menyimpan agenda', 'error');
+            }
+        });
     });
-    this.value = '';
-    return false;
-}
-
-if (!allowedTypes.includes(file.type)) {
-    Swal.fire({
-        icon: 'error',
-        title: 'Format file tidak valid',
-        text: 'File harus berformat PDF, DOC, atau DOCX'
-    });
-    this.value = '';
-    return false;
-}
-}
 });
 </script>
 @endpush
