@@ -182,40 +182,51 @@ $(document).ready(function() {
     let agendaList = [];
     let currentAgendaId = 1;
 
-    // Download surat tugas
-    $('#downloadSurat').click(function() {
-        const type = '{{ $kegiatanJurusan ? "jurusan" : "prodi" }}';
-        const id = '{{ $kegiatanJurusan ? $kegiatanJurusan->kegiatan_jurusan_id : $kegiatanProdi->kegiatan_program_studi_id }}';
-        
-        window.location.href = `/dosen/download-surat/${type}/${id}`;
-    });
-
     // Handle adding agenda to list
     $('#tambahKeAgenda').click(function() {
         const judulAgenda = $('input[name="judul_agenda"]').val();
         const deskripsiAgenda = $('textarea[name="deskripsi_agenda"]').val();
         const tanggalAgenda = $('input[name="tanggal_agenda"]').val();
         const dokumenAgenda = $('input[name="dokumen_agenda"]').prop('files')[0];
+        const mode = $(this).data('mode');
+        const editId = $(this).data('edit-id');
 
         if (!judulAgenda || !deskripsiAgenda || !tanggalAgenda) {
             Swal.fire('Error', 'Semua field harus diisi', 'error');
             return;
         }
 
-        const newAgenda = {
-            id: currentAgendaId++,
-            judul: judulAgenda,
-            tanggal: tanggalAgenda,
-            deskripsi: deskripsiAgenda,
-            dokumen: dokumenAgenda
-        };
+        if (mode === 'edit') {
+            // Update existing agenda in the list
+            const index = agendaList.findIndex(a => a.id === editId);
+            if (index !== -1) {
+                agendaList[index] = {
+                    id: editId,
+                    judul: judulAgenda,
+                    tanggal: tanggalAgenda,
+                    deskripsi: deskripsiAgenda,
+                    dokumen: dokumenAgenda || agendaList[index].dokumen
+                };
+                Swal.fire('Berhasil', 'Agenda berhasil diupdate', 'success');
+            }
+        } else {
+            // Add new agenda to list
+            const newAgenda = {
+                id: currentAgendaId++,
+                judul: judulAgenda,
+                tanggal: tanggalAgenda,
+                deskripsi: deskripsiAgenda,
+                dokumen: dokumenAgenda
+            };
+            agendaList.push(newAgenda);
+            Swal.fire('Berhasil', 'Agenda berhasil ditambahkan', 'success');
+        }
 
-        agendaList.push(newAgenda);
         refreshAgendaTable();
         clearAgendaForm();
-
-        Swal.fire('Berhasil', 'Agenda berhasil ditambahkan', 'success');
     });
+
+
 
     // Refresh agenda table
     function refreshAgendaTable() {
@@ -231,7 +242,12 @@ $(document).ready(function() {
                     <td>${agenda.deskripsi}</td>
                     <td>${agenda.dokumen ? agenda.dokumen.name : '-'}</td>
                     <td>
-                        <button class="btn btn-warning btn-sm edit-agenda" data-id="${agenda.id}">
+                        <button 
+                            class="btn btn-warning btn-sm edit-agenda" 
+                            data-id="${agenda.id}" 
+                            data-judul="${agenda.judul}" 
+                            data-tanggal="${agenda.tanggal}" 
+                            data-deskripsi="${agenda.deskripsi}" >
                             <i class="fas fa-edit"></i>
                         </button>
                         <button class="btn btn-danger btn-sm delete-agenda" data-id="${agenda.id}">
@@ -246,7 +262,7 @@ $(document).ready(function() {
     // Clear agenda form
     function clearAgendaForm() {
         $('#formAgenda')[0].reset();
-        $('#tambahKeAgenda').text('Tambah ke Daftar').removeData('edit-id');
+        $('#tambahKeAgenda').text('Tambah ke Daftar').removeData('edit-id').removeData('mode');
     }
 
     // Handle delete agenda
@@ -273,17 +289,28 @@ $(document).ready(function() {
 
     // Handle edit agenda
     $(document).on('click', '.edit-agenda', function() {
+        const judulAgenda = $(this).data('judul');
+        const tanggalAgenda = $(this).data('tanggal');
+        const deskripsiAgenda = $(this).data('deskripsi');
         const agendaId = $(this).data('id');
-        const agenda = agendaList.find(a => a.id === agendaId);
+        
+        // Fill the form with existing data
+        $('input[name="judul_agenda"]').val(judulAgenda);
+        $('input[name="tanggal_agenda"]').val(tanggalAgenda);
+        $('textarea[name="deskripsi_agenda"]').val(deskripsiAgenda);
+        
+        // Change button text and store agenda ID
+        $('#tambahKeAgenda')
+            .text('Update Agenda')
+            .data('edit-id', agendaId)
+            .data('mode', 'edit');
 
-        if (agenda) {
-            $('input[name="judul_agenda"]').val(agenda.judul);
-            $('textarea[name="deskripsi_agenda"]').val(agenda.deskripsi);
-            $('input[name="tanggal_agenda"]').val(agenda.tanggal);
-            
-            $('#tambahKeAgenda').text('Update Agenda').data('edit-id', agendaId);
-        }
+        // Scroll to form
+        $('html, body').animate({
+            scrollTop: $("#formAgenda").offset().top - 100
+        }, 500);
     });
+
 
     // Handle upload to database
     $('#unggahDatabase').click(function() {
