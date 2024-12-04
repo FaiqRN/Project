@@ -1,8 +1,6 @@
 <?php
 
-
 namespace App\Http\Controllers;
-
 
 use App\Models\EvaluasiSawModel;
 use App\Models\HasilSawModel;
@@ -12,7 +10,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
-
 class PerhitunganSAWController extends Controller
 {
     private $bobot = [
@@ -21,19 +18,17 @@ class PerhitunganSAWController extends Controller
         'status_poin' => 0.20
     ];
 
-
     private $nilai_status = [
         'disetujui' => 1.0,
         'pending' => 0.5,
         'ditolak' => 0
     ];
 
-
     public function index()
     {
         // Ambil evaluasi terbaru
         $evaluasi = EvaluasiSawModel::latest()->first();
-       
+        
         // Jika tidak ada evaluasi, tampilkan view kosong
         if (!$evaluasi) {
             return view('dosen.perhitungan-saw.index', [
@@ -47,13 +42,11 @@ class PerhitunganSAWController extends Controller
             ]);
         }
 
-
         // Ambil hasil SAW untuk periode ini
         $hasil = HasilSawModel::with('user')
             ->where('evaluasi_id', $evaluasi->evaluasi_id)
             ->orderBy('ranking', 'asc')
             ->get();
-
 
         // Format data untuk grafik
         $chartData = $hasil->map(function($item) {
@@ -62,7 +55,6 @@ class PerhitunganSAWController extends Controller
                 'nilai' => $item->nilai_akhir_saw
             ];
         })->sortBy('nilai')->values();
-
 
         return view('dosen.perhitungan-saw.index', [
             'hasil' => $hasil,
@@ -75,12 +67,10 @@ class PerhitunganSAWController extends Controller
         ]);
     }
 
-
     public function hitungSAW(Request $request)
     {
         try {
             DB::beginTransaction();
-
 
             // Buat periode evaluasi baru kurun waktu 6 bulan
             $evaluasi = new EvaluasiSawModel();
@@ -88,15 +78,12 @@ class PerhitunganSAWController extends Controller
             $evaluasi->periode_selesai = Carbon::now()->endOfDay();
             $evaluasi->save();
 
-
             // Ambil semua data poin dalam periode
             $poinData = $this->getPoinData($evaluasi->periode_mulai, $evaluasi->periode_selesai);
-
 
             // Hitung nilai maksimum untuk normalisasi
             $maxPoinDasar = 3.0; // Nilai tetap sesuai ketentuan parameter
             $maxPoinTambahan = 3.0; // Maksimal poin tambahan
-
 
             // Hitung dan simpan hasil SAW
             $hasilSAW = [];
@@ -105,12 +92,10 @@ class PerhitunganSAWController extends Controller
                 $normalisasiTambahan = ($data->poin_tambahan ?? 0) / $maxPoinTambahan;
                 $normalisasiStatus = $this->nilai_status[$data->status_poin ?? 'disetujui'];
 
-
-                $nilaiAkhir =
+                $nilaiAkhir = 
                     ($normalisasiDasar * $this->bobot['poin_dasar']) +
                     ($normalisasiTambahan * $this->bobot['poin_tambahan']) +
                     ($normalisasiStatus * $this->bobot['status_poin']);
-
 
                 $hasilSAW[] = [
                     'evaluasi_id' => $evaluasi->evaluasi_id,
@@ -127,31 +112,25 @@ class PerhitunganSAWController extends Controller
                 ];
             }
 
-
             // Urutkan berdasarkan nilai perhitangan SAW yang telah dilakukan
             usort($hasilSAW, function($a, $b) {
                 return $b['nilai_akhir_saw'] <=> $a['nilai_akhir_saw'];
             });
-
 
             // Tambahkan ranking
             foreach ($hasilSAW as $key => $hasil) {
                 $hasilSAW[$key]['ranking'] = $key + 1;
             }
 
-
             // Simpan semua hasil
             HasilSawModel::insert($hasilSAW);
 
-
             DB::commit();
-
 
             return response()->json([
                 'status' => 'success',
                 'message' => 'Perhitungan SAW berhasil dilakukan'
             ]);
-
 
         } catch (\Exception $e) {
             DB::rollback();
@@ -161,7 +140,6 @@ class PerhitunganSAWController extends Controller
             ], 500);
         }
     }
-
 
     private function getPoinData($startDate, $endDate)
     {
@@ -175,7 +153,6 @@ class PerhitunganSAWController extends Controller
                 't_poin_jurusan.status_poin_tambahan as status_poin'
             );
 
-
         $poinProdi = PoinProgramStudiModel::join('t_jabatan', 't_poin_program_studi.jabatan_id', '=', 't_jabatan.jabatan_id')
             ->whereBetween('t_poin_program_studi.created_at', [$startDate, $endDate])
             ->select(
@@ -185,9 +162,6 @@ class PerhitunganSAWController extends Controller
                 't_poin_program_studi.status_poin_tambahan as status_poin'
             );
 
-
         return $poinJurusan->union($poinProdi)->get();
     }
 }
-
-

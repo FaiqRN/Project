@@ -1,8 +1,6 @@
 <?php
 
-
 namespace App\Http\Controllers\Api;
-
 
 use App\Http\Controllers\Controller;
 use App\Models\EvaluasiSawModel;
@@ -14,7 +12,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
-
 class MobileSAWController extends Controller
 {
     private $bobot = [
@@ -23,13 +20,11 @@ class MobileSAWController extends Controller
         'status_poin' => 0.20
     ];
 
-
     private $nilai_status = [
         'disetujui' => 1.0,
         'pending' => 0.5,
         'ditolak' => 0
     ];
-
 
     // Mendapatkan evaluasi dan hasil SAW terbaru
     public function getLatestEvaluation()
@@ -43,7 +38,6 @@ class MobileSAWController extends Controller
             ->latest('periode_selesai')
             ->first();
 
-
             if (!$evaluasi) {
                 return response()->json([
                     'status' => 'success',
@@ -51,7 +45,6 @@ class MobileSAWController extends Controller
                     'data' => null
                 ]);
             }
-
 
             // Format data untuk grafik (diurutkan dari nilai terendah)
             $chartData = $evaluasi->hasilSaw->map(function($hasil) {
@@ -62,7 +55,6 @@ class MobileSAWController extends Controller
                     'ranking' => $hasil->ranking
                 ];
             })->sortBy('nilai_saw')->values();
-
 
             return response()->json([
                 'status' => 'success',
@@ -76,7 +68,6 @@ class MobileSAWController extends Controller
                 ]
             ]);
 
-
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
@@ -84,7 +75,6 @@ class MobileSAWController extends Controller
             ], 500);
         }
     }
-
 
     // Mendapatkan riwayat semua evaluasi SAW
     public function getEvaluationHistory()
@@ -101,13 +91,11 @@ class MobileSAWController extends Controller
                     ];
                 });
 
-
             return response()->json([
                 'status' => 'success',
                 'message' => 'Data history evaluasi berhasil diambil',
                 'data' => $evaluations
             ]);
-
 
         } catch (\Exception $e) {
             return response()->json([
@@ -117,7 +105,6 @@ class MobileSAWController extends Controller
         }
     }
 
-
     // Mendapatkan detail hasil evaluasi SAW tertentu
     public function getEvaluationDetail($evaluasiId)
     {
@@ -126,7 +113,6 @@ class MobileSAWController extends Controller
                 $query->with('user:user_id,nidn,nama_lengkap')
                       ->orderBy('ranking', 'asc');
             }])->findOrFail($evaluasiId);
-
 
             $detailData = $evaluasi->hasilSaw->map(function($hasil) {
                 return [
@@ -145,7 +131,6 @@ class MobileSAWController extends Controller
                 ];
             });
 
-
             return response()->json([
                 'status' => 'success',
                 'message' => 'Detail evaluasi berhasil diambil',
@@ -158,7 +143,6 @@ class MobileSAWController extends Controller
                 ]
             ]);
 
-
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
@@ -167,5 +151,3 @@ class MobileSAWController extends Controller
         }
     }
 }
-
-

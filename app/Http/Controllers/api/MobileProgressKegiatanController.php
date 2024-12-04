@@ -1,13 +1,10 @@
 <?php
 
-
 namespace App\Http\Controllers\Api;
-
 
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
-
 
 class MobileProgressKegiatanController extends Controller
 {
@@ -42,7 +39,6 @@ class MobileProgressKegiatanController extends Controller
                     'kj.tanggal_selesai'
                 );
 
-
             // Query untuk kegiatan prodi
             $kegiatanProdi = DB::table('t_kegiatan_program_studi as kp')
                 ->select([
@@ -71,17 +67,14 @@ class MobileProgressKegiatanController extends Controller
                     'kp.tanggal_selesai'
                 );
 
-
             // Gabungkan hasil query
             $kegiatan = $kegiatanJurusan->union($kegiatanProdi)->get();
 
-
             // Transformasi data untuk response
             $result = $kegiatan->map(function ($item) {
-                $progressPercentage = $item->total_agenda > 0
+                $progressPercentage = $item->total_agenda > 0 
                     ? round(($item->agenda_selesai / $item->total_agenda) * 100)
                     : 0;
-
 
                 return [
                     'kegiatan_id' => $item->kegiatan_id,
@@ -96,13 +89,11 @@ class MobileProgressKegiatanController extends Controller
                 ];
             });
 
-
             return response()->json([
                 'status' => 'success',
                 'message' => 'Data progress kegiatan berhasil diambil',
                 'data' => $result
             ]);
-
 
         } catch (\Exception $e) {
             return response()->json([
@@ -112,13 +103,12 @@ class MobileProgressKegiatanController extends Controller
         }
     }
 
-
     public function getDetailProgress($id, $type)
     {
         try {
             $table = $type === 'kegiatan_jurusan' ? 't_kegiatan_jurusan' : 't_kegiatan_program_studi';
             $idColumn = $type === 'kegiatan_jurusan' ? 'kegiatan_jurusan_id' : 'kegiatan_program_studi_id';
-           
+            
             // Query untuk mendapatkan detail agenda
             $agendas = DB::table('t_agenda as a')
                 ->select([
@@ -132,13 +122,11 @@ class MobileProgressKegiatanController extends Controller
                 ->orderBy('a.tanggal_agenda')
                 ->get();
 
-
             return response()->json([
                 'status' => 'success',
                 'message' => 'Detail progress berhasil diambil',
                 'data' => $agendas
             ]);
-
 
         } catch (\Exception $e) {
             return response()->json([
@@ -148,5 +136,3 @@ class MobileProgressKegiatanController extends Controller
         }
     }
 }
-
-

@@ -1,17 +1,14 @@
 <?php
 
-
 namespace App\Models;
 
-
 use Illuminate\Database\Eloquent\Model;
-
 
 class PoinProgramStudiModel extends Model
 {
     protected $table = 't_poin_program_studi';
     protected $primaryKey = 'poin_program_studi_id';
-   
+    
     protected $fillable = [
         'jabatan_id',
         'kegiatan_program_studi_id',
@@ -27,13 +24,11 @@ class PoinProgramStudiModel extends Model
         'approved_at'
     ];
 
-
     protected $dates = [
         'approved_at',
         'created_at',
         'updated_at'
     ];
-
 
     // Relasi ke jabatan
     public function jabatan()
@@ -41,13 +36,11 @@ class PoinProgramStudiModel extends Model
         return $this->belongsTo(JabatanModel::class, 'jabatan_id');
     }
 
-
     // Relasi ke kegiatan program studi
     public function kegiatanProdi()
     {
         return $this->belongsTo(KegiatanProgramStudiModel::class, 'kegiatan_program_studi_id');
     }
-
 
     // Relasi ke user yang menyetujui
     public function approver()
@@ -55,12 +48,11 @@ class PoinProgramStudiModel extends Model
         return $this->belongsTo(UserModel::class, 'approved_by', 'user_id');
     }
 
-
     // Method untuk menghitung total poin
     public function hitungTotalPoin()
     {
         $poinDasar = 0;
-       
+        
         switch ($this->jabatan->jabatan) {
             case 'ketua_pelaksana':
                 $poinDasar = $this->poin_ketua_pelaksana;
@@ -76,9 +68,6 @@ class PoinProgramStudiModel extends Model
                 break;
         }
 
-
         return $poinDasar + ($this->poin_tambahan ?? 0);
     }
 }
-
-

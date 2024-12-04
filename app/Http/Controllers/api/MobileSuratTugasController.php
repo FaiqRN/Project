@@ -1,15 +1,12 @@
 <?php
 
-
 namespace App\Http\Controllers\Api;
-
 
 use App\Http\Controllers\Controller;
 use App\Models\SuratModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-
 
 class MobileSuratTugasController extends Controller
 {
@@ -29,7 +26,6 @@ class MobileSuratTugasController extends Controller
         }
     }
 
-
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -39,7 +35,6 @@ class MobileSuratTugasController extends Controller
             'tanggal_surat' => 'required|date'
         ]);
 
-
         if ($validator->fails()) {
             return response()->json([
                 'status' => 422,
@@ -47,12 +42,10 @@ class MobileSuratTugasController extends Controller
             ], 422);
         }
 
-
         try {
             $file = $request->file('file_surat');
             $fileName = time() . '_' . $file->getClientOriginalName();
             $filePath = $file->storeAs('surat-tugas', $fileName, 'public');
-
 
             $surat = SuratModel::create([
                 'nomer_surat' => $request->nomer_surat,
@@ -60,7 +53,6 @@ class MobileSuratTugasController extends Controller
                 'file_surat' => $filePath,
                 'tanggal_surat' => $request->tanggal_surat
             ]);
-
 
             return response()->json([
                 'status' => 201,
@@ -74,7 +66,6 @@ class MobileSuratTugasController extends Controller
             ], 500);
         }
     }
-
 
     public function show($id)
     {
@@ -93,7 +84,6 @@ class MobileSuratTugasController extends Controller
         }
     }
 
-
     public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
@@ -103,7 +93,6 @@ class MobileSuratTugasController extends Controller
             'tanggal_surat' => 'required|date'
         ]);
 
-
         if ($validator->fails()) {
             return response()->json([
                 'status' => 422,
@@ -111,28 +100,25 @@ class MobileSuratTugasController extends Controller
             ], 422);
         }
 
-
         try {
             $surat = SuratModel::findOrFail($id);
-           
+            
             if ($request->hasFile('file_surat')) {
                 if ($surat->file_surat && Storage::disk('public')->exists($surat->file_surat)) {
                     Storage::disk('public')->delete($surat->file_surat);
                 }
-               
+                
                 $file = $request->file('file_surat');
                 $fileName = time() . '_' . $file->getClientOriginalName();
                 $filePath = $file->storeAs('surat-tugas', $fileName, 'public');
                 $surat->file_surat = $filePath;
             }
 
-
             $surat->update([
                 'nomer_surat' => $request->nomer_surat,
                 'judul_surat' => $request->judul_surat,
                 'tanggal_surat' => $request->tanggal_surat
             ]);
-
 
             return response()->json([
                 'status' => 200,
@@ -147,7 +133,6 @@ class MobileSuratTugasController extends Controller
         }
     }
 
-
     public function destroy($id)
     {
         try {
@@ -156,7 +141,6 @@ class MobileSuratTugasController extends Controller
                 Storage::disk('public')->delete($surat->file_surat);
             }
             $surat->delete();
-
 
             return response()->json([
                 'status' => 200,
@@ -170,20 +154,19 @@ class MobileSuratTugasController extends Controller
         }
     }
 
-
     public function download($id)
     {
         try {
             $surat = SuratModel::findOrFail($id);
             $filePath = storage_path('app/public/' . $surat->file_surat);
-           
+            
             if (!file_exists($filePath)) {
                 return response()->json([
                     'status' => 404,
                     'message' => 'File not found'
                 ], 404);
             }
-           
+            
             return response()->download($filePath);
         } catch (\Exception $e) {
             return response()->json([
@@ -193,5 +176,3 @@ class MobileSuratTugasController extends Controller
         }
     }
 }
-
-

@@ -9,7 +9,6 @@ use App\Http\Controllers\Api\MobileProgressKegiatanController;
 use App\Http\Controllers\Api\MobileSuratTugasController;
 use App\Http\Controllers\Api\MobileSAWController;
 
-
 Route::prefix('v1')->group(function () {
     // Auth Routes
     Route::post('/login', [MobileLoginController::class, 'login']);
@@ -30,7 +29,7 @@ Route::prefix('v1')->group(function () {
                 Route::get('/agenda', [MobileDokumentasiController::class, 'getAgendaList']);
                 Route::get('/agenda/{id}', [MobileDokumentasiController::class, 'getDokumentasi']);
                 Route::post('/store', [MobileDokumentasiController::class, 'store']);
-                Route::post('/update/{id}', [MobileDokumentasiController::class, 'update']);
+                Route::post('/update/{id}', [MobileDokumentasiController::class, 'update']); 
                 Route::delete('/{id}', [MobileDokumentasiController::class, 'destroy']);
             });
             // Di dalam group middleware auth:sanctum dan role:Dosen

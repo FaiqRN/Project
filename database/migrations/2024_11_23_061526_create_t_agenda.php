@@ -17,8 +17,8 @@ return new class extends Migration
             $table->date('tanggal_agenda');
             $table->text('file_surat_agenda')->nullable();
             $table->text('deskripsi');
-            $table->unsignedBigInteger('dokumentasi_id');
-            $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('dokumentasi_id')->nullable();;
+            $table->unsignedBigInteger('user_id')->nullable();;
             
             // References ke berbagai jenis kegiatan
             $table->unsignedBigInteger('kegiatan_luar_institusi_id')->nullable();

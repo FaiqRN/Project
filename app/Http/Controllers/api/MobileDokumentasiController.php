@@ -1,8 +1,6 @@
 <?php
 
-
 namespace App\Http\Controllers\Api;
-
 
 use App\Http\Controllers\Controller;
 use App\Models\AgendaModel;
@@ -11,7 +9,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-
 
 class MobileDokumentasiController extends Controller
 {
@@ -38,13 +35,11 @@ class MobileDokumentasiController extends Controller
                 ];
             });
 
-
             return response()->json([
                 'status' => 'success',
                 'message' => 'Data agenda berhasil diambil',
                 'data' => $agendas
             ]);
-
 
         } catch (\Exception $e) {
             return response()->json([
@@ -54,14 +49,12 @@ class MobileDokumentasiController extends Controller
         }
     }
 
-
     public function getDokumentasi($id)
     {
         try {
             $agenda = AgendaModel::with('dokumentasi')
                 ->where('user_id', Auth::id())
                 ->findOrFail($id);
-
 
             if ($agenda->dokumentasi) {
                 $dokumentasi = [
@@ -75,12 +68,10 @@ class MobileDokumentasiController extends Controller
                 $dokumentasi = null;
             }
 
-
             return response()->json([
                 'status' => 'success',
                 'data' => $dokumentasi
             ]);
-
 
         } catch (\Exception $e) {
             return response()->json([
@@ -90,7 +81,6 @@ class MobileDokumentasiController extends Controller
         }
     }
 
-
     public function store(Request $request)
     {
         $request->validate([
@@ -99,11 +89,10 @@ class MobileDokumentasiController extends Controller
             'file_dokumentasi' => 'required|file|max:10240|mimes:pdf,doc,docx,xls,xlsx'
         ]);
 
-
         DB::beginTransaction();
         try {
             $agenda = AgendaModel::findOrFail($request->agenda_id);
-           
+            
             if ($agenda->user_id !== Auth::id()) {
                 return response()->json([
                     'status' => 'error',
@@ -111,9 +100,7 @@ class MobileDokumentasiController extends Controller
                 ], 403);
             }
 
-
             $filePath = $request->file('file_dokumentasi')->store('dokumentasi');
-
 
             $dokumentasi = DokumentasiModel::create([
                 'nama_dokumentasi' => $agenda->nama_agenda,
@@ -122,13 +109,10 @@ class MobileDokumentasiController extends Controller
                 'tanggal' => now()
             ]);
 
-
             $agenda->dokumentasi_id = $dokumentasi->dokumentasi_id;
             $agenda->save();
 
-
             DB::commit();
-
 
             return response()->json([
                 'status' => 'success',
@@ -139,7 +123,6 @@ class MobileDokumentasiController extends Controller
                 ]
             ]);
 
-
         } catch (\Exception $e) {
             DB::rollback();
             return response()->json([
@@ -149,7 +132,6 @@ class MobileDokumentasiController extends Controller
         }
     }
 
-
     public function update(Request $request, $id)
     {
         $request->validate([
@@ -157,18 +139,16 @@ class MobileDokumentasiController extends Controller
             'file_dokumentasi' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx'
         ]);
 
-
         DB::beginTransaction();
         try {
             $agenda = AgendaModel::with('dokumentasi')->findOrFail($id);
-           
+            
             if ($agenda->user_id !== Auth::id()) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Anda tidak memiliki akses untuk agenda ini'
                 ], 403);
             }
-
 
             $fileUrl = null;
             if ($request->hasFile('file_dokumentasi')) {
@@ -178,13 +158,10 @@ class MobileDokumentasiController extends Controller
                 $fileUrl = Storage::url($filePath);
             }
 
-
             $agenda->dokumentasi->deskripsi_dokumentasi = $request->deskripsi_dokumentasi;
             $agenda->dokumentasi->save();
 
-
             DB::commit();
-
 
             return response()->json([
                 'status' => 'success',
@@ -195,7 +172,6 @@ class MobileDokumentasiController extends Controller
                 ]
             ]);
 
-
         } catch (\Exception $e) {
             DB::rollback();
             return response()->json([
@@ -205,13 +181,12 @@ class MobileDokumentasiController extends Controller
         }
     }
 
-
     public function destroy($id)
     {
         DB::beginTransaction();
         try {
             $agenda = AgendaModel::with('dokumentasi')->findOrFail($id);
-           
+            
             if ($agenda->user_id !== Auth::id()) {
                 return response()->json([
                     'status' => 'error',
@@ -219,24 +194,20 @@ class MobileDokumentasiController extends Controller
                 ], 403);
             }
 
-
             Storage::delete($agenda->dokumentasi->file_dokumentasi);
-           
+            
             $dokumentasiId = $agenda->dokumentasi_id;
             $agenda->dokumentasi_id = null;
             $agenda->save();
-           
+            
             DokumentasiModel::destroy($dokumentasiId);
 
-
             DB::commit();
-
 
             return response()->json([
                 'status' => 'success',
                 'message' => 'Dokumentasi berhasil dihapus'
             ]);
-
 
         } catch (\Exception $e) {
             DB::rollback();
@@ -247,5 +218,3 @@ class MobileDokumentasiController extends Controller
         }
     }
 }
-
-

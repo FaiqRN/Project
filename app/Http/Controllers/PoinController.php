@@ -1,8 +1,6 @@
 <?php
 
-
 namespace App\Http\Controllers;
-
 
 use App\Models\JabatanModel;
 use App\Models\PoinJurusanModel;
@@ -13,7 +11,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
-
 
 class PoinController extends Controller
 {
@@ -26,7 +23,6 @@ class PoinController extends Controller
             ]
         ]);
     }
-
 
     public function getPoin()
     {
@@ -41,7 +37,7 @@ class PoinController extends Controller
                 'u.nama_lengkap',
                 'kj.nama_kegiatan_jurusan as nama_kegiatan',
                 'j.jabatan',
-                DB::raw('CASE
+                DB::raw('CASE 
                     WHEN j.jabatan = "ketua_pelaksana" THEN pj.poin_ketua_pelaksana
                     WHEN j.jabatan = "sekertaris" THEN pj.poin_sekertaris
                     WHEN j.jabatan = "bendahara" THEN pj.poin_bendahara
@@ -55,7 +51,6 @@ class PoinController extends Controller
                 'pj.poin_jurusan_id as id'
             ]);
 
-
         // Ambil data kegiatan prodi yang sudah selesai
         $poinProdi = DB::table('t_poin_program_studi as pp')
             ->join('t_jabatan as j', 'pp.jabatan_id', '=', 'j.jabatan_id')
@@ -67,7 +62,7 @@ class PoinController extends Controller
                 'u.nama_lengkap',
                 'kp.nama_kegiatan_program_studi as nama_kegiatan',
                 'j.jabatan',
-                DB::raw('CASE
+                DB::raw('CASE 
                     WHEN j.jabatan = "ketua_pelaksana" THEN pp.poin_ketua_pelaksana
                     WHEN j.jabatan = "sekertaris" THEN pp.poin_sekertaris
                     WHEN j.jabatan = "bendahara" THEN pp.poin_bendahara
@@ -81,19 +76,17 @@ class PoinController extends Controller
                 'pp.poin_program_studi_id as id'
             ]);
 
-
         $allPoin = $poinJurusan->union($poinProdi);
-
 
         return DataTables::of($allPoin)
             ->addColumn('action', function ($row) {
                 if ($row->poin_tambahan === null || $row->poin_tambahan == 0) {
-                    return '<button type="button" class="btn btn-primary btn-sm tambah-poin"
+                    return '<button type="button" class="btn btn-primary btn-sm tambah-poin" 
                         data-id="'.$row->id.'" data-jenis="'.$row->jenis.'">
                         <i class="fas fa-plus"></i> Tambah Poin
                     </button>';
                 } else {
-                    return '<button type="button" class="btn btn-danger btn-sm hapus-poin"
+                    return '<button type="button" class="btn btn-danger btn-sm hapus-poin" 
                         data-id="'.$row->id.'" data-jenis="'.$row->jenis.'">
                         <i class="fas fa-trash"></i> Hapus
                     </button>';
@@ -105,14 +98,13 @@ class PoinController extends Controller
             ->editColumn('status_poin', function ($row) {
                 if (!$row->status_poin) return '-';
                 return '<span class="badge badge-'.
-                    ($row->status_poin == 'pending' ? 'warning' :
+                    ($row->status_poin == 'pending' ? 'warning' : 
                     ($row->status_poin == 'disetujui' ? 'success' : 'danger'))
                     .'">'.$row->status_poin.'</span>';
             })
             ->rawColumns(['action', 'status_poin'])
             ->make(true);
     }
-
 
     public function tambahPoin(Request $request)
     {
@@ -123,10 +115,8 @@ class PoinController extends Controller
             'keterangan_tambahan' => 'required|string'
         ]);
 
-
         try {
             DB::beginTransaction();
-
 
             if ($request->jenis === 'jurusan') {
                 $poin = PoinJurusanModel::findOrFail($request->id);
@@ -134,22 +124,18 @@ class PoinController extends Controller
                 $poin = PoinProgramStudiModel::findOrFail($request->id);
             }
 
-
             $poin->poin_tambahan = $request->poin_tambahan;
             $poin->keterangan_tambahan = $request->keterangan_tambahan;
             $poin->status_poin_tambahan = 'pending';
             $poin->total_poin = $poin->hitungTotalPoin();
             $poin->save();
 
-
             DB::commit();
-
 
             return response()->json([
                 'status' => 'success',
                 'message' => 'Poin tambahan berhasil disimpan'
             ]);
-
 
         } catch (\Exception $e) {
             DB::rollback();
@@ -160,7 +146,6 @@ class PoinController extends Controller
         }
     }
 
-
     public function hapusPoin(Request $request)
     {
         $request->validate([
@@ -168,10 +153,8 @@ class PoinController extends Controller
             'jenis' => 'required|in:jurusan,prodi'
         ]);
 
-
         try {
             DB::beginTransaction();
-
 
             if ($request->jenis === 'jurusan') {
                 $poin = PoinJurusanModel::findOrFail($request->id);
@@ -179,22 +162,18 @@ class PoinController extends Controller
                 $poin = PoinProgramStudiModel::findOrFail($request->id);
             }
 
-
             $poin->poin_tambahan = null;
             $poin->keterangan_tambahan = null;
             $poin->status_poin_tambahan = null;
             $poin->total_poin = $poin->hitungTotalPoin();
             $poin->save();
 
-
             DB::commit();
-
 
             return response()->json([
                 'status' => 'success',
                 'message' => 'Poin tambahan berhasil dihapus'
             ]);
-
 
         } catch (\Exception $e) {
             DB::rollback();
@@ -205,5 +184,3 @@ class PoinController extends Controller
         }
     }
 }
-
-

@@ -22,6 +22,10 @@ class AgendaModel extends Model
         'kegiatan_program_studi_id'
     ];
 
+    protected $attributes = [
+        'dokumentasi_id' => null
+    ];
+
     // Relasi dengan User
     public function user()
     {
