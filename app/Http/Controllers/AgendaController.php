@@ -126,35 +126,49 @@ class AgendaController extends Controller
                 'kegiatan_type' => 'required|in:jurusan,prodi',
                 'kegiatan_id' => 'required'
             ]);
-    
+   
             if ($validator->fails()) {
                 return response()->json([
                     'status' => 'error',
                     'errors' => $validator->errors()
                 ], 422);
             }
-    
+   
             foreach ($request->agenda as $item) {
                 $agenda = new AgendaModel();
                 $agenda->nama_agenda = $item['nama_agenda'];
                 $agenda->tanggal_agenda = $item['tanggal_agenda'];
                 $agenda->deskripsi = $item['deskripsi'];
-                $agenda->kegiatan_id = $request->kegiatan_id;
-                $agenda->kegiatan_type = $request->kegiatan_type;
-    
+                $agenda->user_id = auth()->id();
+               
+                // Set kegiatan ID berdasarkan tipe
+                if ($request->kegiatan_type === 'jurusan') {
+                    $agenda->kegiatan_jurusan_id = $request->kegiatan_id;
+                } else {
+                    $agenda->kegiatan_program_studi_id = $request->kegiatan_id;
+                }
+   
                 if (!empty($item['file_surat_agenda'])) {
-                    $filePath = $item['file_surat_agenda']->store('agenda_files');
+                    $filePath = $item['file_surat_agenda']->store('public/agenda_files');
                     $agenda->file_surat_agenda = $filePath;
                 }
-    
+   
                 $agenda->save();
             }
-    
-            return response()->json(['status' => 'success', 'message' => 'Agenda berhasil disimpan.']);
+   
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Agenda berhasil disimpan'
+            ]);
+           
         } catch (Exception $e) {
-            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], 500);
         }
-    }
+    }  
+
     
 
     public function update(Request $request, $id)

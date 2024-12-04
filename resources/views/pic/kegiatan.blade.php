@@ -546,10 +546,3 @@ if (!allowedTypes.includes(file.type)) {
 });
 </script>
 @endpush
-
-
-
-
-
-
-
