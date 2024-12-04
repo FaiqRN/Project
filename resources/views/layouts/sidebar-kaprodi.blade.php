@@ -46,13 +46,13 @@
                     <li class="nav-item">
                         <a href="{{ url('/statistik/beban-kerja') }}" class="nav-link">
                             <i class="fas fa-briefcase nav-icon"></i>
-                            <p>Melihat Beban Kerja</p>
+                            <p> Detail Beban Kerja</p>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="{{ url('/statistik/hasil') }}" class="nav-link">
-                            <i class="fas fa-layer-group nav-icon"></i>
-                            <p>Hasil Statistik</p>
+                            <i class="fas fa-award nav-icon"></i>
+                            <p> Verifikasi Poin Kegiatan </p>
                         </a>
                     </li>
                 </ul>

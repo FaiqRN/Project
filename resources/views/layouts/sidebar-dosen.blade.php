@@ -24,7 +24,7 @@
                 </a>
                 <ul class="nav nav-treeview">
                     <li class="nav-item">
-                        <a href="{{ route('pic.kegiatan') }}" class="nav-link {{ isMenuActive('kegiatan', $activemenu) }}">
+                        <a href="{{ route('pic.kegiatan') }}" class="nav-link">
                             <i class="nav-icon fa fa-fw fa-university"></i>
                             <p>Kegiatan</p>
                         </a>

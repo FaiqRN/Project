@@ -1,5 +1,6 @@
 @extends('layouts.template')
 
+
 @section('content')
 <div class="container-fluid p-0">
     <div class="card">
@@ -30,6 +31,7 @@
                     <a class="nav-link" data-toggle="tab" href="#kegiatanProdi">Kegiatan Program Studi</a>
                 </li>
             </ul>
+
 
             <!-- Tab panes -->
             <div class="tab-content pt-4">
@@ -72,6 +74,7 @@
     </div>
 </div>
 
+
 <!-- Modal Jurusan -->
 <div class="modal fade" id="modalKegiatanJurusan" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-lg">
@@ -86,7 +89,7 @@
                 @csrf
                 <div class="modal-body">
                     <input type="hidden" name="kegiatan_jurusan_id" id="kegiatan_jurusan_id">
-                    
+                   
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
@@ -112,20 +115,24 @@
                         </div>
                     </div>
 
+
                     <div class="form-group">
                         <label>Nama Kegiatan <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" name="nama_kegiatan_jurusan" maxlength="200" required>
                     </div>
+
 
                     <div class="form-group">
                         <label>Deskripsi Kegiatan <span class="text-danger">*</span></label>
                         <textarea class="form-control" name="deskripsi_kegiatan" rows="3" required></textarea>
                     </div>
 
+
                     <div class="form-group">
                         <label>Lokasi Kegiatan <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" name="lokasi_kegiatan" required>
                     </div>
+
 
                     <div class="row">
                         <div class="col-md-6">
@@ -142,6 +149,7 @@
                         </div>
                     </div>
 
+
                     <div class="form-group">
                         <label>Penyelenggara <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" name="penyelenggara" maxlength="150" required>
@@ -155,6 +163,7 @@
         </div>
     </div>
 </div>
+
 
 <!-- Modal Prodi -->
 <div class="modal fade" id="modalKegiatanProdi" tabindex="-1" role="dialog">
@@ -170,7 +179,7 @@
                 @csrf
                 <div class="modal-body">
                     <input type="hidden" name="kegiatan_program_studi_id" id="kegiatan_program_studi_id">
-                    
+                   
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
@@ -196,20 +205,24 @@
                         </div>
                     </div>
 
+
                     <div class="form-group">
                         <label>Nama Kegiatan <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" name="nama_kegiatan_program_studi" maxlength="200" required>
                     </div>
+
 
                     <div class="form-group">
                         <label>Deskripsi Kegiatan <span class="text-danger">*</span></label>
                         <textarea class="form-control" name="deskripsi_kegiatan" rows="3" required></textarea>
                     </div>
 
+
                     <div class="form-group">
                         <label>Lokasi Kegiatan <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" name="lokasi_kegiatan" required>
                     </div>
+
 
                     <div class="row">
                         <div class="col-md-6">
@@ -226,6 +239,7 @@
                         </div>
                     </div>
 
+
                     <div class="form-group">
                         <label>Penyelenggara <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" name="penyelenggara" maxlength="150" required>
@@ -239,6 +253,7 @@
         </div>
     </div>
 </div>
+
 
 <!-- Modal Detail -->
 <div class="modal fade" id="modalDetail" tabindex="-1" role="dialog">
@@ -298,6 +313,7 @@
 </div>
 @endsection
 
+
 @push('css')
 <link rel="stylesheet" href="{{ asset('adminlte/plugins/select2/css/select2.min.css') }}">
 <link rel="stylesheet" href="{{ asset('adminlte/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
@@ -306,16 +322,16 @@
         padding-right: 0;
         padding-left: 0;
     }
-    
+   
     .card {
         margin-bottom: 0;
         border-radius: 0;
     }
-    
+   
     .table-responsive {
         min-height: 400px;
     }
-    
+   
     .select2-container--default .select2-selection--single {
         height: calc(2.25rem + 2px);
         padding: .375rem .75rem;
@@ -325,68 +341,76 @@
         color: white !important;
         border: none;
     }
-    
+   
     .tab-content {
         padding: 20px;
         background-color: #fff;
     }
-    
+   
     .dataTables_wrapper {
         padding: 0;
         width: 100%;
     }
+
 
     .btn-info {
         background-color: #17a2b8;
         border-color: #17a2b8;
         color: white !important;
     }
-    
+   
     .btn-warning {
         background-color: #ffc107;
         border-color: #ffc107;
         color: black !important;
     }
-    
+   
     .btn-danger {
         background-color: #dc3545;
         border-color: #dc3545;
         color: white !important;
     }
-    
+   
     .btn {
         margin-right: 5px;
         padding: 5px 10px;
     }
-    
+   
     .btn i {
         margin-right: 5px;
     }
+
 
     .select2-container {
         z-index: 9999;
     }
 
+
     .modal {
         z-index: 1050 !important;
     }
+
 
     .select2-dropdown {
         z-index: 1060 !important;
     }
 
+
     .select2-container--open {
         z-index: 1060 !important;
     }
+
 
     .badge {
         padding: 0.4em 0.8em;
     }
 
+
     .btn-group1 {
         display: flex;
         gap: 5px;
     }
+
 
     .btn-group1 .btn {
         padding: 5px 10px;
@@ -394,6 +418,7 @@
     }
 </style>
 @endpush
+
 
 @push('js')
 <script src="{{ asset('adminlte/plugins/select2/js/select2.full.min.js') }}"></script>
@@ -405,6 +430,7 @@ $(document).ready(function() {
         }
     });
 
+
     // Initialize Select2
     $('#surat_id_jurusan, #user_id_jurusan').select2({
         theme: 'bootstrap4',
@@ -412,24 +438,26 @@ $(document).ready(function() {
         dropdownParent: $('#modalKegiatanJurusan')
     });
 
+
     $('#surat_id_prodi, #user_id_prodi').select2({
         theme: 'bootstrap4',
         width: '100%',
         dropdownParent: $('#modalKegiatanProdi')
     });
 
+
     // Initialize DataTables
     let tableKegiatanJurusan = $('#tableKegiatanJurusan').DataTable({
         processing: true,
         serverSide: true,
-        ajax: "{{ route('admin.dosen.agenda.jurusan.data') }}", 
+        ajax: "{{ route('admin.dosen.agenda.jurusan.data') }}",
         columns: [
             { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
             { data: 'nama_kegiatan_jurusan', name: 'nama_kegiatan_jurusan' },
             { data: 'penanggung_jawab', name: 'penanggung_jawab' },
             { data: 'surat_tugas', name: 'surat_tugas' },
             { data: 'periode', name: 'periode' },
-            { 
+            {
                 data: 'status_kegiatan',
                 render: function(data) {
                     return `<span class="badge badge-${data === 'berlangsung' ? 'success' : 'secondary'}">
@@ -437,7 +465,7 @@ $(document).ready(function() {
                     </span>`;
                 }
             },
-            { 
+            {
                 data: 'action',
                 orderable: false,
                 searchable: false,
@@ -459,6 +487,7 @@ $(document).ready(function() {
         order: [[1, 'asc']]
     });
 
+
     let tableKegiatanProdi = $('#tableKegiatanProdi').DataTable({
         processing: true,
         serverSide: true,
@@ -469,7 +498,7 @@ $(document).ready(function() {
             { data: 'penanggung_jawab', name: 'penanggung_jawab' },
             { data: 'surat_tugas', name: 'surat_tugas' },
             { data: 'periode', name: 'periode' },
-            { 
+            {
                 data: 'status_kegiatan',
                 render: function(data) {
                     return `<span class="badge badge-${data === 'berlangsung' ? 'success' : 'secondary'}">
@@ -477,7 +506,7 @@ $(document).ready(function() {
                     </span>`;
                 }
             },
-            { 
+            {
                 data: 'action',
                 orderable: false,
                 searchable: false,
@@ -499,6 +528,7 @@ $(document).ready(function() {
         order: [[1, 'asc']]
     });
 
+
     // Add Button Handlers
     $('#tambahKegiatanJurusan').click(function() {
         $('#formKegiatanJurusan')[0].reset();
@@ -507,6 +537,7 @@ $(document).ready(function() {
         $('#modalKegiatanJurusan').modal('show');
     });
 
+
     $('#tambahKegiatanProdi').click(function() {
         $('#formKegiatanProdi')[0].reset();
         $('#kegiatan_program_studi_id').val('');
@@ -514,14 +545,15 @@ $(document).ready(function() {
         $('#modalKegiatanProdi').modal('show');
     });
 
+
     // Form Validation and Submit
     function validateForm(formData, isJurusan) {
         let errors = [];
         let prefix = isJurusan ? 'jurusan' : 'prodi';
-        
+       
         if (!formData.get('surat_id')) errors.push('Surat Tugas harus dipilih');
         if (!formData.get('user_id')) errors.push('Penanggung Jawab harus dipilih');
-        if (!formData.get(`nama_kegiatan_${isJurusan ? 'jurusan' : 'program_studi'}`)) 
+        if (!formData.get(`nama_kegiatan_${isJurusan ? 'jurusan' : 'program_studi'}`))
             errors.push('Nama Kegiatan harus diisi');
         if (!formData.get('deskripsi_kegiatan')) errors.push('Deskripsi Kegiatan harus diisi');
         if (!formData.get('lokasi_kegiatan')) errors.push('Lokasi Kegiatan harus diisi');
@@ -529,13 +561,15 @@ $(document).ready(function() {
         if (!formData.get('tanggal_selesai')) errors.push('Tanggal Selesai harus diisi');
         if (!formData.get('penyelenggara')) errors.push('Penyelenggara harus diisi');
 
+
         return errors;
     }
+
 
     function handleFormSubmit(form, isJurusan) {
         let formData = new FormData(form);
         let errors = validateForm(formData, isJurusan);
-        
+       
         if (errors.length > 0) {
             Swal.fire({
                 icon: 'error',
@@ -545,15 +579,18 @@ $(document).ready(function() {
             return false;
         }
 
+
         let id = isJurusan ? $('#kegiatan_jurusan_id').val() : $('#kegiatan_program_studi_id').val();
         let type = isJurusan ? 'jurusan' : 'prodi';
-        let url = id 
+        let url = id
             ? `/admin/dosen/agenda/${type}/update/${id}`
             : `/admin/dosen/agenda/${type}/store`;
+
 
         if (id) {
             formData.append('_method', 'PUT');
         }
+
 
         $.ajax({
             url: url,
@@ -564,13 +601,13 @@ $(document).ready(function() {
             success: function(response) {
                 let modalId = isJurusan ? '#modalKegiatanJurusan' : '#modalKegiatanProdi';
                 $(modalId).modal('hide');
-                
+               
                 if (isJurusan) {
                     tableKegiatanJurusan.ajax.reload(null, false);
                 } else {
                     tableKegiatanProdi.ajax.reload(null, false);
                 }
-                
+               
                 Swal.fire('Berhasil', response.message, 'success');
             },
             error: function(xhr) {
@@ -580,29 +617,32 @@ $(document).ready(function() {
         });
     }
 
+
     $('#formKegiatanJurusan').on('submit', function(e) {
         e.preventDefault();
         handleFormSubmit(this, true);
     });
+
 
     $('#formKegiatanProdi').on('submit', function(e) {
         e.preventDefault();
         handleFormSubmit(this, false);
     });
 
+
     // Edit Button Handler
     $(document).on('click', '.edit-btn', function() {
         let id = $(this).data('id');
         let isJurusan = $(this).closest('table').attr('id') === 'tableKegiatanJurusan';
         let type = isJurusan ? 'jurusan' : 'prodi';
-        
+       
         $.ajax({
             url: `/admin/dosen/agenda/${type}/${id}`,
             type: 'GET',
             success: function(response) {
                 let data = response.data;
                 let modalId = isJurusan ? '#modalKegiatanJurusan' : '#modalKegiatanProdi';
-                
+               
                 if (isJurusan) {
                     $('#kegiatan_jurusan_id').val(data.kegiatan_jurusan_id);
                     $('#surat_id_jurusan').val(data.surat_id).trigger('change');
@@ -624,24 +664,25 @@ $(document).ready(function() {
                     $('#formKegiatanProdi [name="tanggal_selesai"]').val(data.tanggal_selesai);
                     $('#formKegiatanProdi [name="penyelenggara"]').val(data.penyelenggara);
                 }
-                
+               
                 $(modalId).modal('show');
             }
         });
     });
+
 
     // Detail Button Handler
     $(document).on('click', '.detail-btn', function() {
         let id = $(this).data('id');
         let isJurusan = $(this).closest('table').attr('id') === 'tableKegiatanJurusan';
         let type = isJurusan ? 'jurusan' : 'prodi';
-        
+       
         $.ajax({
             url: `/admin/dosen/agenda/${type}/${id}`,
             type: 'GET',
             success: function(response) {
                 let data = response.data;
-                
+               
                 $('#detail_nama_kegiatan').text(isJurusan ? data.nama_kegiatan_jurusan : data.nama_kegiatan_program_studi);
                 $('#detail_penanggung_jawab').text(data.user.nama_lengkap);
                 $('#detail_surat_tugas').text(data.surat.nomer_surat);
@@ -652,18 +693,19 @@ $(document).ready(function() {
                     ${data.status_kegiatan.charAt(0).toUpperCase() + data.status_kegiatan.slice(1)}
                 </span>`);
                 $('#detail_penyelenggara').text(data.penyelenggara);
-                
+               
                 $('#modalDetail').modal('show');
             }
         });
     });
+
 
     // Delete Button Handler
     $(document).on('click', '.delete-btn', function() {
         let id = $(this).data('id');
         let isJurusan = $(this).closest('table').attr('id') === 'tableKegiatanJurusan';
         let type = isJurusan ? 'jurusan' : 'prodi';
-        
+       
         Swal.fire({
             title: 'Apakah Anda yakin?',
             text: "Data yang dihapus tidak dapat dikembalikan!",
@@ -694,12 +736,13 @@ $(document).ready(function() {
         });
     });
 
+
     // Date Validation
     $('input[name="tanggal_mulai"], input[name="tanggal_selesai"]').on('change', function() {
         let form = $(this).closest('form');
         let tanggalMulai = new Date(form.find('input[name="tanggal_mulai"]').val());
         let tanggalSelesai = new Date(form.find('input[name="tanggal_selesai"]').val());
-        
+       
         if (tanggalSelesai < tanggalMulai) {
             Swal.fire({
                 icon: 'warning',
@@ -710,6 +753,7 @@ $(document).ready(function() {
         }
     });
 
+
     // Modal Cleanup
     $('.modal').on('hidden.bs.modal', function() {
         $(this).find('form')[0].reset();
@@ -717,6 +761,7 @@ $(document).ready(function() {
         $('#kegiatan_jurusan_id, #kegiatan_program_studi_id').val('');
         $('.is-invalid').removeClass('is-invalid');
     });
+
 
     // DataTable Language Configuration
     $.extend(true, $.fn.dataTable.defaults, {
@@ -738,6 +783,7 @@ $(document).ready(function() {
             }
         }
     });
+
 
     // Select2 Z-index Fix
     $(document).on('select2:open', () => {

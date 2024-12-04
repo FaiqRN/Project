@@ -1,5 +1,6 @@
 <?php
 
+
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\UserController;
@@ -24,15 +25,18 @@ Route::middleware(['guest'])->group(function () {
     });
 });
 
+
 // Protected Routes (harus login untuk mengakses)
 Route::middleware(['auth.check'])->group(function () {
     // Logout Route
     Route::get('/logout', [LoginController::class, 'logout'])->name('logout');
 
+
     // Profile Route
     Route::get('/profile', [UserController::class, 'profile'])->name('profile');
     Route::get('/profile/edit', [UserController::class, 'edit'])->name('profile.edit');
     Route::put('/profile/update', [UserController::class, 'update'])->name('profile.update');
+
 
     // Dosen Routes
     Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
@@ -40,7 +44,7 @@ Route::middleware(['auth.check'])->group(function () {
             Route::get('/', function () {
                 return redirect()->route('dosen.dashboard');
             });
-            
+           
             Route::get('/dashboard', function () {
                 return view('dosen.dashboard', [
                     'breadcrumb' => (object)[
@@ -49,6 +53,7 @@ Route::middleware(['auth.check'])->group(function () {
                     ]
                 ]);
             })->name('dosen.dashboard');
+
 
             Route::get('/agenda', function () {
                 return view('dosen.agenda.index', [
@@ -61,19 +66,21 @@ Route::middleware(['auth.check'])->group(function () {
 
             // Route khusus PIC
             Route::middleware(['auth.role:PIC'])->group(function () {
-                // Kegiatan Routes
+                // Kegiatan Routes 
                 Route::get('/kegiatan', [KegiatanController::class, 'showKegiatanPIC'])->name('pic.kegiatan');
                 Route::get('/surat-tugas/download-file/{id}', [SuratTugasController::class, 'downloadSurat'])->name('surat-tugas.download-file');
                 Route::post('/kegiatan/validate-tanggal-agenda', [KegiatanController::class, 'validateTanggalAgenda'])->name('kegiatan.validate.tanggal');
 
-                // Agenda Routes
-                Route::prefix('kegiatan/agenda')->name('agenda.')->group(function () {
-                    Route::get('/{type}/{id}', [AgendaController::class, 'index'])->name('index');
-                    Route::post('/store', [AgendaController::class, 'store'])->name('store');
-                    Route::get('/show/{id}', [AgendaController::class, 'show'])->name('show');
-                    Route::put('/update/{id}', [AgendaController::class, 'update'])->name('update');
-                    Route::delete('/delete/{id}', [AgendaController::class, 'destroy'])->name('destroy');
-                    Route::get('/download/{id}', [AgendaController::class, 'downloadFile'])->name('download');
+                
+                // Agenda Routes 
+                Route::prefix('agenda')->group(function () {
+                    Route::get('/', [AgendaController::class, 'index'])->name('pic.agenda.index');
+                    Route::post('/store', [AgendaController::class, 'store'])->name('pic.agenda.store');
+                    Route::put('/update/{id}', [AgendaController::class, 'update'])->name('pic.agenda.update');
+                    Route::delete('/delete/{id}', [AgendaController::class, 'destroy'])->name('pic.agenda.delete');
+                    Route::get('/download/{id}', [AgendaController::class, 'downloadDocument'])
+                         ->name('pic.agenda.download');
+
                 });
 
                 // Route untuk Pilih Anggota
@@ -94,7 +101,7 @@ Route::middleware(['auth.check'])->group(function () {
         Route::get('/', function () {
             return redirect()->route('kaprodi.dashboard');
         });
-        
+       
         Route::get('/dashboard', function () {
             return view('kaprodi.dashboard', [
                 'breadcrumb' => (object)[
@@ -104,6 +111,7 @@ Route::middleware(['auth.check'])->group(function () {
             ]);
         })->name('kaprodi.dashboard');
 
+
         Route::get('/kegiatan', function () {
             return view('kaprodi.kegiatan.index', [
                 'breadcrumb' => (object)[
@@ -112,6 +120,7 @@ Route::middleware(['auth.check'])->group(function () {
                 ]
             ]);
         })->name('kaprodi.kegiatan');
+
 
         // Route untuk surat tugas
         Route::prefix('surat-tugas')->group(function () {
@@ -124,11 +133,13 @@ Route::middleware(['auth.check'])->group(function () {
         });
     });
 
+
     // Admin Routes
     Route::middleware(['auth.role:Admin'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/', function () {
             return redirect()->route('admin.dashboard');
         });
+
 
         Route::get('/dashboard', function () {
             return view('admin.dashboard', [
@@ -139,6 +150,7 @@ Route::middleware(['auth.check'])->group(function () {
             ]);
         })->name('dashboard');
 
+
         // User Management
         Route::controller(UserManagementController::class)->group(function () {
             Route::get('/users', 'index')->name('users.index');
@@ -147,6 +159,7 @@ Route::middleware(['auth.check'])->group(function () {
             Route::put('/users/{id}', 'update')->name('users.update');  
             Route::delete('/users/{id}', 'destroy')->name('users.destroy');
         });
+
 
         // Dosen Management Routes
         Route::prefix('dosen')->name('dosen.')->group(function () {
@@ -162,7 +175,9 @@ Route::middleware(['auth.check'])->group(function () {
                     Route::get('/jabatan/get-kegiatan', 'getKegiatan')->name('jabatan.getKegiatan');
                 });
 
+
                 Route::get('/kegiatan', [KegiatanController::class, 'index'])->name('kegiatan');
+
 
                 // Kegiatan Jurusan Routes
                 Route::prefix('jurusan')->group(function () {
@@ -173,6 +188,7 @@ Route::middleware(['auth.check'])->group(function () {
                     Route::delete('/delete/{id}', [KegiatanController::class, 'destroyKegiatanJurusan'])->name('jurusan.destroy');
                 });
 
+
                 // Kegiatan Prodi Routes
                 Route::prefix('prodi')->group(function () {
                     Route::get('/get-data', [KegiatanController::class, 'getKegiatanProdi'])->name('prodi.data');
@@ -181,6 +197,7 @@ Route::middleware(['auth.check'])->group(function () {
                     Route::put('/update/{id}', [KegiatanController::class, 'updateKegiatanProdi'])->name('prodi.update');
                     Route::delete('/delete/{id}', [KegiatanController::class, 'destroyKegiatanProdi'])->name('prodi.destroy');
                 });
+
 
                 // Route untuk Pilih Anggota Admin (perbaikan route)
                 Route::prefix('pilih-anggota')->name('pilih-anggota.')->group(function () {
@@ -191,12 +208,14 @@ Route::middleware(['auth.check'])->group(function () {
                     Route::delete('/delete/{id}', [PilihAnggotaController::class, 'destroy'])->name('delete');
                 });
 
+
                 Route::view('/persetujuan-poin', 'admin.dosen.agenda.persetujuan-poin', [
                     'breadcrumb' => (object)[
                         'title' => 'Persetujuan Poin',
                         'list' => ['Home', 'Dosen', 'Agenda', 'Persetujuan Poin']
                     ]
                 ])->name('persetujuan-poin');
+
 
                 Route::view('/unggah-dokumen', 'admin.dosen.agenda.unggah-dokumen', [
                     'breadcrumb' => (object)[
@@ -206,12 +225,14 @@ Route::middleware(['auth.check'])->group(function () {
                 ])->name('unggah-dokumen');
             });
 
+
             Route::view('/progress-kegiatan', 'admin.dosen.progress-kegiatan', [
                 'breadcrumb' => (object)[
                     'title' => 'Progress Kegiatan',
                     'list' => ['Home', 'Dosen', 'Progress Kegiatan']
                 ]
             ])->name('progress-kegiatan');
+
 
             Route::view('/update-progress', 'admin.dosen.update-progress', [
                 'breadcrumb' => (object)[
@@ -220,6 +241,7 @@ Route::middleware(['auth.check'])->group(function () {
                 ]
             ])->name('update-progress');
 
+
             Route::view('/kegiatan-non-jti', 'admin.dosen.kegiatan-non-jti', [
                 'breadcrumb' => (object)[
                     'title' => 'Kegiatan Non-JTI',
@@ -227,6 +249,7 @@ Route::middleware(['auth.check'])->group(function () {
                 ]
             ])->name('kegiatan-non-jti');
         });
+
 
         // Kaprodi Management Routes
         Route::prefix('kaprodi')->name('kaprodi.')->group(function () {
@@ -258,6 +281,7 @@ Route::middleware(['auth.check'])->group(function () {
     })->name('home');
 });
 
+
 // Fallback route untuk URL yang tidak ditemukan
 Route::fallback(function () {
     if (session()->has('user_id')) {
@@ -265,3 +289,6 @@ Route::fallback(function () {
     }
     return redirect()->route('login');
 });
+
+
+
