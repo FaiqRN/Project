@@ -21,7 +21,7 @@ return new class extends Migration
             $table->text('lokasi_kegiatan');
             $table->date('tanggal_mulai');
             $table->date('tanggal_selesai');
-            $table->enum('status_kegiatan', ['berlangsung', 'berakhir'])->default('berlangsung');
+            $table->enum('status_kegiatan', ['berlangsung', 'selesai'])->default('berlangsung');
             $table->string('penyelenggara', 150)->nullable();
             $table->text('surat_penugasan')->nullable();
             $table->timestamps();
