@@ -18,7 +18,7 @@
                 <div class="col-md-6">
                     <div class="form-group">
                         <label>Surat Tugas</label>
-                        <input type="text" class="form-control" value="{{ $kegiatanJurusan ? $kegiatanJurusan->surat->nomer_surat : $kegiatanProdi->surat->nomer_surat }}" readonly>
+                        <input type="text" class="form-control" value="{{ $kegiatanJurusan ? $kegiatanJurusan->surat->judul_surat : $kegiatanProdi->surat->judul_surat }}" readonly>
                     </div>
                     <div class="form-group">
                         <label>Penanggung Jawab</label>
@@ -46,7 +46,7 @@
                     </div>
                     <div class="form-group">
                         <label>Tanggal Mulai</label>
-                        <input type="date" class="form-control" value="{{ $kegiatanJurusan ? $kegiatanJurusan->tanggal_mulai : $kegiatanProdi->tanggal_mulai }}" readonly>
+                        <input  class="form-control" value="{{ date('d-m-y',strtotime($kegiatanJurusan ? $kegiatanJurusan->tanggal_mulai : $kegiatanProdi->tanggal_mulai))  }}" readonly>
                     </div>
                 </div>
                 <div class="col-md-6">
@@ -56,17 +56,27 @@
                     </div>
                     <div class="form-group">
                         <label>Tanggal Selesai</label>
-                        <input type="date" class="form-control" value="{{ $kegiatanJurusan ? $kegiatanJurusan->tanggal_selesai : $kegiatanProdi->tanggal_selesai }}" readonly>
+                        <input  class="form-control" value="{{ date('d-m-y',strtotime($kegiatanJurusan ? $kegiatanJurusan->tanggal_selesai : $kegiatanProdi->tanggal_selesai))  }}" readonly>
                     </div>
                 </div>
             </div>
 
-            <div class="row mt-3 mb-4">
-                <div class="col-12">
-                    <button type="button" class="btn btn-primary" id="downloadSurat">
-                        <i class="fas fa-download"></i> Download Surat Tugas
+            <div class="col-12 mb-4">
+                @if($kegiatanJurusan && $kegiatanJurusan->surat)
+                    <a href="{{ route('surat-tugas.download-file', $kegiatanJurusan->surat->surat_id) }}"
+                       class="btn btn-primary btn-block">
+                        <i class="fas fa-download mr-2"></i>Download Surat Tugas ({{ $kegiatanJurusan->surat->judul_surat }})
+                    </a>
+                @elseif($kegiatanProdi && $kegiatanProdi->surat)
+                    <a href="{{ route('surat-tugas.download-file', $kegiatanProdi->surat->surat_id) }}"
+                       class="btn btn-primary btn-block">
+                        <i class="fas fa-download mr-2"></i>Download Surat Tugas ({{ $kegiatanProdi->surat->judul_surat }})
+                    </a>
+                @else
+                    <button type="button" class="btn btn-secondary btn-block" disabled>
+                        <i class="fas fa-exclamation-circle mr-2"></i>Surat Tugas Belum Tersedia
                     </button>
-                </div>
+                @endif
             </div>
 
             <hr>
@@ -86,7 +96,10 @@
                         </div>
                         <div class="form-group">
                             <label>Tanggal Agenda</label>
-                            <input type="date" class="form-control" name="tanggal_agenda" required>
+                            <input type="date" class="form-control" name="tanggal_agenda" 
+                            min="{{$kegiatanJurusan ? $kegiatanJurusan->tanggal_mulai : $kegiatanProdi->tanggal_mulai }}"
+                            max="{{$kegiatanJurusan ? $kegiatanJurusan->tanggal_selesai : $kegiatanProdi->tanggal_selesai }}"
+                            required>
                         </div>
                         <div class="form-group">
                             <label>Dokumen Pendukung</label>

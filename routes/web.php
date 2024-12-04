@@ -68,9 +68,8 @@ Route::middleware(['auth.check'])->group(function () {
             Route::middleware(['auth.role:PIC'])->group(function () {
                 // Kegiatan Routes (tetap dipertahankan)
                 Route::get('/kegiatan', [KegiatanController::class, 'showKegiatanPIC'])->name('pic.kegiatan');
-                Route::get('/download-surat/{type}/{id}', [KegiatanController::class, 'downloadSuratTugas'])
-                     ->name('kegiatan.download-surat')
-                     ->middleware(['auth']);
+                Route::get('/surat-tugas/download-file/{id}', [SuratTugasController::class, 'downloadSurat'])->name('surat-tugas.download-file');
+                Route::post('/kegiatan/validate-tanggal-agenda', [KegiatanController::class, 'validateTanggalAgenda'])->name('kegiatan.validate.tanggal');
                 
                 // Agenda Routes (tambahkan ini)
                 Route::prefix('agenda')->group(function () {
@@ -78,8 +77,7 @@ Route::middleware(['auth.check'])->group(function () {
                     Route::post('/store', [AgendaController::class, 'store'])->name('pic.agenda.store');
                     Route::put('/update/{id}', [AgendaController::class, 'update'])->name('pic.agenda.update');
                     Route::delete('/delete/{id}', [AgendaController::class, 'destroy'])->name('pic.agenda.delete');
-                    Route::get('/download/{id}', [AgendaController::class, 'downloadDocument'])
-                         ->name('pic.agenda.download');
+                    Route::get('/download/{id}', [AgendaController::class, 'downloadDocument'])->name('pic.agenda.download');
 
                 });
 
