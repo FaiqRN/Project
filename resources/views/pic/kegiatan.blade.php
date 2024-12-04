@@ -31,8 +31,8 @@
                         <input type="text" class="form-control" value="{{ $kegiatanJurusan ? $kegiatanJurusan->nama_kegiatan_jurusan : $kegiatanProdi->nama_kegiatan_program_studi }}" readonly>
                     </div>
                     <div class="form-group">
-                        <label>Deskripsi Kegiatan</label>
-                        <textarea class="form-control" readonly>{{ $kegiatanJurusan ? $kegiatanJurusan->deskripsi_kegiatan : $kegiatanProdi->deskripsi_kegiatan }}</textarea>
+                        <label>Penyelenggara</label>
+                        <input type="text" class="form-control" value="{{ $kegiatanJurusan ? $kegiatanJurusan->penyelenggara : $kegiatanProdi->penyelenggara }}" readonly>
                     </div>
                 </div>
             </div>
@@ -41,22 +41,22 @@
             <div class="row mb-4">
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label>Lokasi Kegiatan</label>
-                        <input type="text" class="form-control" value="{{ $kegiatanJurusan ? $kegiatanJurusan->lokasi_kegiatan : $kegiatanProdi->lokasi_kegiatan }}" readonly>
-                    </div>
-                    <div class="form-group">
                         <label>Tanggal Mulai</label>
                         <input  class="form-control" value="{{ date('d-m-y',strtotime($kegiatanJurusan ? $kegiatanJurusan->tanggal_mulai : $kegiatanProdi->tanggal_mulai))  }}" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Lokasi Kegiatan</label>
+                        <input type="text" class="form-control" value="{{ $kegiatanJurusan ? $kegiatanJurusan->lokasi_kegiatan : $kegiatanProdi->lokasi_kegiatan }}" readonly>
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label>Penyelenggara</label>
-                        <input type="text" class="form-control" value="{{ $kegiatanJurusan ? $kegiatanJurusan->penyelenggara : $kegiatanProdi->penyelenggara }}" readonly>
-                    </div>
-                    <div class="form-group">
                         <label>Tanggal Selesai</label>
                         <input  class="form-control" value="{{ date('d-m-y',strtotime($kegiatanJurusan ? $kegiatanJurusan->tanggal_selesai : $kegiatanProdi->tanggal_selesai))  }}" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Deskripsi Kegiatan</label>
+                        <textarea class="form-control" readonly>{{ $kegiatanJurusan ? $kegiatanJurusan->deskripsi_kegiatan : $kegiatanProdi->deskripsi_kegiatan }}</textarea>
                     </div>
                 </div>
             </div>
