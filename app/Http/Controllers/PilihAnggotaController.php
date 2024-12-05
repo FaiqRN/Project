@@ -19,27 +19,15 @@ class PilihAnggotaController extends Controller
     {
         // Ambil data PIC yang login
         $userId = session('user_id');
-
-
-
-
         // Cek kegiatan yang ditangani PIC
         $kegiatanJurusan = KegiatanJurusanModel::with(['surat'])
             ->where('user_id', $userId)
             ->where('status_kegiatan', 'berlangsung')
             ->first();
-
-
-
-
         $kegiatanProdi = KegiatanProgramStudiModel::with(['surat'])
             ->where('user_id', $userId)
             ->where('status_kegiatan', 'berlangsung')
             ->first();
-
-
-
-
         // Ambil data agenda berdasarkan kegiatan
         $agendas = AgendaModel::where(function($query) use ($kegiatanJurusan, $kegiatanProdi) {
             if ($kegiatanJurusan) {
@@ -49,16 +37,8 @@ class PilihAnggotaController extends Controller
                 $query->orWhere('kegiatan_program_studi_id', $kegiatanProdi->kegiatan_program_studi_id);
             }
         })->get();
-
-
-
-
         // Ambil daftar dosen yang bisa dipilih
         $dosens = UserModel::where('level_id', 3)->get();
-
-
-
-
         return view('pic.pilih', [
             'kegiatanJurusan' => $kegiatanJurusan,
             'kegiatanProdi' => $kegiatanProdi,
@@ -71,17 +51,10 @@ class PilihAnggotaController extends Controller
         ]);
     }
 
-
-
-
     public function getData()
     {
         try {
             $userId = session('user_id');
-
-
-
-
             $kegiatanJurusan = KegiatanJurusanModel::where('user_id', $userId)
                 ->where('status_kegiatan', 'berlangsung')
                 ->first();
@@ -89,9 +62,6 @@ class PilihAnggotaController extends Controller
             $kegiatanProdi = KegiatanProgramStudiModel::where('user_id', $userId)
                 ->where('status_kegiatan', 'berlangsung')
                 ->first();
-
-
-
 
             $query = DB::table('t_agenda as a')
                 ->join('m_user as u', 'a.user_id', '=', 'u.user_id')
@@ -110,26 +80,20 @@ class PilihAnggotaController extends Controller
                     'u.nidn'
                 ]);
 
-
-
-
             return DataTables::of($query)
                 ->addIndexColumn()
                 ->addColumn('action', function($row) {
-                    return '<div class="btn-group">
-                        <button type="button" class="btn btn-warning btn-sm edit-btn" data-id="'.$row->agenda_id.'">
+                        return '<div class="btn-group">
+                        <button type="button" class="btn btn-warning btn-sm" onclick="editData('.$row->agenda_id.')">
                             <i class="fas fa-edit"></i> Edit
                         </button>
-                        <button type="button" class="btn btn-danger btn-sm delete-btn" data-id="'.$row->agenda_id.'">
+                        <button type="button" class="btn btn-danger btn-sm" onclick="deleteData('.$row->agenda_id.')">
                             <i class="fas fa-trash"></i> Hapus
                         </button>
                     </div>';
                 })
                 ->rawColumns(['action'])
                 ->make(true);
-
-
-
 
         } catch (\Exception $e) {
             return response()->json([
@@ -139,9 +103,6 @@ class PilihAnggotaController extends Controller
         }
     }
 
-
-
-
     public function store(Request $request)
     {
         try {
@@ -149,15 +110,7 @@ class PilihAnggotaController extends Controller
                 'agenda_id' => 'required',
                 'user_id' => 'required'
             ]);
-
-
-
-
             $userId = session('user_id');
-
-
-
-
             // Verifikasi agenda milik PIC yang login
             $agenda = AgendaModel::findOrFail($request->agenda_id);
            
@@ -171,35 +124,18 @@ class PilihAnggotaController extends Controller
                     ->where('user_id', $userId)
                     ->exists();
             }
-
-
-
-
             if (!$hasAccess) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Anda tidak memiliki akses untuk agenda ini'
                 ], 403);
             }
-
-
-
-
-            // Update user_id pada agenda
             $agenda->user_id = $request->user_id;
             $agenda->save();
-
-
-
-
             return response()->json([
                 'success' => true,
                 'message' => 'Berhasil menambahkan dosen ke agenda'
             ]);
-
-
-
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -208,19 +144,11 @@ class PilihAnggotaController extends Controller
         }
     }
 
-
-
-
     public function edit($id)
     {
         try {
             $userId = session('user_id');
             $agenda = AgendaModel::findOrFail($id);
-
-
-
-
-            // Verifikasi akses
             $hasAccess = false;
             if ($agenda->kegiatan_jurusan_id) {
                 $hasAccess = KegiatanJurusanModel::where('kegiatan_jurusan_id', $agenda->kegiatan_jurusan_id)
@@ -231,28 +159,16 @@ class PilihAnggotaController extends Controller
                     ->where('user_id', $userId)
                     ->exists();
             }
-
-
-
-
             if (!$hasAccess) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Anda tidak memiliki akses untuk agenda ini'
                 ], 403);
             }
-
-
-
-
             return response()->json([
                 'success' => true,
                 'data' => $agenda
             ]);
-
-
-
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -260,9 +176,6 @@ class PilihAnggotaController extends Controller
             ], 500);
         }
     }
-
-
-
 
     public function update(Request $request, $id)
     {
@@ -271,16 +184,9 @@ class PilihAnggotaController extends Controller
                 'user_id' => 'required'
             ]);
 
-
-
-
             $userId = session('user_id');
             $agenda = AgendaModel::findOrFail($id);
 
-
-
-
-            // Verifikasi akses
             $hasAccess = false;
             if ($agenda->kegiatan_jurusan_id) {
                 $hasAccess = KegiatanJurusanModel::where('kegiatan_jurusan_id', $agenda->kegiatan_jurusan_id)
@@ -292,9 +198,6 @@ class PilihAnggotaController extends Controller
                     ->exists();
             }
 
-
-
-
             if (!$hasAccess) {
                 return response()->json([
                     'success' => false,
@@ -302,22 +205,13 @@ class PilihAnggotaController extends Controller
                 ], 403);
             }
 
-
-
-
             $agenda->user_id = $request->user_id;
             $agenda->save();
-
-
-
 
             return response()->json([
                 'success' => true,
                 'message' => 'Data berhasil diperbarui'
             ]);
-
-
-
 
         } catch (\Exception $e) {
             return response()->json([
@@ -332,7 +226,7 @@ class PilihAnggotaController extends Controller
         try {
             $userId = session('user_id');
             $agenda = AgendaModel::findOrFail($id);
-
+    
             // Verifikasi akses
             $hasAccess = false;
             if ($agenda->kegiatan_jurusan_id) {
@@ -344,31 +238,28 @@ class PilihAnggotaController extends Controller
                     ->where('user_id', $userId)
                     ->exists();
             }
-
+    
             if (!$hasAccess) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Anda tidak memiliki akses untuk agenda ini'
                 ], 403);
             }
+    
+            // Set user_id menjadi null alih-alih menghapus record
             $agenda->user_id = null;
             $agenda->save();
-
+    
             return response()->json([
                 'success' => true,
                 'message' => 'Data berhasil dihapus'
             ]);
-
+    
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
             ], 500);
         }
     }
 }
-
-
-
-
-

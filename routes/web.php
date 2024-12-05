@@ -79,9 +79,7 @@ Route::middleware(['auth.check'])->group(function () {
                     Route::put('/update/{id}', [AgendaController::class, 'update'])->name('pic.agenda.update');
                     Route::delete('/delete/{id}', [AgendaController::class, 'destroy'])->name('pic.agenda.delete');
                     Route::get('/download/{id}', [AgendaController::class, 'downloadDocument'])->name('pic.agenda.download');
-                    Route::get('/download/{id}', [AgendaController::class, 'downloadDocument'])->name('pic.agenda.download');
-                    Route::get('/get-data', [AdminAgendaController::class, 'getAgendaList'])
-                    ->name('get-data');
+                    Route::get('/get-data', [AdminAgendaController::class, 'getAgendaList'])->name('get-data');
                 });
 
                 // Route untuk Pilih Anggota
@@ -199,32 +197,13 @@ Route::middleware(['auth.check'])->group(function () {
                     Route::delete('/delete/{id}', [KegiatanController::class, 'destroyKegiatanProdi'])->name('prodi.destroy');
                 });
 
-                Route::get('/agenda-setting', [AdminAgendaController::class, 'index'])
-                ->name('agenda-setting');
-            
-                // Route untuk mendapatkan data agenda (DataTables)
-                Route::get('/get-data', [AdminAgendaController::class, 'getAgendaList'])
-                    ->name('get-data');
-        
-                // Route untuk mendapatkan data kegiatan berdasarkan tipe
-                Route::get('/get-kegiatan', [AdminAgendaController::class, 'getKegiatan'])
-                    ->name('get-kegiatan');
-        
-                // Route untuk mengunduh dokumen agenda
-                Route::get('/download/{id}', [AdminAgendaController::class, 'download'])
-                    ->name('download');
-        
-                // Route untuk menambah agenda baru
-                Route::post('/store', [AdminAgendaController::class, 'store'])
-                    ->name('store');
-        
-                // Route untuk mengupdate agenda
-                Route::put('/update/{id}', [AdminAgendaController::class, 'update'])
-                    ->name('update');
-        
-                // Route untuk menghapus agenda
-                Route::delete('/delete/{id}', [AdminAgendaController::class, 'destroy'])
-                    ->name('delete');
+                Route::get('/agenda-setting', [AdminAgendaController::class, 'index'])->name('agenda-setting');
+                Route::get('/get-data', [AdminAgendaController::class, 'getAgendaList'])->name('get-data');
+                Route::get('/get-kegiatan', [AdminAgendaController::class, 'getKegiatan'])->name('get-kegiatan');
+                Route::get('/download/{id}', [AdminAgendaController::class, 'download'])->name('download');
+                Route::post('/store', [AdminAgendaController::class, 'store'])->name('store');
+                Route::put('/update/{id}', [AdminAgendaController::class, 'update'])->name('update');
+                Route::delete('/delete/{id}', [AdminAgendaController::class, 'destroy'])->name('delete');
 
                 // Route untuk Pilih Anggota Admin (perbaikan route)
                 Route::prefix('pilih-anggota')->name('pilih-anggota.')->group(function () {

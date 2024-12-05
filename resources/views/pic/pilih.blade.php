@@ -13,20 +13,22 @@
                     @if($kegiatanJurusan)
                         <div class="alert alert-info">
                             <h5><i class="icon fas fa-info"></i> Kegiatan Jurusan</h5>
-                            <p><strong>Nama Kegiatan:</strong> {{ $kegiatanJurusan->nama_kegiatan_jurusan }}</p>
-                            <p><strong>Periode:</strong> {{ date('d/m/Y', strtotime($kegiatanJurusan->tanggal_mulai)) }} - 
-                                                      {{ date('d/m/Y', strtotime($kegiatanJurusan->tanggal_selesai)) }}</p>
-                            <p><strong>Surat Tugas:</strong> {{ $kegiatanJurusan->surat->judul_surat ?? '-' }}</p>
+                            <p style="margin-top: 10px;"><strong>Nama Kegiatan:</strong> {{ $kegiatanJurusan->nama_kegiatan_jurusan }} <br>
+                            <strong>Periode:</strong> {{ date('d/m/Y', strtotime($kegiatanJurusan->tanggal_mulai)) }} - 
+                                                      {{ date('d/m/Y', strtotime($kegiatanJurusan->tanggal_selesai)) }} 
+                                                      <strong>|</strong>
+                            <strong style="margin-left: 5px;">Surat Tugas:</strong> {{ $kegiatanJurusan->surat->judul_surat ?? '-' }}
                         </div>
                     @endif
 
                     @if($kegiatanProdi)
                         <div class="alert alert-success">
                             <h5><i class="icon fas fa-info"></i> Kegiatan Program Studi</h5>
-                            <p><strong>Nama Kegiatan:</strong> {{ $kegiatanProdi->nama_kegiatan_program_studi }}</p>
-                            <p><strong>Periode:</strong> {{ date('d/m/Y', strtotime($kegiatanProdi->tanggal_mulai)) }} - 
-                                                      {{ date('d/m/Y', strtotime($kegiatanProdi->tanggal_selesai)) }}</p>
-                            <p><strong>Surat Tugas:</strong> {{ $kegiatanProdi->surat->judul_surat ?? '-' }}</p>
+                            <p style="margin-top: 10px;"><strong>Nama Kegiatan:</strong> {{ $kegiatanProdi->nama_kegiatan_program_studi }} <br>
+                            <strong>Periode:</strong> {{ date('d/m/Y', strtotime($kegiatanProdi->tanggal_mulai)) }} - 
+                                                      {{ date('d/m/Y', strtotime($kegiatanProdi->tanggal_selesai)) }}
+                                                      <strong>|</strong>
+                            <strong style="margin-left: 5px;">Surat Tugas:</strong> {{ $kegiatanProdi->surat->judul_surat ?? '-' }}</p>
                         </div>
                     @endif
 
@@ -218,9 +220,9 @@ function deleteData(id) {
         if (result.isConfirmed) {
             $.ajax({
                 url: "{{ route('pic.pilih.delete', ':id') }}".replace(':id', id),
-                method: 'DELETE',
-                data: {
-                    _token: "{{ csrf_token() }}"
+                type: 'DELETE', // Menggunakan type alih-alih method
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
                 success: function(response) {
                     if(response.success) {
@@ -229,7 +231,7 @@ function deleteData(id) {
                     }
                 },
                 error: function(xhr) {
-                    Swal.fire('Error', 'Terjadi kesalahan saat menghapus data', 'error');
+                    Swal.fire('Error', xhr.responseJSON?.message || 'Terjadi kesalahan saat menghapus data', 'error');
                 }
             });
         }
