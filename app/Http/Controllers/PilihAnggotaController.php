@@ -3,173 +3,326 @@
 namespace App\Http\Controllers;
 
 use App\Models\AgendaModel;
+use App\Models\UserModel;
+use App\Models\KegiatanJurusanModel;
+use App\Models\KegiatanProgramStudiModel;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
-use DataTables;
+use Illuminate\Support\Facades\DB;
+use Yajra\DataTables\Facades\DataTables;
+
+
+
 
 class PilihAnggotaController extends Controller
 {
-    // Method untuk PIC
     public function index()
     {
-        try {
-            return view('pic.pilih-anggota', [
-                'breadcrumb' => (object)[
-                    'title' => 'Pilih Anggota',
-                    'list' => ['Home', 'Agenda', 'Pilih Anggota']
-                ],
-                'activemenu' => 'agenda'
-            ]);
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
-        }
-    }
+        // Ambil data PIC yang login
+        $userId = session('user_id');
 
-    // Method untuk Admin
-    public function indexAdmin()
-    {
-        return view('admin.dosen.agenda.pilih-anggota', [
+
+
+
+        // Cek kegiatan yang ditangani PIC
+        $kegiatanJurusan = KegiatanJurusanModel::with(['surat'])
+            ->where('user_id', $userId)
+            ->where('status_kegiatan', 'berlangsung')
+            ->first();
+
+
+
+
+        $kegiatanProdi = KegiatanProgramStudiModel::with(['surat'])
+            ->where('user_id', $userId)
+            ->where('status_kegiatan', 'berlangsung')
+            ->first();
+
+
+
+
+        // Ambil data agenda berdasarkan kegiatan
+        $agendas = AgendaModel::where(function($query) use ($kegiatanJurusan, $kegiatanProdi) {
+            if ($kegiatanJurusan) {
+                $query->orWhere('kegiatan_jurusan_id', $kegiatanJurusan->kegiatan_jurusan_id);
+            }
+            if ($kegiatanProdi) {
+                $query->orWhere('kegiatan_program_studi_id', $kegiatanProdi->kegiatan_program_studi_id);
+            }
+        })->get();
+
+
+
+
+        // Ambil daftar dosen yang bisa dipilih
+        $dosens = UserModel::where('level_id', 3)->get();
+
+
+
+
+        return view('pic.pilih', [
+            'kegiatanJurusan' => $kegiatanJurusan,
+            'kegiatanProdi' => $kegiatanProdi,
+            'agendas' => $agendas,
+            'dosens' => $dosens,
             'breadcrumb' => (object)[
-                'title' => 'Data Anggota',
-                'list' => ['Home', 'Dosen', 'Agenda', 'Pilih Anggota']
-            ],
-            'activemenu' => 'agenda'
+                'title' => 'Pilih Anggota',
+                'list' => ['Home', 'Agenda', 'Pilih Anggota']
+            ]
         ]);
     }
 
-    public function getAnggota()
+
+
+
+    public function getData()
     {
         try {
-            $anggota = AgendaModel::where('user_id', session('user_id'))
-                                 ->select('agenda_id', 'nidn', 'nama_anggota', 'nama_agenda', 'tanggal_agenda')
-                                 ->orderBy('tanggal_agenda', 'desc')
-                                 ->get();
+            $userId = session('user_id');
 
-            return response()->json([
-                'status' => 'success',
-                'data' => $anggota
-            ]);
+
+
+
+            $kegiatanJurusan = KegiatanJurusanModel::where('user_id', $userId)
+                ->where('status_kegiatan', 'berlangsung')
+                ->first();
+               
+            $kegiatanProdi = KegiatanProgramStudiModel::where('user_id', $userId)
+                ->where('status_kegiatan', 'berlangsung')
+                ->first();
+
+
+
+
+            $query = DB::table('t_agenda as a')
+                ->join('m_user as u', 'a.user_id', '=', 'u.user_id')
+                ->where(function($q) use ($kegiatanJurusan, $kegiatanProdi) {
+                    if ($kegiatanJurusan) {
+                        $q->orWhere('a.kegiatan_jurusan_id', $kegiatanJurusan->kegiatan_jurusan_id);
+                    }
+                    if ($kegiatanProdi) {
+                        $q->orWhere('a.kegiatan_program_studi_id', $kegiatanProdi->kegiatan_program_studi_id);
+                    }
+                })
+                ->select([
+                    'a.agenda_id',
+                    'a.nama_agenda',
+                    'u.nama_lengkap',
+                    'u.nidn'
+                ]);
+
+
+
+
+            return DataTables::of($query)
+                ->addIndexColumn()
+                ->addColumn('action', function($row) {
+                    return '<div class="btn-group">
+                        <button type="button" class="btn btn-warning btn-sm edit-btn" data-id="'.$row->agenda_id.'">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button type="button" class="btn btn-danger btn-sm delete-btn" data-id="'.$row->agenda_id.'">
+                            <i class="fas fa-trash"></i> Hapus
+                        </button>
+                    </div>';
+                })
+                ->rawColumns(['action'])
+                ->make(true);
+
+
+
 
         } catch (\Exception $e) {
             return response()->json([
-                'status' => 'error',
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+                'error' => true,
+                'message' => $e->getMessage()
             ], 500);
         }
     }
 
-    public function getAnggotaAdmin()
-    {
-        try {
-            $anggota = AgendaModel::select('agenda_id', 'nidn', 'nama_anggota', 'nama_agenda', 'tanggal_agenda')
-                                 ->orderBy('tanggal_agenda', 'desc')
-                                 ->get();
 
-            return response()->json([
-                'status' => 'success',
-                'data' => $anggota
-            ]);
 
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
-            ], 500);
-        }
-    }
 
     public function store(Request $request)
     {
         try {
-            $validator = Validator::make($request->all(), [
-                'nidn' => 'required|string|max:18',
-                'nama_anggota' => 'required|string|max:100',
-                'nama_agenda' => 'required|string|max:200',
+            $request->validate([
+                'agenda_id' => 'required',
+                'user_id' => 'required'
             ]);
 
-            if ($validator->fails()) {
-                return response()->json([
-                    'status' => 'error',
-                    'errors' => $validator->errors()
-                ], 422);
+
+
+
+            $userId = session('user_id');
+
+
+
+
+            // Verifikasi agenda milik PIC yang login
+            $agenda = AgendaModel::findOrFail($request->agenda_id);
+           
+            $hasAccess = false;
+            if ($agenda->kegiatan_jurusan_id) {
+                $hasAccess = KegiatanJurusanModel::where('kegiatan_jurusan_id', $agenda->kegiatan_jurusan_id)
+                    ->where('user_id', $userId)
+                    ->exists();
+            } else if ($agenda->kegiatan_program_studi_id) {
+                $hasAccess = KegiatanProgramStudiModel::where('kegiatan_program_studi_id', $agenda->kegiatan_program_studi_id)
+                    ->where('user_id', $userId)
+                    ->exists();
             }
 
-            $agenda = new AgendaModel();
-            $agenda->nidn = $request->nidn;
-            $agenda->nama_anggota = $request->nama_anggota;
-            $agenda->nama_agenda = $request->nama_agenda;
-            $agenda->tanggal_agenda = now();
-            $agenda->user_id = session('user_id');
+
+
+
+            if (!$hasAccess) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda tidak memiliki akses untuk agenda ini'
+                ], 403);
+            }
+
+
+
+
+            // Update user_id pada agenda
+            $agenda->user_id = $request->user_id;
             $agenda->save();
 
+
+
+
             return response()->json([
-                'status' => 'success',
-                'message' => 'Anggota berhasil ditambahkan',
-                'data' => $agenda
+                'success' => true,
+                'message' => 'Berhasil menambahkan dosen ke agenda'
             ]);
+
+
+
 
         } catch (\Exception $e) {
             return response()->json([
-                'status' => 'error',
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+                'success' => false,
+                'message' => $e->getMessage()
             ], 500);
         }
     }
+
+
+
 
     public function edit($id)
     {
         try {
+            $userId = session('user_id');
             $agenda = AgendaModel::findOrFail($id);
-            return response()->json($agenda);
+
+
+
+
+            // Verifikasi akses
+            $hasAccess = false;
+            if ($agenda->kegiatan_jurusan_id) {
+                $hasAccess = KegiatanJurusanModel::where('kegiatan_jurusan_id', $agenda->kegiatan_jurusan_id)
+                    ->where('user_id', $userId)
+                    ->exists();
+            } else if ($agenda->kegiatan_program_studi_id) {
+                $hasAccess = KegiatanProgramStudiModel::where('kegiatan_program_studi_id', $agenda->kegiatan_program_studi_id)
+                    ->where('user_id', $userId)
+                    ->exists();
+            }
+
+
+
+
+            if (!$hasAccess) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda tidak memiliki akses untuk agenda ini'
+                ], 403);
+            }
+
+
+
+
+            return response()->json([
+                'success' => true,
+                'data' => $agenda
+            ]);
+
+
+
+
         } catch (\Exception $e) {
             return response()->json([
-                'status' => 'error',
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+                'success' => false,
+                'message' => $e->getMessage()
             ], 500);
         }
     }
 
+
+
+
     public function update(Request $request, $id)
     {
         try {
-            $validator = Validator::make($request->all(), [
-                'nidn' => 'required|string|max:18',
-                'nama_anggota' => 'required|string|max:100',
-                'nama_agenda' => 'required|string|max:200',
+            $request->validate([
+                'user_id' => 'required'
             ]);
 
-            if ($validator->fails()) {
-                return response()->json([
-                    'status' => 'error',
-                    'errors' => $validator->errors()
-                ], 422);
-            }
 
+
+
+            $userId = session('user_id');
             $agenda = AgendaModel::findOrFail($id);
 
-            // Cek role dan akses
-            if (session('level_nama') == 'PIC' && $agenda->user_id != session('user_id')) {
+
+
+
+            // Verifikasi akses
+            $hasAccess = false;
+            if ($agenda->kegiatan_jurusan_id) {
+                $hasAccess = KegiatanJurusanModel::where('kegiatan_jurusan_id', $agenda->kegiatan_jurusan_id)
+                    ->where('user_id', $userId)
+                    ->exists();
+            } else if ($agenda->kegiatan_program_studi_id) {
+                $hasAccess = KegiatanProgramStudiModel::where('kegiatan_program_studi_id', $agenda->kegiatan_program_studi_id)
+                    ->where('user_id', $userId)
+                    ->exists();
+            }
+
+
+
+
+            if (!$hasAccess) {
                 return response()->json([
-                    'status' => 'error',
-                    'message' => 'Anda tidak memiliki akses untuk mengubah data ini'
+                    'success' => false,
+                    'message' => 'Anda tidak memiliki akses untuk agenda ini'
                 ], 403);
             }
 
-            $agenda->nidn = $request->nidn;
-            $agenda->nama_anggota = $request->nama_anggota;
-            $agenda->nama_agenda = $request->nama_agenda;
+
+
+
+            $agenda->user_id = $request->user_id;
             $agenda->save();
 
+
+
+
             return response()->json([
-                'status' => 'success',
-                'message' => 'Data anggota berhasil diperbarui',
-                'data' => $agenda
+                'success' => true,
+                'message' => 'Data berhasil diperbarui'
             ]);
+
+
+
 
         } catch (\Exception $e) {
             return response()->json([
-                'status' => 'error',
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+                'success' => false,
+                'message' => $e->getMessage()
             ], 500);
         }
     }
@@ -177,28 +330,45 @@ class PilihAnggotaController extends Controller
     public function destroy($id)
     {
         try {
+            $userId = session('user_id');
             $agenda = AgendaModel::findOrFail($id);
 
-            // Cek role dan akses
-            if (session('level_nama') == 'PIC' && $agenda->user_id != session('user_id')) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Anda tidak memiliki akses untuk menghapus data ini'
-                ], 403);
+            // Verifikasi akses
+            $hasAccess = false;
+            if ($agenda->kegiatan_jurusan_id) {
+                $hasAccess = KegiatanJurusanModel::where('kegiatan_jurusan_id', $agenda->kegiatan_jurusan_id)
+                    ->where('user_id', $userId)
+                    ->exists();
+            } else if ($agenda->kegiatan_program_studi_id) {
+                $hasAccess = KegiatanProgramStudiModel::where('kegiatan_program_studi_id', $agenda->kegiatan_program_studi_id)
+                    ->where('user_id', $userId)
+                    ->exists();
             }
 
-            $agenda->delete();
+            if (!$hasAccess) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda tidak memiliki akses untuk agenda ini'
+                ], 403);
+            }
+            $agenda->user_id = null;
+            $agenda->save();
 
             return response()->json([
-                'status' => 'success',
-                'message' => 'Data anggota berhasil dihapus'
+                'success' => true,
+                'message' => 'Data berhasil dihapus'
             ]);
 
         } catch (\Exception $e) {
             return response()->json([
-                'status' => 'error',
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+                'success' => false,
+                'message' => $e->getMessage()
             ], 500);
         }
     }
 }
+
+
+
+
+

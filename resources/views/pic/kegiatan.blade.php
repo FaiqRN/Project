@@ -227,7 +227,6 @@ $(document).ready(function() {
     });
 
 
-
     // Refresh agenda table
     function refreshAgendaTable() {
         const tbody = $('#daftarAgenda');
