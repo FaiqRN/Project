@@ -149,7 +149,9 @@ class AgendaController extends Controller
                 }
    
                 if (!empty($item['file_surat_agenda'])) {
-                    $filePath = $item['file_surat_agenda']->store('public/agenda_files');
+                    $originalName = $item['file_surat_agenda']->getClientOriginalName();
+                    $fileName = time() . '_' . preg_replace('/[^a-zA-Z0-9_\-\.]/', '_', $originalName);
+                    $filePath = $item['file_surat_agenda']->storeAs('public/agenda_files', $fileName);
                     $agenda->file_surat_agenda = $filePath;
                 }
    

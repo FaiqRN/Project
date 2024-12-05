@@ -56,6 +56,12 @@
                                 </a>
                             </li>
                             <li class="nav-item">
+                                <a href="{{route ('admin.dosen.agenda.agenda-setting')}}" class="nav-link {{$currentRoute === 'admin.dosen.agenda.agenda-setting' ? 'active' : ''}}">
+                                    <i class="fa fa-fw fa-circle nav-icon"></i>
+                                    <p>Agenda</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a href="{{ route('admin.dosen.agenda.pilih-anggota.index') }}" class="nav-link {{ $currentRoute === 'admin.dosen.agenda.pilih-anggota.index' ? 'active' : '' }}">
                                     <i class="fa fa-fw fa-circle nav-icon"></i>
                                     <p>Pilih Anggota</p>

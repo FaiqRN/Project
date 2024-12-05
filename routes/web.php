@@ -10,6 +10,7 @@ use App\Http\Controllers\JabatanController;
 use App\Http\Controllers\KegiatanController;
 use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\PilihAnggotaController;
+use App\Http\Controllers\AdminAgendaController;
 
 // Guest Routes (untuk user yang belum login)
 Route::middleware(['guest'])->group(function () {
@@ -78,17 +79,19 @@ Route::middleware(['auth.check'])->group(function () {
                     Route::put('/update/{id}', [AgendaController::class, 'update'])->name('pic.agenda.update');
                     Route::delete('/delete/{id}', [AgendaController::class, 'destroy'])->name('pic.agenda.delete');
                     Route::get('/download/{id}', [AgendaController::class, 'downloadDocument'])->name('pic.agenda.download');
-
+                    Route::get('/download/{id}', [AgendaController::class, 'downloadDocument'])->name('pic.agenda.download');
+                    Route::get('/get-data', [AdminAgendaController::class, 'getAgendaList'])
+                    ->name('get-data');
                 });
 
                 // Route untuk Pilih Anggota
-                Route::prefix('pilih-anggota')->name('pic.pilih-anggota.')->group(function () {
-                    Route::get('/', [PilihAnggotaController::class, 'index'])->name('index');
-                    Route::get('/data', [PilihAnggotaController::class, 'getAnggota'])->name('data');
-                    Route::post('/store', [PilihAnggotaController::class, 'store'])->name('store');
-                    Route::get('/edit/{id}', [PilihAnggotaController::class, 'edit'])->name('edit');
-                    Route::put('/update/{id}', [PilihAnggotaController::class, 'update'])->name('update');
-                    Route::delete('/delete/{id}', [PilihAnggotaController::class, 'destroy'])->name('delete');
+                Route::prefix('pilih')->group(function () {
+                    Route::get('/', [PilihAnggotaController::class, 'index'])->name('pic.pilih');
+                    Route::get('/data', [PilihAnggotaController::class, 'getData'])->name('pic.pilih.data');
+                    Route::post('/store', [PilihAnggotaController::class, 'store'])->name('pic.pilih.store');
+                    Route::get('/edit/{id}', [PilihAnggotaController::class, 'edit'])->name('pic.pilih.edit');
+                    Route::put('/update/{id}', [PilihAnggotaController::class, 'update'])->name('pic.pilih.update');
+                    Route::delete('/delete/{id}', [PilihAnggotaController::class, 'destroy'])->name('pic.pilih.delete');
                 });
             });
         });
@@ -196,6 +199,32 @@ Route::middleware(['auth.check'])->group(function () {
                     Route::delete('/delete/{id}', [KegiatanController::class, 'destroyKegiatanProdi'])->name('prodi.destroy');
                 });
 
+                Route::get('/agenda-setting', [AdminAgendaController::class, 'index'])
+                ->name('agenda-setting');
+            
+                // Route untuk mendapatkan data agenda (DataTables)
+                Route::get('/get-data', [AdminAgendaController::class, 'getAgendaList'])
+                    ->name('get-data');
+        
+                // Route untuk mendapatkan data kegiatan berdasarkan tipe
+                Route::get('/get-kegiatan', [AdminAgendaController::class, 'getKegiatan'])
+                    ->name('get-kegiatan');
+        
+                // Route untuk mengunduh dokumen agenda
+                Route::get('/download/{id}', [AdminAgendaController::class, 'download'])
+                    ->name('download');
+        
+                // Route untuk menambah agenda baru
+                Route::post('/store', [AdminAgendaController::class, 'store'])
+                    ->name('store');
+        
+                // Route untuk mengupdate agenda
+                Route::put('/update/{id}', [AdminAgendaController::class, 'update'])
+                    ->name('update');
+        
+                // Route untuk menghapus agenda
+                Route::delete('/delete/{id}', [AdminAgendaController::class, 'destroy'])
+                    ->name('delete');
 
                 // Route untuk Pilih Anggota Admin (perbaikan route)
                 Route::prefix('pilih-anggota')->name('pilih-anggota.')->group(function () {
