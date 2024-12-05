@@ -82,13 +82,13 @@ Route::middleware(['auth.check'])->group(function () {
                 });
 
                 // Route untuk Pilih Anggota
-                Route::prefix('pilih-anggota')->name('pic.pilih-anggota.')->group(function () {
-                    Route::get('/', [PilihAnggotaController::class, 'index'])->name('index');
-                    Route::get('/data', [PilihAnggotaController::class, 'getAnggota'])->name('data');
-                    Route::post('/store', [PilihAnggotaController::class, 'store'])->name('store');
-                    Route::get('/edit/{id}', [PilihAnggotaController::class, 'edit'])->name('edit');
-                    Route::put('/update/{id}', [PilihAnggotaController::class, 'update'])->name('update');
-                    Route::delete('/delete/{id}', [PilihAnggotaController::class, 'destroy'])->name('delete');
+                Route::prefix('pilih')->group(function () {
+                    Route::get('/', [PilihAnggotaController::class, 'index'])->name('pic.pilih');
+                    Route::get('/data', [PilihAnggotaController::class, 'getData'])->name('pic.pilih.data');
+                    Route::post('/store', [PilihAnggotaController::class, 'store'])->name('pic.pilih.store');
+                    Route::get('/edit/{id}', [PilihAnggotaController::class, 'edit'])->name('pic.pilih.edit');
+                    Route::put('/update/{id}', [PilihAnggotaController::class, 'update'])->name('pic.pilih.update');
+                    Route::delete('/delete/{id}', [PilihAnggotaController::class, 'destroy'])->name('pic.pilih.delete');
                 });
             });
         });
