@@ -66,9 +66,11 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
         })->name('dosen.agenda');
 
         // Route untuk Update Progress Agenda
+        Route::prefix('update-progress')->group(function () {
         Route::get('/update-progress', [UpdateProgressAgendaController::class, 'index'])->name('dosen.update-progress');
         Route::get('/update-progress/{id}/detail', [UpdateProgressAgendaController::class, 'getDetailAgenda']);
         Route::post('/update-progress/{id}/update', [UpdateProgressAgendaController::class, 'updateProgress']);
+    });
 
         // Route khusus PIC
         Route::middleware(['auth.role:PIC'])->group(function () {

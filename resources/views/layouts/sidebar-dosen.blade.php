@@ -60,7 +60,7 @@
 
             {{-- Update Progress Agenda --}}
             <li class="nav-item">
-                <a href="{{ url('/dosen/update-progress') }}" class="nav-link {{ isMenuActive('update-progress', $activemenu) }}">
+                <a href="{{ route('dosen.update-progress') }}" class="nav-link {{ isMenuActive('update-progress', $activemenu) }}">
                     <i class="nav-icon fa fa-fw fa-hourglass-half"></i>
                     <p>Update Progress Agenda</p>
                 </a>
