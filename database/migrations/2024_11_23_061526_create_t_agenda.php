@@ -17,6 +17,7 @@ return new class extends Migration
             $table->date('tanggal_agenda');
             $table->text('file_surat_agenda')->nullable();
             $table->text('deskripsi');
+            $table->enum('status_agenda', ['berlangsung', 'selesai'])->default('berlangsung');
             $table->unsignedBigInteger('dokumentasi_id')->nullable();;
             $table->unsignedBigInteger('user_id')->nullable();;
             
