@@ -10,6 +10,7 @@ use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\PilihAnggotaController;
 use App\Http\Controllers\AdminAgendaController;
 use App\Http\Controllers\UpdateProgressAgendaController;
+use App\Http\Controllers\AdminPilihAnggotaController;
 
 // Guest Routes (untuk user yang belum login)
 Route::middleware(['guest'])->group(function () {
@@ -209,11 +210,15 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
 
                 // Route untuk Pilih Anggota Admin (perbaikan route)
                 Route::prefix('pilih-anggota')->name('pilih-anggota.')->group(function () {
-                    Route::get('/', [PilihAnggotaController::class, 'indexAdmin'])->name('index');
-                    Route::get('/data', [PilihAnggotaController::class, 'getAnggotaAdmin'])->name('data');
-                    Route::get('/edit/{id}', [PilihAnggotaController::class, 'edit'])->name('edit');
-                    Route::put('/update/{id}', [PilihAnggotaController::class, 'update'])->name('update');
-                    Route::delete('/delete/{id}', [PilihAnggotaController::class, 'destroy'])->name('delete');
+                    Route::controller(AdminPilihAnggotaController::class)->group(function () {
+                        Route::get('/', 'index')->name('index');
+                        Route::get('/data', 'getData')->name('data');
+                        Route::get('/filtered-data', 'getFilteredData')->name('filtered-data');
+                        Route::post('/store', 'store')->name('store');
+                        Route::get('/edit/{id}', 'edit')->name('edit');
+                        Route::put('/update/{id}', 'update')->name('update');
+                        Route::delete('/delete/{id}', 'destroy')->name('delete');
+                    });
                 });
 
 

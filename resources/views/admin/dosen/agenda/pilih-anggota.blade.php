@@ -1,22 +1,93 @@
 @extends('layouts.template')
 
 @section('content')
-<div class="container-fluid p-0">
+<div class="container-fluid">
+    <!-- Info Kegiatan -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Filter Data</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Filter Kegiatan Jurusan -->
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Kegiatan Jurusan:</label>
+                                <select class="form-control select2" id="filterKegiatanJurusan">
+                                    <option value="">Semua Kegiatan Jurusan</option>
+                                    @foreach($kegiatanJurusan as $kegiatan)
+                                        <option value="{{ $kegiatan->kegiatan_jurusan_id }}">
+                                            {{ $kegiatan->nama_kegiatan_jurusan }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <!-- Filter Kegiatan Prodi -->
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Kegiatan Program Studi:</label>
+                                <select class="form-control select2" id="filterKegiatanProdi">
+                                    <option value="">Semua Kegiatan Prodi</option>
+                                    @foreach($kegiatanProdi as $kegiatan)
+                                        <option value="{{ $kegiatan->kegiatan_program_studi_id }}">
+                                            {{ $kegiatan->nama_kegiatan_program_studi }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <!-- Filter Status Anggota -->
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Status Anggota:</label>
+                                <select class="form-control" id="filterStatusAnggota">
+                                    <option value="">Semua Status</option>
+                                    <option value="assigned">Sudah Dipilih</option>
+                                    <option value="unassigned">Belum Dipilih</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6 d-flex align-items-end">
+                            <button type="button" class="btn btn-primary mr-2" id="btnFilter">
+                                <i class="fas fa-filter"></i> Filter
+                            </button>
+                            <button type="button" class="btn btn-default" id="btnResetFilter">
+                                <i class="fas fa-undo"></i> Reset
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Anggota -->
     <div class="card">
         <div class="card-header">
             <h3 class="card-title">Data Anggota Agenda</h3>
+            <div class="card-tools">
+                <button type="button" class="btn btn-primary" onclick="showModal()">
+                    <i class="fas fa-plus"></i> Tambah Anggota
+                </button>
+            </div>
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table id="tabelAnggota" class="table table-bordered table-striped w-100">
+                <table id="tabelAnggota" class="table table-bordered table-striped">
                     <thead>
                         <tr>
-                            <th width="5%">No</th>
+                            <th>No</th>
+                            <th>Judul Agenda</th>
+                            <th>Nama Kegiatan</th>
                             <th>Nama Anggota</th>
                             <th>NIDN</th>
-                            <th>Tanggal</th>
-                            <th>Nama Agenda</th>
-                            <th width="15%">Aksi</th>
+                            <th>Status</th>
+                            <th>Aksi</th>
                         </tr>
                     </thead>
                 </table>
@@ -25,36 +96,41 @@
     </div>
 </div>
 
-<!-- Modal Edit -->
-<div class="modal fade" id="modalEdit" tabindex="-1" role="dialog">
+<!-- Modal Form -->
+<div class="modal fade" id="modalForm">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title">Edit Data Anggota</h5>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+            <div class="modal-header">
+                <h4 class="modal-title">Form Anggota Agenda</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form id="formEdit" novalidate>
+            <form id="formAnggota" onsubmit="return saveData(event)">
                 @csrf
-                @method('PUT')
-                <input type="hidden" name="agenda_id" id="edit_id">
+                <input type="hidden" name="id" id="id">
                 <div class="modal-body">
                     <div class="form-group">
-                        <label>Nama Anggota <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" name="nama_anggota" id="edit_nama_anggota" required>
-                    </div>
-                    <div class="form-group">
-                        <label>NIDN <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" name="nidn" id="edit_nidn" required>
-                    </div>
-                    <div class="form-group">
                         <label>Nama Agenda <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" name="nama_agenda" id="edit_nama_agenda" required>
+                        <select name="agenda_id" id="agenda_id" class="form-control select2" style="width: 100%;" required>
+                            <option value="">-- Pilih Agenda --</option>
+                            @foreach($agendas as $agenda)
+                                <option value="{{ $agenda->agenda_id }}">{{ $agenda->nama_agenda }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Nama Anggota <span class="text-danger">*</span></label>
+                        <select name="user_id" id="user_id" class="form-control select2" style="width: 100%;" required>
+                            <option value="">-- Pilih Anggota --</option>
+                            @foreach($dosens as $dosen)
+                                <option value="{{ $dosen->user_id }}">{{ $dosen->nama_lengkap }} ({{ $dosen->nidn }})</option>
+                            @endforeach
+                        </select>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Tutup</button>
                     <button type="submit" class="btn btn-primary">Simpan</button>
                 </div>
             </form>
@@ -64,168 +140,146 @@
 @endsection
 
 @push('css')
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap4-theme@1.0.0/dist/select2-bootstrap4.min.css" rel="stylesheet" />
 <style>
-    .container-fluid {
-        padding-right: 0;
-        padding-left: 0;
+    .select2-container--bootstrap4 .select2-selection--single {
+        height: calc(2.25rem + 2px) !important;
     }
-    
-    .card {
-        margin-bottom: 0;
-        border-radius: 0;
-    }
-    
-    .table-responsive {
-        min-height: 400px;
-    }
-    
-    .dataTables_wrapper {
-        padding: 0;
-        width: 100%;
-    }
-
-    .btn-group {
-        display: flex;
-        gap: 5px;
-    }
-
-    .btn {
-        margin-right: 5px;
-        padding: 5px 10px;
-    }
-    
-    .btn i {
-        margin-right: 5px;
+    .badge {
+        font-size: 90% !important;
+        padding: 0.4em 0.6em !important;
     }
 </style>
 @endpush
 
 @push('js')
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
 $(document).ready(function() {
-    $.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        }
+    // Inisialisasi Select2
+    $('.select2').select2({
+        theme: 'bootstrap4',
+        width: '100%'
     });
 
-    // Initialize DataTable
+    // Inisialisasi DataTable
     let table = $('#tabelAnggota').DataTable({
         processing: true,
         serverSide: true,
-        ajax: "{{ route('admin.dosen.agenda.pilih-anggota.data') }}",
-        columns: [
-            { 
-                data: 'DT_RowIndex',
-                name: 'DT_RowIndex',
-                orderable: false,
-                searchable: false
-            },
-            { data: 'nama_anggota', name: 'nama_anggota' },
-            { data: 'nidn', name: 'nidn' },
-            { 
-                data: 'tanggal_agenda',
-                name: 'tanggal_agenda',
-                render: function(data) {
-                    return moment(data).format('DD-MM-YYYY');
-                }
-            },
-            { data: 'nama_agenda', name: 'nama_agenda' },
-            {
-                data: 'agenda_id',
-                orderable: false,
-                searchable: false,
-                render: function(data, type, row) {
-                    return `
-                        <button class="btn btn-sm btn-primary edit-btn" data-id="${data}">
-                            <i class="fas fa-edit"></i> Edit
-                        </button>
-                        <button class="btn btn-sm btn-danger delete-btn" data-id="${data}">
-                            <i class="fas fa-trash"></i> Hapus
-                        </button>
-                    `;
-                }
+        ajax: {
+            url: "{{ route('admin.dosen.agenda.pilih-anggota.data') }}",
+            data: function(d) {
+                d.kegiatan_jurusan = $('#filterKegiatanJurusan').val();
+                d.kegiatan_prodi = $('#filterKegiatanProdi').val();
+                d.status_anggota = $('#filterStatusAnggota').val();
             }
+        },
+        columns: [
+            {data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false},
+            {data: 'nama_agenda', name: 'nama_agenda'},
+            {data: 'nama_kegiatan', name: 'nama_kegiatan'},
+            {data: 'nama_lengkap', name: 'nama_lengkap'},
+            {data: 'nidn', name: 'nidn'},
+            {data: 'status_anggota', name: 'status_anggota', orderable: false},
+            {data: 'action', name: 'action', orderable: false, searchable: false}
         ],
-        order: [[1, 'asc']],
         language: {
             url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json"
         }
     });
 
-    // Handle Edit Button
-    $(document).on('click', '.edit-btn', function() {
-        let id = $(this).data('id');
-        $.ajax({
-            url: "{{ url('admin/dosen/agenda/pilih-anggota/edit') }}/" + id,
-            type: 'GET',
-            success: function(response) {
-                $('#edit_id').val(response.data.agenda_id);
-                $('#edit_nama_anggota').val(response.data.nama_anggota);
-                $('#edit_nidn').val(response.data.nidn);
-                $('#edit_nama_agenda').val(response.data.nama_agenda);
-                $('#modalEdit').modal('show');
-            }
-        });
+    // Handle Filter
+    $('#btnFilter').click(function() {
+        table.ajax.reload();
     });
 
-    // Handle Edit Form Submit
-    $('#formEdit').on('submit', function(e) {
-        e.preventDefault();
-        let id = $('#edit_id').val();
-        $.ajax({
-            url: "{{ url('admin/dosen/agenda/pilih-anggota/update') }}/" + id,
-            method: 'PUT',
-            data: $(this).serialize(),
-            success: function(response) {
-                if(response.status === 'success') {
-                    $('#modalEdit').modal('hide');
-                    Swal.fire('Berhasil!', response.message, 'success');
-                    table.ajax.reload();
-                }
-            },
-            error: function(xhr) {
-                Swal.fire('Gagal!', xhr.responseJSON?.message || 'Terjadi kesalahan', 'error');
-            }
-        });
+    // Handle Reset Filter
+    $('#btnResetFilter').click(function() {
+        $('#filterKegiatanJurusan').val('').trigger('change');
+        $('#filterKegiatanProdi').val('').trigger('change');
+        $('#filterStatusAnggota').val('').trigger('change');
+        table.ajax.reload();
     });
 
-    // Handle Delete Button
-    $(document).on('click', '.delete-btn', function() {
-        let id = $(this).data('id');
-        Swal.fire({
-            title: 'Apakah Anda yakin?',
-            text: "Data yang dihapus tidak dapat dikembalikan!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Ya, hapus!',
-            cancelButtonText: 'Batal'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                $.ajax({
-                    url: "{{ url('admin/dosen/agenda/pilih-anggota/delete') }}/" + id,
-                    type: 'DELETE',
-                    success: function(response) {
-                        if(response.status === 'success') {
-                            Swal.fire('Terhapus!', response.message, 'success');
-                            table.ajax.reload();
-                        }
-                    },
-                    error: function(xhr) {
-                        Swal.fire('Gagal!', xhr.responseJSON?.message || 'Terjadi kesalahan', 'error');
-                    }
-                });
-            }
-        });
-    });
-
-    // Modal Cleanup
-    $('#modalEdit').on('hidden.bs.modal', function() {
-        $('#formEdit')[0].reset();
-        $('.is-invalid').removeClass('is-invalid');
+    // Reset form saat modal ditutup
+    $('#modalForm').on('hidden.bs.modal', function() {
+        $('#formAnggota')[0].reset();
+        $('#id').val('');
+        $('.select2').val('').trigger('change');
     });
 });
+
+function showModal() {
+    $('#modalForm').modal('show');
+}
+
+function saveData(e) {
+    e.preventDefault();
+    let id = $('#id').val();
+    let url = id ? 
+        "{{ route('admin.dosen.agenda.pilih-anggota.update', ':id') }}".replace(':id', id) : 
+        "{{ route('admin.dosen.agenda.pilih-anggota.store') }}";
+    let method = id ? 'PUT' : 'POST';
+
+    $.ajax({
+        url: url,
+        method: method,
+        data: $('#formAnggota').serialize(),
+        success: function(response) {
+            if(response.success) {
+                $('#modalForm').modal('hide');
+                $('#tabelAnggota').DataTable().ajax.reload();
+                Swal.fire('Sukses', response.message, 'success');
+            }
+        },
+        error: function(xhr) {
+            let message = xhr.responseJSON?.message || 'Terjadi kesalahan';
+            Swal.fire('Error', message, 'error');
+        }
+    });
+    return false;
+}
+
+function editData(id) {
+    $.get("{{ route('admin.dosen.agenda.pilih-anggota.edit', ':id') }}".replace(':id', id), function(data) {
+        $('#id').val(id);
+        $('#agenda_id').val(data.data.agenda_id).trigger('change');
+        $('#user_id').val(data.data.user_id).trigger('change');
+        $('#modalForm').modal('show');
+    });
+}
+
+function deleteData(id) {
+    Swal.fire({
+        title: 'Apakah Anda yakin?',
+        text: "Anggota akan dihapus dari agenda ini!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Ya, hapus!',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: "{{ route('admin.dosen.agenda.pilih-anggota.delete', ':id') }}".replace(':id', id),
+                type: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    if(response.success) {
+                        $('#tabelAnggota').DataTable().ajax.reload();
+                        Swal.fire('Sukses', response.message, 'success');
+                    }
+                },
+                error: function(xhr) {
+                    Swal.fire('Error', xhr.responseJSON?.message || 'Terjadi kesalahan saat menghapus data', 'error');
+                }
+            });
+        }
+    });
+}
 </script>
 @endpush
