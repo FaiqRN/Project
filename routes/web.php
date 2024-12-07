@@ -1,6 +1,4 @@
 <?php
-
-
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\UserController;
@@ -27,12 +25,10 @@ Route::middleware(['guest'])->group(function () {
     });
 });
 
-
 // Protected Routes (harus login untuk mengakses)
 Route::middleware(['auth.check'])->group(function () {
     // Logout Route
     Route::get('/logout', [LoginController::class, 'logout'])->name('logout');
-
 
     // Profile Route
     Route::get('/profile', [UserController::class, 'profile'])->name('profile');
@@ -71,7 +67,6 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
         Route::get('/update-progress/{id}/detail', [UpdateProgressAgendaController::class, 'getDetailAgenda']);
         Route::post('/update-progress/{id}/update', [UpdateProgressAgendaController::class, 'updateProgress']);
     });
-
         // Route khusus PIC
         Route::middleware(['auth.role:PIC'])->group(function () {
             // Kegiatan Routes (tetap dipertahankan)
