@@ -91,4 +91,10 @@ class AgendaModel extends Model
         }
         return null;
     }
+
+    public function users()
+    {
+        return $this->belongsToMany(UserModel::class, 't_agenda_user', 'agenda_id', 'user_id')
+                    ->withTimestamps();
+    }
 }

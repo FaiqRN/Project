@@ -90,7 +90,6 @@
             </div>
             <form id="formAnggota" onsubmit="return saveData(event)">
                 @csrf
-                <input type="hidden" name="id" id="id">
                 <div class="modal-body">
                     <div class="form-group">
                         <label>Nama Agenda <span class="text-danger">*</span></label>
@@ -101,14 +100,33 @@
                             @endforeach
                         </select>
                     </div>
+                    
                     <div class="form-group">
-                        <label>Nama Anggota <span class="text-danger">*</span></label>
-                        <select name="user_id" id="user_id" class="form-control select2" style="width: 100%;" required>
-                            <option value="">-- Pilih Anggota --</option>
-                            @foreach($dosens as $dosen)
-                                <option value="{{ $dosen->user_id }}">{{ $dosen->nama_lengkap }} ({{ $dosen->nidn }})</option>
-                            @endforeach
-                        </select>
+                        <label>Daftar Anggota:</label>
+                        <div id="anggotaContainer">
+                            <!-- Baris anggota akan ditambahkan di sini -->
+                            <div class="anggota-row mb-2">
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">1.</span>
+                                    </div>
+                                    <select name="user_id[]" class="form-control select2-anggota" required>
+                                        <option value="">-- Pilih Anggota --</option>
+                                        @foreach($dosens as $dosen)
+                                            <option value="{{ $dosen->user_id }}">{{ $dosen->nama_lengkap }} ({{ $dosen->nidn }})</option>
+                                        @endforeach
+                                    </select>
+                                    <div class="input-group-append">
+                                        <button type="button" class="btn btn-danger" onclick="removeAnggotaRow(this)">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-success btn-sm mt-2" onclick="addAnggotaRow()">
+                            <i class="fas fa-plus"></i> Tambah Anggota
+                        </button>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -128,6 +146,9 @@
     .select2-container--bootstrap4 .select2-selection--single {
         height: calc(2.25rem + 2px) !important;
     }
+    .btn-group .btn + .btn {
+    margin-left: 8px;
+    }
 </style>
 @endpush
 
@@ -135,11 +156,14 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
 $(document).ready(function() {
-    // Inisialisasi Select2
-    $('.select2').select2({
+    // Inisialisasi Select2 untuk agenda
+    $('#agenda_id').select2({
         theme: 'bootstrap4',
         width: '100%'
     });
+
+    // Inisialisasi Select2 untuk anggota pertama
+    initializeSelect2ForRow($('.select2-anggota').first());
 
     // Inisialisasi DataTable
     let table = $('#tabelAnggota').DataTable({
@@ -152,36 +176,54 @@ $(document).ready(function() {
             {data: 'nama_lengkap', name: 'nama_lengkap'},
             {data: 'nidn', name: 'nidn'},
             {data: 'action', name: 'action', orderable: false, searchable: false}
-        ],
-        language: {
-            url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json"
-        }
+        ]
     });
 
     // Reset form saat modal ditutup
-    $('#modalForm').on('hidden.bs.modal', function () {
-        $('#formAnggota')[0].reset();
-        $('#id').val('');
-        $('.select2').val('').trigger('change');
+        $('#modalForm').on('hidden.bs.modal', function () {
+        resetForm();
+        $('#agenda_id').prop('disabled', false);
     });
 });
 
 function showModal() {
+    resetForm();
+    $('#formAnggota').removeAttr('data-mode').removeAttr('data-id');
+    $('#agenda_id').prop('disabled', false);
     $('#modalForm').modal('show');
+    addAnggotaRow(); // Tambah satu baris untuk mode tambah
 }
 
 function saveData(e) {
     e.preventDefault();
-    let id = $('#id').val();
-    let url = id ? 
-        "{{ route('pic.pilih.update', ':id') }}".replace(':id', id) : 
-        "{{ route('pic.pilih.store') }}";
-    let method = id ? 'PUT' : 'POST';
+    
+    let mode = $('#formAnggota').attr('data-mode');
+    let id = $('#formAnggota').attr('data-id');
+    
+    let formData = {
+        _token: $('meta[name="csrf-token"]').attr('content'),
+        agenda_id: $('#agenda_id').val(),
+        user_id: $('select[name="user_id[]"]').first().val() // Ambil hanya anggota pertama saat edit
+    };
+
+    // Tentukan URL dan method berdasarkan mode
+    let url = mode === 'edit' 
+        ? "{{ route('pic.pilih.update', ':id') }}".replace(':id', id)
+        : "{{ route('pic.pilih.store') }}";
+    let method = mode === 'edit' ? 'PUT' : 'POST';
+
+    // Jika mode store (bukan edit), kirim semua user_ids
+    if (mode !== 'edit') {
+        formData.user_ids = $('select[name="user_id[]"]').map(function() {
+            return $(this).val();
+        }).get();
+        delete formData.user_id;
+    }
 
     $.ajax({
         url: url,
         method: method,
-        data: $('#formAnggota').serialize(),
+        data: formData,
         success: function(response) {
             if(response.success) {
                 $('#modalForm').modal('hide');
@@ -199,10 +241,23 @@ function saveData(e) {
 
 function editData(id) {
     $.get("{{ route('pic.pilih.edit', ':id') }}".replace(':id', id), function(data) {
-        $('#id').val(id);
-        $('#agenda_id').val(data.agenda_id).trigger('change');
-        $('#user_id').val(data.user_id).trigger('change');
-        $('#modalForm').modal('show');
+        if(data.success) {
+            resetForm(); // Reset form terlebih dahulu
+            
+            // Set agenda_id dan disable dropdown agenda
+            $('#agenda_id').val(data.data.agenda_id).trigger('change').prop('disabled', true);
+            
+            // Set user_id pada baris pertama
+            $('.select2-anggota').first().val(data.data.user_id).trigger('change');
+            
+            $('#modalForm').modal('show');
+            
+            // Ubah URL form untuk update
+            $('#formAnggota').attr('data-mode', 'edit');
+            $('#formAnggota').attr('data-id', id);
+        } else {
+            Swal.fire('Error', data.message, 'error');
+        }
     });
 }
 
@@ -236,6 +291,70 @@ function deleteData(id) {
             });
         }
     });
+}
+
+function initializeSelect2ForRow($element) {
+    $element.select2({
+        theme: 'bootstrap4',
+        width: '100%',
+        dropdownParent: $('#modalForm')
+    });
+}
+
+function addAnggotaRow() {
+    let rowCount = $('.anggota-row').length + 1;
+    let newRow = `
+        <div class="anggota-row mb-2">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">${rowCount}.</span>
+                </div>
+                <select name="user_id[]" class="form-control select2-anggota" required>
+                    <option value="">-- Pilih Anggota --</option>
+                    @foreach($dosens as $dosen)
+                        <option value="{{ $dosen->user_id }}">{{ $dosen->nama_lengkap }} ({{ $dosen->nidn }})</option>
+                    @endforeach
+                </select>
+                <div class="input-group-append">
+                    <button type="button" class="btn btn-danger" onclick="removeAnggotaRow(this)">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    $('#anggotaContainer').append(newRow);
+    initializeSelect2ForRow($('#anggotaContainer .anggota-row:last-child .select2-anggota'));
+    updateRowNumbers();
+}
+
+function removeAnggotaRow(button) {
+    $(button).closest('.anggota-row').remove();
+    updateRowNumbers();
+}
+
+function updateRowNumbers() {
+    $('.anggota-row').each(function(index) {
+        $(this).find('.input-group-text').text((index + 1) + '.');
+    });
+}
+
+function resetForm() {
+    $('#formAnggota')[0].reset();
+    $('#formAnggota').removeAttr('data-mode').removeAttr('data-id');
+    $('#agenda_id').prop('disabled', false);
+    
+    // Reset container anggota
+    $('#anggotaContainer').html('');
+    
+    // Jika bukan mode edit, tambahkan baris kosong
+    if (!$('#formAnggota').attr('data-mode')) {
+        addAnggotaRow();
+    }
+    
+    // Reset semua select2
+    $('#agenda_id').val('').trigger('change');
 }
 </script>
 @endpush

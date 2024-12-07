@@ -54,4 +54,10 @@ class UserModel extends Model
         return $this->belongsTo(LevelModel::class, 'level_id', 'level_id');
     }
 
+    // Tambahkan method ini di UserModel
+    public function agendas()
+    {
+        return $this->belongsToMany(AgendaModel::class, 't_agenda_user', 'user_id', 'agenda_id')
+                    ->withTimestamps();
+    }
 }

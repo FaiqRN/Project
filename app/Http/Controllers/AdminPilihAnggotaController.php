@@ -6,6 +6,7 @@ use App\Models\AgendaModel;
 use App\Models\UserModel;
 use App\Models\KegiatanJurusanModel;
 use App\Models\KegiatanProgramStudiModel;
+use App\Models\AgendaUserModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
@@ -41,26 +42,51 @@ class AdminPilihAnggotaController extends Controller
         ]);
     }
 
-    public function getData()
+    public function getData(Request $request)
     {
         try {
-            // Query untuk mengambil semua data agenda dan user terkait
             $query = DB::table('t_agenda as a')
-                ->leftJoin('m_user as u', 'a.user_id', '=', 'u.user_id')
+                ->leftJoin('t_agenda_user as au', 'a.agenda_id', '=', 'au.agenda_id')
+                ->leftJoin('m_user as u', 'au.user_id', '=', 'u.user_id')
                 ->leftJoin('t_kegiatan_jurusan as kj', 'a.kegiatan_jurusan_id', '=', 'kj.kegiatan_jurusan_id')
-                ->leftJoin('t_kegiatan_program_studi as kp', 'a.kegiatan_program_studi_id', '=', 'kp.kegiatan_program_studi_id')
-                ->select([
-                    'a.agenda_id',
-                    'a.nama_agenda',
-                    'u.nama_lengkap',
-                    'u.nidn',
-                    'kj.nama_kegiatan_jurusan',
-                    'kp.nama_kegiatan_program_studi',
-                    DB::raw('COALESCE(kj.nama_kegiatan_jurusan, kp.nama_kegiatan_program_studi) as nama_kegiatan')
-                ]);
-
+                ->leftJoin('t_kegiatan_program_studi as kp', 'a.kegiatan_program_studi_id', '=', 'kp.kegiatan_program_studi_id');
+    
+            // Filter berdasarkan kegiatan jurusan
+            if ($request->kegiatan_jurusan) {
+                $query->where('a.kegiatan_jurusan_id', $request->kegiatan_jurusan);
+            }
+    
+            // Filter berdasarkan kegiatan prodi
+            if ($request->kegiatan_prodi) {
+                $query->where('a.kegiatan_program_studi_id', $request->kegiatan_prodi);
+            }
+    
+            // Filter berdasarkan status anggota
+            if ($request->status_anggota) {
+                if ($request->status_anggota === 'assigned') {
+                    $query->whereNotNull('au.id');
+                } else if ($request->status_anggota === 'unassigned') {
+                    $query->whereNull('au.id');
+                }
+            }
+    
+            $query->select([
+                'a.agenda_id',
+                'a.nama_agenda',
+                'u.nama_lengkap',
+                'u.nidn',
+                DB::raw('COALESCE(kj.nama_kegiatan_jurusan, kp.nama_kegiatan_program_studi) as nama_kegiatan'),
+                DB::raw('CASE WHEN au.id IS NULL THEN "Belum dipilih" ELSE "Sudah dipilih" END as status')
+            ])
+            ->groupBy('a.agenda_id', 'a.nama_agenda', 'u.nama_lengkap', 'u.nidn', 'nama_kegiatan', 'status');
+    
             return DataTables::of($query)
                 ->addIndexColumn()
+                ->addColumn('status_anggota', function($row) {
+                    return $row->status === 'Belum dipilih' 
+                        ? '<span class="badge badge-warning">Belum dipilih</span>'
+                        : '<span class="badge badge-success">Sudah dipilih</span>';
+                })
                 ->addColumn('action', function($row) {
                     return '<div class="btn-group">
                         <button type="button" class="btn btn-warning btn-sm" onclick="editData('.$row->agenda_id.')">
@@ -71,13 +97,9 @@ class AdminPilihAnggotaController extends Controller
                         </button>
                     </div>';
                 })
-                ->addColumn('status_anggota', function($row) {
-                    return $row->nama_lengkap ? 
-                        '<span class="badge badge-success">Sudah dipilih</span>' : 
-                        '<span class="badge badge-warning">Belum dipilih</span>';
-                })
                 ->rawColumns(['action', 'status_anggota'])
                 ->make(true);
+    
         } catch (\Exception $e) {
             return response()->json([
                 'error' => true,
@@ -94,14 +116,29 @@ class AdminPilihAnggotaController extends Controller
                 'user_id' => 'required'
             ]);
 
-            $agenda = AgendaModel::findOrFail($request->agenda_id);
-            $agenda->user_id = $request->user_id;
-            $agenda->save();
+            // Cek apakah relasi sudah ada
+            $exists = AgendaUserModel::where('agenda_id', $request->agenda_id)
+                                   ->where('user_id', $request->user_id)
+                                   ->exists();
+            
+            if ($exists) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Dosen sudah ditambahkan ke agenda ini'
+                ], 422);
+            }
+
+            // Buat relasi baru
+            AgendaUserModel::create([
+                'agenda_id' => $request->agenda_id,
+                'user_id' => $request->user_id
+            ]);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Berhasil menambahkan dosen ke agenda'
             ]);
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -113,10 +150,10 @@ class AdminPilihAnggotaController extends Controller
     public function edit($id)
     {
         try {
-            $agenda = AgendaModel::findOrFail($id);
+            $agendaUser = AgendaUserModel::findOrFail($id);
             return response()->json([
                 'success' => true,
-                'data' => $agenda
+                'data' => $agendaUser
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -133,14 +170,29 @@ class AdminPilihAnggotaController extends Controller
                 'user_id' => 'required'
             ]);
 
-            $agenda = AgendaModel::findOrFail($id);
-            $agenda->user_id = $request->user_id;
-            $agenda->save();
+            $agendaUser = AgendaUserModel::findOrFail($id);
+
+            // Cek duplikasi
+            $exists = AgendaUserModel::where('agenda_id', $agendaUser->agenda_id)
+                                   ->where('user_id', $request->user_id)
+                                   ->where('id', '!=', $id)
+                                   ->exists();
+            
+            if ($exists) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Dosen sudah ditambahkan ke agenda ini'
+                ], 422);
+            }
+
+            $agendaUser->user_id = $request->user_id;
+            $agendaUser->save();
 
             return response()->json([
                 'success' => true,
                 'message' => 'Data berhasil diperbarui'
             ]);
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -152,15 +204,14 @@ class AdminPilihAnggotaController extends Controller
     public function destroy($id)
     {
         try {
-            $agenda = AgendaModel::findOrFail($id);
-            // Set user_id menjadi null
-            $agenda->user_id = null;
-            $agenda->save();
-
+            $agendaUser = AgendaUserModel::findOrFail($id);
+            $agendaUser->delete();
+    
             return response()->json([
                 'success' => true,
                 'message' => 'Data berhasil dihapus'
             ]);
+    
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -169,43 +220,60 @@ class AdminPilihAnggotaController extends Controller
         }
     }
 
-    // Method tambahan untuk filter data
     public function getFilteredData(Request $request)
     {
         try {
-            $query = DB::table('t_agenda as a')
-                ->leftJoin('m_user as u', 'a.user_id', '=', 'u.user_id')
+            $query = DB::table('t_agenda_user as au')
+                ->join('t_agenda as a', 'au.agenda_id', '=', 'a.agenda_id')
+                ->join('m_user as u', 'au.user_id', '=', 'u.user_id')
                 ->leftJoin('t_kegiatan_jurusan as kj', 'a.kegiatan_jurusan_id', '=', 'kj.kegiatan_jurusan_id')
                 ->leftJoin('t_kegiatan_program_studi as kp', 'a.kegiatan_program_studi_id', '=', 'kp.kegiatan_program_studi_id');
-
-            // Filter berdasarkan kegiatan jika ada
-            if ($request->kegiatan_type && $request->kegiatan_id) {
-                if ($request->kegiatan_type === 'jurusan') {
-                    $query->where('a.kegiatan_jurusan_id', $request->kegiatan_id);
-                } else if ($request->kegiatan_type === 'prodi') {
-                    $query->where('a.kegiatan_program_studi_id', $request->kegiatan_id);
-                }
+    
+            // Filter berdasarkan kegiatan jurusan
+            if ($request->kegiatan_jurusan) {
+                $query->where('a.kegiatan_jurusan_id', $request->kegiatan_jurusan);
             }
-
+    
+            // Filter berdasarkan kegiatan prodi
+            if ($request->kegiatan_prodi) {
+                $query->where('a.kegiatan_program_studi_id', $request->kegiatan_prodi);
+            }
+    
             // Filter berdasarkan status anggota
-            if ($request->has('status_anggota')) {
+            if ($request->status_anggota) {
                 if ($request->status_anggota === 'assigned') {
-                    $query->whereNotNull('a.user_id');
+                    $query->whereNotNull('au.id');
                 } else if ($request->status_anggota === 'unassigned') {
-                    $query->whereNull('a.user_id');
+                    $query->whereNull('au.id');
                 }
             }
-
+    
             $query->select([
+                'au.id',
                 'a.agenda_id',
                 'a.nama_agenda',
                 'u.nama_lengkap',
                 'u.nidn',
-                'kj.nama_kegiatan_jurusan',
-                'kp.nama_kegiatan_program_studi'
+                DB::raw('COALESCE(kj.nama_kegiatan_jurusan, kp.nama_kegiatan_program_studi) as nama_kegiatan')
             ]);
-
-            return DataTables::of($query)->make(true);
+    
+            return DataTables::of($query)
+                ->addIndexColumn()
+                ->addColumn('status_anggota', function($row) {
+                    return '<span class="badge badge-success">Sudah dipilih</span>';
+                })
+                ->addColumn('action', function($row) {
+                    return '<div class="btn-group">
+                        <button type="button" class="btn btn-warning btn-sm" onclick="editData('.$row->id.')">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button type="button" class="btn btn-danger btn-sm" onclick="deleteData('.$row->id.')">
+                            <i class="fas fa-trash"></i> Hapus
+                        </button>
+                    </div>';
+                })
+                ->rawColumns(['action', 'status_anggota'])
+                ->make(true);
         } catch (\Exception $e) {
             return response()->json([
                 'error' => true,
