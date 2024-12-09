@@ -1,55 +1,70 @@
 <?php
 
+
 namespace App\Http\Controllers;
 
+
 use App\Models\AgendaModel;
-use App\Models\JabatanModel;
+use App\Models\KegiatanJurusanModel;
+use App\Models\KegiatanProgramStudiModel;
 use Illuminate\Http\Request;
+
 
 class ProgressKegiatanController extends Controller
 {
     public function index()
     {
-        $userId = session('user_id');
-
-        $kegiatanJurusan = JabatanModel::where('user_id', $userId)
-            ->whereNotNull('kegiatan_jurusan_id')
-            ->with(['kegiatanJurusan', 'kegiatanJurusan.agendas'])
-            ->get()
-            ->map(function($jabatan) {
-                return $this->calculateProgress($jabatan->kegiatanJurusan, 'kegiatan_jurusan_id');
-            })->filter();
-
-        $kegiatanProdi = JabatanModel::where('user_id', $userId)
-            ->whereNotNull('kegiatan_program_studi_id')
-            ->with(['kegiatanProgramStudi', 'kegiatanProgramStudi.agendas'])
-            ->get()
-            ->map(function($jabatan) {
-                return $this->calculateProgress($jabatan->kegiatanProgramStudi, 'kegiatan_program_studi_id');
-            })->filter();
-
-        return view('dosen.progress-kegiatan.index', compact('kegiatanJurusan', 'kegiatanProdi'));
+        return view('dosen.statuskegiatan', [
+            'breadcrumb' => (object)[
+                'title' => 'Progress Kegiatan',
+                'list' => ['Home', 'Progress Kegiatan']
+            ]
+        ]);
     }
 
-    private function calculateProgress($kegiatan, $kegiatanType)
+
+    public function getKegiatanProgress()
     {
-        if (!$kegiatan) return null;
+        // Mengambil kegiatan jurusan dengan agenda
+        $kegiatanJurusan = KegiatanJurusanModel::with(['agendas' => function($query) {
+            $query->withCount('users');
+        }])->get()->map(function($kegiatan) {
+            $totalAgendas = $kegiatan->agendas->count();
+            $completedAgendas = $kegiatan->agendas->where('status_agenda', 'selesai')->count();
+            $progress = $totalAgendas > 0 ? ($completedAgendas / $totalAgendas) * 100 : 0;
+           
+            return [
+                'nama_kegiatan' => $kegiatan->nama_kegiatan_jurusan,
+                'jenis_kegiatan' => 'Kegiatan Jurusan',
+                'jumlah_agenda' => $totalAgendas,
+                'agenda_selesai' => $completedAgendas,
+                'progress' => round($progress, 2),
+                'jumlah_anggota' => $kegiatan->agendas->sum('users_count')
+            ];
+        });
 
-        $agendas = AgendaModel::where($kegiatanType, $kegiatan->getKey())
-            ->withCount('users')
-            ->get();
 
-        $totalAgendas = $agendas->count();
-        $completedAgendas = $agendas->where('status_agenda', 'selesai')->count();
-        $progressPercentage = $totalAgendas > 0 ? ($completedAgendas / $totalAgendas) * 100 : 0;
+        // Mengambil kegiatan prodi dengan agenda
+        $kegiatanProdi = KegiatanProgramStudiModel::with(['agendas' => function($query) {
+            $query->withCount('users');
+        }])->get()->map(function($kegiatan) {
+            $totalAgendas = $kegiatan->agendas->count();
+            $completedAgendas = $kegiatan->agendas->where('status_agenda', 'selesai')->count();
+            $progress = $totalAgendas > 0 ? ($completedAgendas / $totalAgendas) * 100 : 0;
+           
+            return [
+                'nama_kegiatan' => $kegiatan->nama_kegiatan_program_studi,
+                'jenis_kegiatan' => 'Kegiatan Prodi',
+                'jumlah_agenda' => $totalAgendas,
+                'agenda_selesai' => $completedAgendas,
+                'progress' => round($progress, 2),
+                'jumlah_anggota' => $kegiatan->agendas->sum('users_count')
+            ];
+        });
 
-        $kegiatan->progress = [
-            'total_agendas' => $totalAgendas,
-            'completed_agendas' => $completedAgendas,
-            'percentage' => round($progressPercentage, 2),
-            'total_members' => $agendas->sum('users_count')
-        ];
 
-        return $kegiatan;
+        $allKegiatan = $kegiatanJurusan->concat($kegiatanProdi);
+       
+        return response()->json($allKegiatan);
     }
 }

@@ -41,4 +41,9 @@ class KegiatanJurusanModel extends Model
     {
         return $this->hasMany(JabatanModel::class, 'kegiatan_jurusan_id');
     }
+
+    public function agendas()
+    {
+        return $this->hasMany(AgendaModel::class, 'kegiatan_jurusan_id');
+    }
 }

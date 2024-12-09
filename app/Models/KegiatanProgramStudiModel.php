@@ -41,4 +41,9 @@ class KegiatanProgramStudiModel extends Model
     {
         return $this->hasMany(JabatanModel::class, 'kegiatan_program_studi_id');
     }
+
+    public function agendas()
+    {
+        return $this->hasMany(AgendaModel::class, 'kegiatan_program_studi_id');
+    }
 }

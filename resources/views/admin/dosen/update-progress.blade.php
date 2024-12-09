@@ -67,9 +67,7 @@
                                                 data-id="{{ $agenda->agenda_id }}"
                                                 data-toggle="tooltip" 
                                                 title="Lihat Detail">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-primary btn-sm btn-upload" 
+                                            <i class                                        <button type="button" class="btn btn-primary btn-sm btn-upload" 
                                                 data-id="{{ $agenda->agenda_id }}"
                                                 data-toggle="tooltip" 
                                                 title="Upload Dokumentasi">
@@ -522,6 +520,17 @@ $(document).ready(function() {
                 });
             }
         });
+              $('.upload-box').addClass('is-invalid');
+                $('.upload-box').siblings('.invalid-feedback').text('Format file harus JPEG, PNG, PDF, DOC, atau DOCX');
+                return;
+            }
+            
+            $('.upload-box').removeClass('is-invalid');
+        } else {
+            fileInfo = 'Tidak ada file dipilih';
+        }
+        
+        $('#selected-file-name').text(fileInfo);
     });
 });
 </script>
