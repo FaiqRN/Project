@@ -34,14 +34,14 @@ class AdminUpdateProgressAgendaController extends Controller
                                 round(($uploadedUsers / $totalUsers) * 100, 2) : 0;
             
             // Tetap gunakan model Eloquent dan tambahkan properti tambahan
-            $agenda->progress = [
+            $agenda->setAttribute('progress', [
                 'total_users' => $totalUsers,
                 'uploaded_users' => $uploadedUsers,
                 'percentage' => $progressPercentage
-            ];
+            ]);
             
             // Set display status berdasarkan progress
-            $agenda->display_status = $this->determineStatus($uploadedUsers, $totalUsers);
+            $agenda->setAttribute('display_status', $this->determineStatus($uploadedUsers, $totalUsers));
             
             return $agenda; // Mengembalikan model asli dengan properti tambahan
         });
