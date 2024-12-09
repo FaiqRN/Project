@@ -52,7 +52,7 @@
 
             {{-- Progress Kegiatan --}}
             <li class="nav-item">
-                <a href="{{ url('/dosen/progress-kegiatan') }}" class="nav-link {{ isMenuActive('progress-kegiatan', $activemenu) }}">
+                <a href="{{ route('dosen.progress-kegiatan.index') }}" class="nav-link {{ isMenuActive('progress-kegiatan', $activemenu) }}">
                     <i class="nav-icon fa fa-tasks"></i>
                     <p>Progress Kegiatan</p>
                 </a>
