@@ -12,6 +12,7 @@ use App\Http\Controllers\AdminAgendaController;
 use App\Http\Controllers\UpdateProgressAgendaController;
 use App\Http\Controllers\AdminPilihAnggotaController;
 use App\Http\Controllers\AdminUpdateProgressAgendaController;
+use App\Http\Controllers\ProgressKegiatanController;
 
 
 // Guest Routes (untuk user yang belum login)
@@ -71,6 +72,15 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
         Route::get('/{id}/detail', [UpdateProgressAgendaController::class, 'getDetailAgenda']);
         Route::post('/{id}/update', [UpdateProgressAgendaController::class, 'updateProgress']); 
     });
+
+
+        // Progress Kegiatan Routes
+        Route::controller(ProgressKegiatanController::class)->group(function () {
+            Route::get('/progress-kegiatan', 'index')->name('dosen.progress-kegiatan');
+            Route::get('/progress-kegiatan/get-progress', 'getKegiatanProgress')->name('dosen.progress-kegiatan.get-progress');
+    });
+
+
         // Route khusus PIC
         Route::middleware(['auth.role:PIC'])->group(function () {
             // Kegiatan Routes (tetap dipertahankan)
