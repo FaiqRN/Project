@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class AgendaModel extends Model
 {
@@ -15,12 +16,14 @@ class AgendaModel extends Model
         'file_surat_agenda',
         'deskripsi',
         'dokumentasi_id',
+        'status_agenda',
         'user_id',
         'kegiatan_luar_institusi_id',
         'kegiatan_institusi_id',
         'kegiatan_jurusan_id',
         'kegiatan_program_studi_id'
     ];
+    public $timestamps = true;
 
     protected $attributes = [
         'dokumentasi_id' => null
@@ -96,5 +99,73 @@ class AgendaModel extends Model
     {
         return $this->belongsToMany(UserModel::class, 't_agenda_user', 'agenda_id', 'user_id')
                     ->withTimestamps();
+    }
+
+    public function agenda()
+    {
+        return $this->belongsTo(AgendaModel::class, 'agenda_id', 'agenda_id');
+    }
+
+    protected $appends = ['progress', 'display_status'];
+
+    public function getProgressAttribute()
+    {
+        $totalUsers = $this->users()->count();
+        $uploadedUsers = DokumentasiModel::where('agenda_id', $this->agenda_id)
+                                       ->distinct('user_id')
+                                       ->count('user_id');
+        $progressPercentage = $totalUsers > 0 ? 
+                             round(($uploadedUsers / $totalUsers) * 100, 2) : 0;
+
+        return [
+            'total_users' => $totalUsers,
+            'uploaded_users' => $uploadedUsers,
+            'percentage' => $progressPercentage
+        ];
+    }
+
+    public function getDisplayStatusAttribute()
+    {
+        $progress = $this->progress;
+        if ($progress['uploaded_users'] === 0) return 'berlangsung';
+        if ($progress['uploaded_users'] === $progress['total_users']) return 'selesai';
+        return 'tahap penyelesaian';
+    }
+
+    public function updateStatus()
+    {
+        $totalUsers = $this->users()->count();
+        $uploadedUsers = DokumentasiModel::where('agenda_id', $this->agenda_id)
+                                       ->distinct('user_id')
+                                       ->count('user_id');
+ 
+        if ($uploadedUsers == 0) {
+            $this->status_agenda = 'berlangsung';
+        } elseif ($uploadedUsers == $totalUsers) {
+            $this->status_agenda = 'selesai';
+        } else {
+            $this->status_agenda = 'tahap penyelesaian';
+        }
+ 
+        $this->save();
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+ 
+        // Event ketika agenda dihapus
+        static::deleting(function($agenda) {
+            // Hapus relasi dengan users
+            $agenda->users()->detach();
+            
+            // Hapus dokumentasi terkait
+            DokumentasiModel::where('agenda_id', $agenda->agenda_id)->delete();
+            
+            // Hapus file surat agenda jika ada
+            if ($agenda->file_surat_agenda && Storage::exists($agenda->file_surat_agenda)) {
+                Storage::delete($agenda->file_surat_agenda);
+            }
+        });
     }
 }

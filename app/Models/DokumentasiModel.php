@@ -12,8 +12,11 @@ class DokumentasiModel extends Model
     
     protected $fillable = [
         'nama_dokumentasi',
+        'deskripsi_dokumentasi',
         'file_dokumentasi',
-        'tanggal'
+        'tanggal',
+        'user_id',  
+        'agenda_id'
     ];
 
     // Relasi dengan Agenda
@@ -59,5 +62,15 @@ class DokumentasiModel extends Model
                 Storage::delete($dokumentasi->file_dokumentasi);
             }
         });
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(UserModel::class, 'user_id', 'user_id');
+    }
+
+    public function agenda()
+    {
+        return $this->belongsTo(AgendaModel::class, 'agenda_id', 'agenda_id');
     }
 }

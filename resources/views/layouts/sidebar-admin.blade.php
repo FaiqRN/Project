@@ -82,14 +82,6 @@
                         </ul>
                     </li>
 
-                    {{-- Progress Kegiatan --}}
-                    <li class="nav-item">
-                        <a href="{{ route('admin.dosen.progress-kegiatan') }}" class="nav-link {{ $currentRoute === 'admin.dosen.progress-kegiatan' ? 'active' : '' }}">
-                            <i class="fa fa-tasks nav-icon"></i>
-                            <p>Progress Kegiatan</p>
-                        </a>
-                    </li>
-
                     {{-- Update Progress --}}
                     <li class="nav-item">
                         <a href="{{ route('admin.dosen.update-progress') }}" class="nav-link {{ $currentRoute === 'admin.dosen.update-progress' ? 'active' : '' }}">

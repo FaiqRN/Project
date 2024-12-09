@@ -13,31 +13,22 @@ class SuratSeeder extends Seeder{
     $data = [
         [
             'surat_id' => 1,
-            'nomer_surat' => '001/PAN/TI/2024',
-            'judul_surat' => 'Undangan Seminar AI',
-            'file_surat' => 'surat_seminar_ai.pdf',
-            'tanggal_surat' => '2024-01-10',
+            'nomer_surat' => '2089/PL2.1/KP/2024',
+            'judul_surat' => 'Kegiatan Workshop Pengembangan Kurikulum Jurusan',
+            'file_surat' => 'SURAT PENUGASAN JURUSAN.pdf',
+            'tanggal_surat' => '2024-12-05',
             'created_at' => now(),
             'updated_at' => now()
         ],
         [
             'surat_id' => 2,
-            'nomer_surat' => '002/PAN/TI/2024',
-            'judul_surat' => 'Undangan Workshop Data Science',
-            'file_surat' => 'surat_workshop_ds.pdf',
-            'tanggal_surat' => '2024-02-15',
+            'nomer_surat' => '2090/PL2.1/KP/2024',
+            'judul_surat' => 'Kegiatan Evaluasi Program Studi',
+            'file_surat' => 'SURAT PENUGASAN PROGRAM STUDI.pdf',
+            'tanggal_surat' => '2024-12-15',
             'created_at' => now(),
             'updated_at' => now()
         ],
-        [
-            'surat_id' => 3,
-            'nomer_surat' => '003/PAN/TI/2024',
-            'judul_surat' => 'Undangan Konferensi Internasional',
-            'file_surat' => 'surat_conference.pdf',
-            'tanggal_surat' => '2024-03-20',
-            'created_at' => now(),
-            'updated_at' => now()
-        ]
     ];
 
        DB::table('m_surat')->insert($data);

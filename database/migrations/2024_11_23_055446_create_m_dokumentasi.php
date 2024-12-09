@@ -17,7 +17,21 @@ return new class extends Migration
             $table->text('deskripsi_dokumentasi');
             $table->text('file_dokumentasi');
             $table->date('tanggal');
+            $table->unsignedBigInteger('user_id')->nullable(); // Tambahan
+            $table->unsignedBigInteger('agenda_id')->nullable(); 
             $table->timestamps();
+
+
+
+            $table->foreign('user_id')
+            ->references('user_id')
+            ->on('m_user')
+            ->onDelete('set null');
+            
+            $table->foreign('agenda_id')
+            ->references('agenda_id')
+            ->on('t_agenda')
+            ->onDelete('set null');
         });
     }
 

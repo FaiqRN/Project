@@ -11,6 +11,8 @@ use App\Http\Controllers\PilihAnggotaController;
 use App\Http\Controllers\AdminAgendaController;
 use App\Http\Controllers\UpdateProgressAgendaController;
 use App\Http\Controllers\AdminPilihAnggotaController;
+use App\Http\Controllers\AdminUpdateProgressAgendaController;
+
 
 // Guest Routes (untuk user yang belum login)
 Route::middleware(['guest'])->group(function () {
@@ -64,9 +66,10 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
 
         // Route untuk Update Progress Agenda
         Route::prefix('update-progress')->group(function () {
-        Route::get('/update-progress', [UpdateProgressAgendaController::class, 'index'])->name('dosen.update-progress');
-        Route::get('/update-progress/{id}/detail', [UpdateProgressAgendaController::class, 'getDetailAgenda']);
-        Route::post('/update-progress/{id}/update', [UpdateProgressAgendaController::class, 'updateProgress']);
+        Route::get('/', [UpdateProgressAgendaController::class, 'index'])->name('dosen.update-progress');
+        Route::get('/dosen/update-progress/{id}/check-status', [UpdateProgressAgendaController::class, 'checkAgendaStatus']);
+        Route::get('/{id}/detail', [UpdateProgressAgendaController::class, 'getDetailAgenda']);
+        Route::post('/{id}/update', [UpdateProgressAgendaController::class, 'updateProgress']); 
     });
         // Route khusus PIC
         Route::middleware(['auth.role:PIC'])->group(function () {
@@ -165,6 +168,7 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
 
         // Dosen Management Routes
         Route::prefix('dosen')->name('dosen.')->group(function () {
+            Route::get('/update-progress', [AdminUpdateProgressAgendaController::class, 'index'])->name('update-progress');
             // Agenda Routes
             Route::prefix('agenda')->name('agenda.')->group(function () {
                 Route::controller(JabatanController::class)->group(function () {
@@ -239,20 +243,18 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
             });
 
 
-            Route::view('/progress-kegiatan', 'admin.dosen.progress-kegiatan', [
-                'breadcrumb' => (object)[
-                    'title' => 'Progress Kegiatan',
-                    'list' => ['Home', 'Dosen', 'Progress Kegiatan']
-                ]
-            ])->name('progress-kegiatan');
-
-
-            Route::view('/update-progress', 'admin.dosen.update-progress', [
-                'breadcrumb' => (object)[
-                    'title' => 'Update Progress',
-                    'list' => ['Home', 'Dosen', 'Update Progress']
-                ]
-            ])->name('update-progress');
+            Route::prefix('update-progress')->name('update-progress.')->group(function () {
+                Route::get('/get-data', [AdminUpdateProgressAgendaController::class, 'index'])
+                    ->name('data');
+                Route::get('/detail/{id}', [AdminUpdateProgressAgendaController::class, 'getDetailAgenda'])
+                    ->name('detail');
+                Route::post('/store/{id}', [AdminUpdateProgressAgendaController::class, 'updateProgress'])
+                    ->name('store');
+                Route::get('/status/{id}', [AdminUpdateProgressAgendaController::class, 'checkAgendaStatus'])
+                    ->name('status');
+                Route::delete('/delete/{agendaId}/{userId}', [AdminUpdateProgressAgendaController::class, 'deleteProgress'])
+                    ->name('delete');
+            });
 
 
             Route::view('/kegiatan-non-jti', 'admin.dosen.kegiatan-non-jti', [
