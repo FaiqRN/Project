@@ -8,7 +8,7 @@ class FinalDocumentModel extends Model
 {
     protected $table = 'm_final';
     protected $primaryKey = 'final_id';
-    protected $fillable = ['file_akhir', 'kegiatan_jurusan_id', 'kegiatan_program_studi_id'];
+    protected $fillable = ['file_akhir', 'nama_file', 'kegiatan_jurusan_id', 'kegiatan_program_studi_id'];
 
     public function kegiatanJurusan()
     {
