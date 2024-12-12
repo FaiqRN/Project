@@ -105,12 +105,13 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
                 Route::put('/update/{id}', [PilihAnggotaController::class, 'update'])->name('pic.pilih.update');
                 Route::delete('/delete/{id}', [PilihAnggotaController::class, 'destroy'])->name('pic.pilih.delete');
             });
-
+             
+            // route untuk dokumen
             Route::prefix('dokumen')->group(function () {
                 Route::get('/', [UnggahDokumenAkhirController::class, 'index'])->name('pic.unggah-dokumen');
                 Route::get('/list', [UnggahDokumenAkhirController::class, 'getKegiatanList'])->name('pic.unggah-dokumen.list');
                 Route::post('/store', [UnggahDokumenAkhirController::class, 'store'])->name('pic.unggah-dokumen.store');
-                Route::get('/download/{id}/{tipe}', [UnggahDokumenAkhirController::class, 'download'])->name('pic.unggah-dokumen.download');
+                Route::get('/download/{id}/{type}', [UnggahDokumenAkhirController::class, 'download'])->name('pic.unggah-dokumen.download');
             });
         });
     });
