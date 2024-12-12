@@ -153,17 +153,15 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
                 ->name('kaprodi.surat-tugas.showkaprodi');
         });
 
-    // Route untuk menu Melihat Kegiatan
-    Route::prefix('kegiatan')->group(function () {
-        Route::get('/kegiatan', [LihatKegiatanController::class, 'index'])->name('kaprodi.kegiatan');
-        Route::get('/kegiatan/data', [LihatKegiatanController::class, 'getKegiatanData'])->name('kaprodi.kegiatan.data');
-        Route::get('/kegiatan/download-dokumen/{id}', [LihatKegiatanController::class, 'downloadDokumenFinal'])
+    // Route untuk Melihat Kegiatan
+    Route::prefix('kaprodi/kegiatan')->group(function () {
+        Route::get('/', [LihatKegiatanController::class, 'index'])->name('kaprodi.kegiatan');
+        Route::get('/data', [LihatKegiatanController::class, 'getKegiatanData'])->name('kaprodi.kegiatan.data');
+        Route::get('/download-dokumen/{jenis}/{id}', [LihatKegiatanController::class, 'downloadDokumenFinal'])
             ->name('kaprodi.kegiatan.download-dokumen');
     
         });
-
     });
-
 
     // Admin Routes
     Route::middleware(['auth.role:Admin'])->prefix('admin')->name('admin.')->group(function () {
