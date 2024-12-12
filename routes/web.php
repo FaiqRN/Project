@@ -14,6 +14,7 @@ use App\Http\Controllers\AdminPilihAnggotaController;
 use App\Http\Controllers\AdminUpdateProgressAgendaController;
 use App\Http\Controllers\ProgressKegiatanController;
 use App\Http\Controllers\UnggahDokumenAkhirController;
+use App\Http\Controllers\LihatKegiatanController;
 
 // Guest Routes (untuk user yang belum login)
 Route::middleware(['guest'])->group(function () {
@@ -105,7 +106,7 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
                 Route::delete('/delete/{id}', [PilihAnggotaController::class, 'destroy'])->name('pic.pilih.delete');
             });
 
-            Route::prefix('unggah-dokumen')->group(function () {
+            Route::prefix('dokumen')->group(function () {
                 Route::get('/', [UnggahDokumenAkhirController::class, 'index'])->name('pic.unggah-dokumen');
                 Route::get('/list', [UnggahDokumenAkhirController::class, 'getKegiatanList'])->name('pic.unggah-dokumen.list');
                 Route::post('/store', [UnggahDokumenAkhirController::class, 'store'])->name('pic.unggah-dokumen.store');
@@ -132,7 +133,7 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
 
 
         Route::get('/kegiatan', function () {
-            return view('kaprodi.kegiatan.index', [
+            return view('kaprodi.kegiatan', [
                 'breadcrumb' => (object)[
                     'title' => 'Daftar Kegiatan',
                     'list' => ['Home', 'Kegiatan']
@@ -150,6 +151,16 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
             Route::get('/{id}', [SuratTugasController::class, 'showkaprodi'])
                 ->name('kaprodi.surat-tugas.showkaprodi');
         });
+
+    // Route untuk menu Melihat Kegiatan
+    Route::prefix('kegiatan')->group(function () {
+        Route::get('/kegiatan', [LihatKegiatanController::class, 'index'])->name('kaprodi.kegiatan');
+        Route::get('/kegiatan/data', [LihatKegiatanController::class, 'getKegiatanData'])->name('kaprodi.kegiatan.data');
+        Route::get('/kegiatan/download-dokumen/{id}', [LihatKegiatanController::class, 'downloadDokumenFinal'])
+            ->name('kaprodi.kegiatan.download-dokumen');
+    
+        });
+
     });
 
 

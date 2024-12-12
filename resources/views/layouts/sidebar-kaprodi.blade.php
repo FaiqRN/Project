@@ -25,7 +25,7 @@
                 </a>
                 <ul class="nav nav-treeview">
                     <li class="nav-item">
-                        <a href="{{ url('/kegiatan/lihat') }}" class="nav-link">
+                        <a href="{{ route('kaprodi.kegiatan') }}" class="nav-link">
                             <i class="fas fa-eye nav-icon"></i>
                             <p>Melihat Kegiatan</p>
                         </a>
