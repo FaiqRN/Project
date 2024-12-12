@@ -148,6 +148,12 @@ class AgendaModel extends Model
         }
  
         $this->save();
+
+        if($this->kegiatan_jurusan_id) {
+            $this->kegiatanJurusan->checkStatus();
+        } elseif($this->kegiatan_program_studi_id) {
+            $this->kegiatanProgramStudi->checkStatus();
+        }
     }
 
     protected static function boot()

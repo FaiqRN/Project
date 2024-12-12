@@ -19,4 +19,27 @@ class FinalDocumentModel extends Model
     {
         return $this->belongsTo(KegiatanProgramStudiModel::class, 'kegiatan_program_studi_id');
     }
+
+    protected static function boot()
+    {
+        parent::boot();
+        
+        // Ketika dokumen final disimpan
+        static::saved(function($finalDoc) {
+            if($finalDoc->kegiatan_jurusan_id) {
+                $finalDoc->kegiatanJurusan->checkStatus();
+            } elseif($finalDoc->kegiatan_program_studi_id) {
+                $finalDoc->kegiatanProdi->checkStatus();
+            }
+        });
+
+        // Ketika dokumen final dihapus
+        static::deleted(function($finalDoc) {
+            if($finalDoc->kegiatan_jurusan_id) {
+                $finalDoc->kegiatanJurusan->checkStatus();
+            } elseif($finalDoc->kegiatan_program_studi_id) {
+                $finalDoc->kegiatanProdi->checkStatus();
+            }
+        });
+    }
 }

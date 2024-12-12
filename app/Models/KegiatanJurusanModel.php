@@ -46,4 +46,39 @@ class KegiatanJurusanModel extends Model
     {
         return $this->hasMany(AgendaModel::class, 'kegiatan_jurusan_id');
     }
+
+    public function finalDocument()
+    {
+        return $this->hasOne(FinalDocumentModel::class, 'kegiatan_jurusan_id');
+    }
+
+    public function checkStatus()
+    {
+        // Cek semua agenda
+        $allAgendas = $this->agendas;
+        $allCompleted = true;
+        
+        if($allAgendas->isEmpty()) {
+            $allCompleted = false;
+        }
+
+        foreach($allAgendas as $agenda) {
+            if($agenda->status_agenda != 'selesai') {
+                $allCompleted = false;
+                break;
+            }
+        }
+
+        // Cek dokumen final
+        $hasFinalDocument = $this->finalDocument()->exists();
+
+        // Update status kegiatan
+        if($allCompleted && $hasFinalDocument) {
+            $this->status_kegiatan = 'selesai';
+        } else {
+            $this->status_kegiatan = 'berlangsung';
+        }
+        
+        $this->save();
+    }
 }

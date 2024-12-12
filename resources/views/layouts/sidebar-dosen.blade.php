@@ -42,7 +42,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="{{ url('/dosen/unggah-dokumen') }}" class="nav-link">
+                        <a href="{{ route('pic.unggah-dokumen') }}" class="nav-link">
                             <i class="nav-icon fas fa-file-upload"></i>
                             <p>Unggah Dokumen Akhir</p>
                         </a>

@@ -13,6 +13,7 @@ use App\Http\Controllers\UpdateProgressAgendaController;
 use App\Http\Controllers\AdminPilihAnggotaController;
 use App\Http\Controllers\AdminUpdateProgressAgendaController;
 use App\Http\Controllers\ProgressKegiatanController;
+use App\Http\Controllers\UnggahDokumenAkhirController;
 
 // Guest Routes (untuk user yang belum login)
 Route::middleware(['guest'])->group(function () {
@@ -102,6 +103,13 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
                 Route::get('/edit/{id}', [PilihAnggotaController::class, 'edit'])->name('pic.pilih.edit');
                 Route::put('/update/{id}', [PilihAnggotaController::class, 'update'])->name('pic.pilih.update');
                 Route::delete('/delete/{id}', [PilihAnggotaController::class, 'destroy'])->name('pic.pilih.delete');
+            });
+
+            Route::prefix('unggah-dokumen')->group(function () {
+                Route::get('/', [UnggahDokumenAkhirController::class, 'index'])->name('pic.unggah-dokumen');
+                Route::get('/list', [UnggahDokumenAkhirController::class, 'getKegiatanList'])->name('pic.unggah-dokumen.list');
+                Route::post('/store', [UnggahDokumenAkhirController::class, 'store'])->name('pic.unggah-dokumen.store');
+                Route::get('/download/{id}/{tipe}', [UnggahDokumenAkhirController::class, 'download'])->name('pic.unggah-dokumen.download');
             });
         });
     });

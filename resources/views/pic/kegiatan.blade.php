@@ -18,21 +18,21 @@
                 <div class="col-md-6">
                     <div class="form-group">
                         <label>Surat Tugas</label>
-                        <input type="text" class="form-control" value="{{ $kegiatanJurusan ? $kegiatanJurusan->surat->judul_surat : $kegiatanProdi->surat->judul_surat }}" readonly>
+                        <input type="text" class="form-control" value="{{ isset($kegiatanJurusan) && $kegiatanJurusan?->surat ? $kegiatanJurusan->surat->judul_surat : ($kegiatanProdi?->surat?->judul_surat ?? '-') }}" readonly>
                     </div>
                     <div class="form-group">
                         <label>Penanggung Jawab</label>
-                        <input type="text" class="form-control" value="{{ $kegiatanJurusan ? $kegiatanJurusan->user->nama_lengkap : $kegiatanProdi->user->nama_lengkap }}" readonly>
+                        <input type="text" class="form-control" value="{{ isset($kegiatanJurusan) && $kegiatanJurusan?->user ? $kegiatanJurusan->user->nama_lengkap : ($kegiatanProdi?->user?->nama_lengkap ?? '-') }}" readonly>
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="form-group">
                         <label>Nama Kegiatan</label>
-                        <input type="text" class="form-control" value="{{ $kegiatanJurusan ? $kegiatanJurusan->nama_kegiatan_jurusan : $kegiatanProdi->nama_kegiatan_program_studi }}" readonly>
+                        <input type="text" class="form-control" value="{{ isset($kegiatanJurusan) ? ($kegiatanJurusan?->nama_kegiatan_jurusan ?? '-') : ($kegiatanProdi?->nama_kegiatan_program_studi ?? '-') }}" readonly>
                     </div>
                     <div class="form-group">
                         <label>Penyelenggara</label>
-                        <input type="text" class="form-control" value="{{ $kegiatanJurusan ? $kegiatanJurusan->penyelenggara : $kegiatanProdi->penyelenggara }}" readonly>
+                        <input type="text" class="form-control" value="{{ isset($kegiatanJurusan) ? ($kegiatanJurusan?->penyelenggara ?? '-') : ($kegiatanProdi?->penyelenggara ?? '-') }}" readonly>
                     </div>
                 </div>
             </div>
@@ -42,32 +42,32 @@
                 <div class="col-md-6">
                     <div class="form-group">
                         <label>Tanggal Mulai</label>
-                        <input  class="form-control" value="{{ date('d-m-y',strtotime($kegiatanJurusan ? $kegiatanJurusan->tanggal_mulai : $kegiatanProdi->tanggal_mulai))  }}" readonly>
+                        <input class="form-control" value="{{ isset($kegiatanJurusan) && $kegiatanJurusan?->tanggal_mulai ? date('d-m-y', strtotime($kegiatanJurusan->tanggal_mulai)) : (isset($kegiatanProdi?->tanggal_mulai) ? date('d-m-y', strtotime($kegiatanProdi->tanggal_mulai)) : '-') }}" readonly>
                     </div>
                     <div class="form-group">
                         <label>Lokasi Kegiatan</label>
-                        <input type="text" class="form-control" value="{{ $kegiatanJurusan ? $kegiatanJurusan->lokasi_kegiatan : $kegiatanProdi->lokasi_kegiatan }}" readonly>
+                        <input type="text" class="form-control" value="{{ isset($kegiatanJurusan) ? ($kegiatanJurusan?->lokasi_kegiatan ?? '-') : ($kegiatanProdi?->lokasi_kegiatan ?? '-') }}" readonly>
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="form-group">
                         <label>Tanggal Selesai</label>
-                        <input  class="form-control" value="{{ date('d-m-y',strtotime($kegiatanJurusan ? $kegiatanJurusan->tanggal_selesai : $kegiatanProdi->tanggal_selesai))  }}" readonly>
+                        <input class="form-control" value="{{ isset($kegiatanJurusan) && $kegiatanJurusan?->tanggal_selesai ? date('d-m-y', strtotime($kegiatanJurusan->tanggal_selesai)) : (isset($kegiatanProdi?->tanggal_selesai) ? date('d-m-y', strtotime($kegiatanProdi->tanggal_selesai)) : '-') }}" readonly>
                     </div>
                     <div class="form-group">
                         <label>Deskripsi Kegiatan</label>
-                        <textarea class="form-control" readonly>{{ $kegiatanJurusan ? $kegiatanJurusan->deskripsi_kegiatan : $kegiatanProdi->deskripsi_kegiatan }}</textarea>
+                        <textarea class="form-control" readonly>{{ isset($kegiatanJurusan) ? ($kegiatanJurusan?->deskripsi_kegiatan ?? '-') : ($kegiatanProdi?->deskripsi_kegiatan ?? '-') }}</textarea>
                     </div>
                 </div>
             </div>
 
             <div class="col-12 mb-4">
-                @if($kegiatanJurusan && $kegiatanJurusan->surat)
+                @if(isset($kegiatanJurusan) && $kegiatanJurusan?->surat)
                     <a href="{{ route('surat-tugas.download-file', $kegiatanJurusan->surat->surat_id) }}"
                        class="btn btn-primary btn-block">
                         <i class="fas fa-download mr-2"></i>Download Surat Tugas ({{ $kegiatanJurusan->surat->judul_surat }})
                     </a>
-                @elseif($kegiatanProdi && $kegiatanProdi->surat)
+                @elseif(isset($kegiatanProdi) && $kegiatanProdi?->surat)
                     <a href="{{ route('surat-tugas.download-file', $kegiatanProdi->surat->surat_id) }}"
                        class="btn btn-primary btn-block">
                         <i class="fas fa-download mr-2"></i>Download Surat Tugas ({{ $kegiatanProdi->surat->judul_surat }})
@@ -97,8 +97,8 @@
                         <div class="form-group">
                             <label>Tanggal Agenda</label>
                             <input type="date" class="form-control" name="tanggal_agenda" 
-                            min="{{$kegiatanJurusan ? $kegiatanJurusan->tanggal_mulai : $kegiatanProdi->tanggal_mulai }}"
-                            max="{{$kegiatanJurusan ? $kegiatanJurusan->tanggal_selesai : $kegiatanProdi->tanggal_selesai }}"
+                            min="{{ isset($kegiatanJurusan) ? $kegiatanJurusan?->tanggal_mulai : $kegiatanProdi?->tanggal_mulai }}"
+                            max="{{ isset($kegiatanJurusan) ? $kegiatanJurusan?->tanggal_selesai : $kegiatanProdi?->tanggal_selesai }}"
                             required>
                         </div>
                         <div class="form-group">
@@ -321,9 +321,8 @@ $(document).ready(function() {
         const formData = new FormData();
         
         // Add kegiatan info
-        formData.append('kegiatan_type', '{{ $kegiatanJurusan ? "jurusan" : "prodi" }}');
-        formData.append('kegiatan_id', '{{ $kegiatanJurusan ? $kegiatanJurusan->kegiatan_jurusan_id : $kegiatanProdi->kegiatan_program_studi_id }}');
-        
+        formData.append('kegiatan_type', '{{ isset($kegiatanJurusan) ? "jurusan" : "prodi" }}');
+        formData.append('kegiatan_id', '{{ isset($kegiatanJurusan) ? ($kegiatanJurusan?->kegiatan_jurusan_id ?? '-') : ($kegiatanProdi?->kegiatan_program_studi_id ?? '-') }}');        
         // Format agenda data
         agendaList.forEach((agenda, index) => {
             formData.append(`agenda[${index}][nama_agenda]`, agenda.judul);
