@@ -57,6 +57,39 @@
         </div>
     </div>
 </div>
+
+<!-- Modal Edit -->
+<div class="modal fade" id="editModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Dokumen Akhir</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="editForm" enctype="multipart/form-data">
+                @csrf
+                <div class="modal-body">
+                    <input type="hidden" name="kegiatan_id" id="edit_kegiatan_id">
+                    <input type="hidden" name="kegiatan_type" id="edit_kegiatan_type">
+                    <div class="form-group">
+                        <label for="edit_dokumen_akhir">Upload Dokumen Baru (PDF, Max: 10MB)</label>
+                        <input type="file" class="form-control" id="edit_dokumen_akhir" name="dokumen_akhir" accept=".pdf" required>
+                        <small class="form-text text-muted">
+                            File harus dalam format PDF dengan ukuran maksimal 10MB.<br>
+                            File lama akan digantikan dengan file baru.
+                        </small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+                    <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('css')
@@ -66,11 +99,15 @@
         vertical-align: middle;
         text-align: center;
     }
-    .table th:nth-child(2) {
+    .table th:nth-child(2), .table td:nth-child(2) {
         text-align: left;
     }
-    .table td:nth-child(2) {
-        text-align: left;
+    .btn {
+        margin: 2px;
+    }
+    .badge {
+        padding: 8px 12px;
+        font-size: 0.9em;
     }
 </style>
 @endpush
@@ -79,6 +116,7 @@
 <script src="{{ asset('adminlte/plugins/sweetalert2/sweetalert2.min.js') }}"></script>
 <script>
 $(document).ready(function() {
+    // Inisialisasi DataTable
     var table = $('#kegiatan-table').DataTable({
         processing: true,
         serverSide: true,
@@ -106,21 +144,28 @@ $(document).ready(function() {
         }
     });
 
-    // Handle upload button click
+    // Handle tombol upload
     $('#kegiatan-table').on('click', '.upload-btn', function() {
         $('#kegiatan_id').val($(this).data('id'));
         $('#kegiatan_type').val($(this).data('type'));
         $('#uploadModal').modal('show');
     });
 
-    // Handle download button click
+    // Handle tombol edit
+    $('#kegiatan-table').on('click', '.edit-btn', function() {
+        $('#edit_kegiatan_id').val($(this).data('id'));
+        $('#edit_kegiatan_type').val($(this).data('type'));
+        $('#editModal').modal('show');
+    });
+
+    // Handle tombol download
     $('#kegiatan-table').on('click', '.download-btn', function() {
         var id = $(this).data('id');
         var type = $(this).data('type');
         window.location.href = "{{ url('dosen/dokumen/download') }}/" + id + "/" + type;
     });
 
-    // Handle form submission
+    // Handle submit form upload
     $('#uploadForm').on('submit', function(e) {
         e.preventDefault();
         var formData = new FormData(this);
@@ -150,9 +195,43 @@ $(document).ready(function() {
         });
     });
 
-    // Reset form when modal is closed
+    // Handle submit form edit
+    $('#editForm').on('submit', function(e) {
+        e.preventDefault();
+        var formData = new FormData(this);
+
+        $.ajax({
+            url: "{{ route('pic.unggah-dokumen.update') }}",
+            type: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                $('#editModal').modal('hide');
+                Swal.fire({
+                    title: 'Berhasil!',
+                    text: response.message,
+                    icon: 'success'
+                });
+                table.ajax.reload();
+            },
+            error: function(xhr) {
+                Swal.fire({
+                    title: 'Error!',
+                    text: xhr.responseJSON.message,
+                    icon: 'error'
+                });
+            }
+        });
+    });
+
+    // Reset form saat modal ditutup
     $('#uploadModal').on('hidden.bs.modal', function() {
         $('#uploadForm')[0].reset();
+    });
+
+    $('#editModal').on('hidden.bs.modal', function() {
+        $('#editForm')[0].reset();
     });
 });
 </script>
