@@ -2,10 +2,8 @@
 
 @section('content')
 <div class="container-fluid">
-
-    <!-- Detail Poin Card -->
-    <div class="card mt-4">
-        <div class="card-header">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
             <h3 class="card-title">Penambahan Poin Anggota Kegiatan</h3>
         </div>
         <div class="card-body">
@@ -37,15 +35,16 @@
 <div class="modal fade" id="modalTambahPoin" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title">Tambah Poin</h5>
-                <button type="button" class="close" data-dismiss="modal">
+                <button type="button" class="close text-white" data-dismiss="modal">
                     <span>&times;</span>
                 </button>
             </div>
             <form id="formTambahPoin">
                 <div class="modal-body">
                     <input type="hidden" name="id" id="poin_id">
+                    <input type="hidden" name="jenis" id="jenis_kegiatan">
                     
                     <div class="form-group">
                         <label>Nama Anggota</label>
@@ -58,7 +57,7 @@
                     </div>
                     
                     <div class="form-group">
-                        <label>Poin Tambahan (1-3)</label>
+                        <label>Poin Tambahan</label>
                         <input type="number" class="form-control" name="poin_tambahan" min="1" max="3" required>
                         <small class="form-text text-muted">Masukkan poin tambahan antara 1-3</small>
                     </div>
@@ -83,17 +82,15 @@
 @push('js')
 <script>
 $(document).ready(function() {
-    // Setup CSRF
     $.ajaxSetup({
         headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
         }
     });
 
-    // Initialize DataTable
     const table = $('#poinTable').DataTable({
         processing: true,
-        serverSide: true,
+        serverSide: false,
         ajax: '{{ route("pic.pembagian-poin.data") }}',
         columns: [
             { 
@@ -118,7 +115,7 @@ $(document).ready(function() {
             { 
                 data: 'status_poin_tambahan',
                 render: function(data) {
-                    if (!data || data === 'belum ditambahkan') return '-';
+                    if (!data || data === '-') return '-';
                     const badges = {
                         'pending': 'warning',
                         'disetujui': 'success',
@@ -141,26 +138,26 @@ $(document).ready(function() {
         ]
     });
 
-    // Handle Tambah Poin button
     $('#poinTable').on('click', '.tambah-poin', function() {
         const data = table.row($(this).closest('tr')).data();
         $('#poin_id').val(data.id);
+        $('#jenis_kegiatan').val(data.jenis);
         $('#nama_anggota').val(data.nama_user);
         $('#nama_kegiatan').val(data.nama_kegiatan);
         $('#modalTambahPoin').modal('show');
     });
 
-    // Handle form submission
     $('#formTambahPoin').on('submit', function(e) {
         e.preventDefault();
         
         const formData = new FormData(this);
-
+        
         $.ajax({
             url: '{{ route("pic.pembagian-poin.tambah") }}',
             type: 'POST',
             data: {
                 id: formData.get('id'),
+                jenis: formData.get('jenis'),
                 poin_tambahan: formData.get('poin_tambahan'),
                 keterangan_tambahan: formData.get('keterangan_tambahan')
             },
@@ -168,7 +165,7 @@ $(document).ready(function() {
                 if (response.success) {
                     Swal.fire({
                         icon: 'success',
-                        title: 'Berhasil',
+                        title: 'Berhasil!',
                         text: response.message,
                         timer: 1500,
                         showConfirmButton: false
@@ -176,33 +173,20 @@ $(document).ready(function() {
                         $('#modalTambahPoin').modal('hide');
                         table.ajax.reload();
                     });
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Gagal',
-                        text: response.message
-                    });
                 }
             },
             error: function(xhr) {
-                let errorMessage = 'Terjadi kesalahan saat menambahkan poin';
-                if (xhr.responseJSON && xhr.responseJSON.message) {
-                    errorMessage = xhr.responseJSON.message;
-                }
                 Swal.fire({
                     icon: 'error',
-                    title: 'Gagal',
-                    text: errorMessage
+                    title: 'Gagal!',
+                    text: xhr.responseJSON?.message || 'Terjadi kesalahan saat menambahkan poin'
                 });
             }
         });
     });
 
-    // Reset form when modal is closed
     $('#modalTambahPoin').on('hidden.bs.modal', function() {
         $('#formTambahPoin')[0].reset();
-        $('.is-invalid').removeClass('is-invalid');
-        $('.invalid-feedback').remove();
     });
 });
 </script>
@@ -210,20 +194,20 @@ $(document).ready(function() {
 
 @push('css')
 <style>
-    .badge-pending {
-        background-color: #ffc107;
-        color: #000;
-    }
-    .badge-disetujui {
-        background-color: #28a745;
-        color: #fff;
-    }
-    .badge-ditolak {
-        background-color: #dc3545;
-        color: #fff;
-    }
-    .table th, .table td {
-        vertical-align: middle !important;
-    }
+.badge {
+    padding: 0.4em 0.8em;
+}
+.badge-pending {
+    background-color: #ffc107;
+    color: #000;
+}
+.badge-disetujui {
+    background-color: #28a745;
+    color: #fff;
+}
+.badge-ditolak {
+    background-color: #dc3545;
+    color: #fff;
+}
 </style>
 @endpush
