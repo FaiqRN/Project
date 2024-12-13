@@ -282,4 +282,6 @@ function deleteData(id) {
     });
 }
 </script>
+
+
 @endpush

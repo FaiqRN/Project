@@ -116,10 +116,11 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
                 Route::get('/download/{id}/{type}', [UnggahDokumenAkhirController::class, 'download'])->name('pic.unggah-dokumen.download');
             });
 
-// Tambahkan di dalam route group yang sesuai (e.g., middleware PIC)
+            // route pembagian poin PIC 
             Route::prefix('pembagian-poin')->group(function () {
                 Route::get('/', [PembagianPoinController::class, 'index'])->name('pic.pembagian-poin');
                 Route::get('/data', [PembagianPoinController::class, 'getDataPoin'])->name('pic.pembagian-poin.data');
+                Route::get('/ringkasan', [PembagianPoinController::class, 'getRingkasanPoin'])->name('pic.pembagian-poin.ringkasan');
                 Route::post('/tambah', [PembagianPoinController::class, 'tambahPoin'])->name('pic.pembagian-poin.tambah');
             });
         });
