@@ -265,6 +265,26 @@ function editData(id) {
             Swal.fire('Error', message, 'error');
         }
     });
+
+
+    $.ajax({
+        url: "{{ route('admin.dosen.agenda.pilih-anggota.edit', ':id') }}".replace(':id', id),
+        type: 'GET',
+        success: function(response) {
+            if (response.success) {
+                $('#id').val(response.data.id);
+                $('#agenda_id').val(response.data.agenda_id).trigger('change');
+                $('#user_id').val(response.data.user_id).trigger('change');
+                $('#modalForm').modal('show');
+            } else {
+                Swal.fire('Error', response.message || 'Gagal mengambil data', 'error');
+            }
+        },
+        error: function(xhr) {
+            let message = xhr.responseJSON?.message || 'Terjadi kesalahan saat mengambil data';
+            Swal.fire('Error', message, 'error');
+        }
+    });
 }
 
 function deleteData(id) {
@@ -289,6 +309,8 @@ function deleteData(id) {
                     if(response.success) {
                         $('#tabelAnggota').DataTable().ajax.reload();
                         Swal.fire('Sukses', response.message, 'success');
+                    } else {
+                        Swal.fire('Error', response.message || 'Gagal menghapus data', 'error');
                     }
                 },
                 error: function(xhr) {

@@ -45,9 +45,9 @@ class AdminPilihAnggotaController extends Controller
     public function getData(Request $request)
     {
         try {
-            $query = DB::table('t_agenda as a')
-                ->leftJoin('t_agenda_user as au', 'a.agenda_id', '=', 'au.agenda_id')
-                ->leftJoin('m_user as u', 'au.user_id', '=', 'u.user_id')
+            $query = DB::table('t_agenda_user as au')
+                ->join('t_agenda as a', 'au.agenda_id', '=', 'a.agenda_id')
+                ->join('m_user as u', 'au.user_id', '=', 'u.user_id')
                 ->leftJoin('t_kegiatan_jurusan as kj', 'a.kegiatan_jurusan_id', '=', 'kj.kegiatan_jurusan_id')
                 ->leftJoin('t_kegiatan_program_studi as kp', 'a.kegiatan_program_studi_id', '=', 'kp.kegiatan_program_studi_id');
     
@@ -71,28 +71,25 @@ class AdminPilihAnggotaController extends Controller
             }
     
             $query->select([
+                'au.id',
                 'a.agenda_id',
                 'a.nama_agenda',
                 'u.nama_lengkap',
                 'u.nidn',
-                DB::raw('COALESCE(kj.nama_kegiatan_jurusan, kp.nama_kegiatan_program_studi) as nama_kegiatan'),
-                DB::raw('CASE WHEN au.id IS NULL THEN "Belum dipilih" ELSE "Sudah dipilih" END as status')
-            ])
-            ->groupBy('a.agenda_id', 'a.nama_agenda', 'u.nama_lengkap', 'u.nidn', 'nama_kegiatan', 'status');
+                DB::raw('COALESCE(kj.nama_kegiatan_jurusan, kp.nama_kegiatan_program_studi) as nama_kegiatan')
+            ]);
     
             return DataTables::of($query)
                 ->addIndexColumn()
                 ->addColumn('status_anggota', function($row) {
-                    return $row->status === 'Belum dipilih' 
-                        ? '<span class="badge badge-warning">Belum dipilih</span>'
-                        : '<span class="badge badge-success">Sudah dipilih</span>';
+                    return '<span class="badge badge-success">Sudah dipilih</span>';
                 })
                 ->addColumn('action', function($row) {
                     return '<div class="btn-group">
-                        <button type="button" class="btn btn-warning btn-sm" onclick="editData('.$row->agenda_id.')">
+                        <button type="button" class="btn btn-warning btn-sm" onclick="editData('.$row->id.')">
                             <i class="fas fa-edit"></i> Edit
                         </button>
-                        <button type="button" class="btn btn-danger btn-sm" onclick="deleteData('.$row->agenda_id.')">
+                        <button type="button" class="btn btn-danger btn-sm" onclick="deleteData('.$row->id.')">
                             <i class="fas fa-trash"></i> Hapus
                         </button>
                     </div>';
@@ -150,15 +147,8 @@ class AdminPilihAnggotaController extends Controller
     public function edit($id)
     {
         try {
-            $agendaUser = AgendaUserModel::where('id', $id)->first();
+            $agendaUser = AgendaUserModel::findOrFail($id);
             
-            if (!$agendaUser) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Data anggota agenda tidak ditemukan'
-                ], 404);
-            }
-    
             return response()->json([
                 'success' => true,
                 'data' => [
