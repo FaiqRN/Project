@@ -242,11 +242,28 @@ function saveData(e) {
 }
 
 function editData(id) {
-    $.get("{{ route('admin.dosen.agenda.pilih-anggota.edit', ':id') }}".replace(':id', id), function(data) {
-        $('#id').val(id);
-        $('#agenda_id').val(data.data.agenda_id).trigger('change');
-        $('#user_id').val(data.data.user_id).trigger('change');
-        $('#modalForm').modal('show');
+    if (!id) {
+        Swal.fire('Error', 'ID anggota agenda tidak valid', 'error');
+        return;
+    }
+
+    $.ajax({
+        url: "{{ route('admin.dosen.agenda.pilih-anggota.edit', ':id') }}".replace(':id', id),
+        type: 'GET',
+        success: function(response) {
+            if (response.success) {
+                $('#id').val(response.data.id);
+                $('#agenda_id').val(response.data.agenda_id).trigger('change');
+                $('#user_id').val(response.data.user_id).trigger('change');
+                $('#modalForm').modal('show');
+            } else {
+                Swal.fire('Error', response.message || 'Gagal mengambil data', 'error');
+            }
+        },
+        error: function(xhr) {
+            let message = xhr.responseJSON?.message || 'Terjadi kesalahan saat mengambil data';
+            Swal.fire('Error', message, 'error');
+        }
     });
 }
 

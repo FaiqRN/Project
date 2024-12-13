@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class AgendaUserModel extends Model
 {
     protected $table = 't_agenda_user';
+    protected $primaryKey = 'id';
     
     protected $fillable = [
         'agenda_id',

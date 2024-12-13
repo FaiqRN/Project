@@ -150,15 +150,28 @@ class AdminPilihAnggotaController extends Controller
     public function edit($id)
     {
         try {
-            $agendaUser = AgendaUserModel::findOrFail($id);
+            $agendaUser = AgendaUserModel::where('id', $id)->first();
+            
+            if (!$agendaUser) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data anggota agenda tidak ditemukan'
+                ], 404);
+            }
+    
             return response()->json([
                 'success' => true,
-                'data' => $agendaUser
+                'data' => [
+                    'id' => $agendaUser->id,
+                    'agenda_id' => $agendaUser->agenda_id,
+                    'user_id' => $agendaUser->user_id
+                ]
             ]);
+    
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
             ], 500);
         }
     }
