@@ -352,8 +352,9 @@ $(document).ready(function() {
     });
 
     // Handler tombol edit
-    $('.edit-btn').click(function() {
-        const id = $(this).data('id');
+    $(document).on('click', '.btn-warning', function(e) {
+        e.preventDefault();
+        const id = $(this).closest('button').attr('onclick').match(/\d+/)[0];
         
         $.ajax({
             url: `/admin/dosen/agenda/jabatan/${id}/edit`,
@@ -371,7 +372,7 @@ $(document).ready(function() {
                     $('#edit_level_id').val(data.level_id).trigger('change');
                     $('#edit_jabatan').val(data.jabatan);
                     
-                    // Tentukan jenis kegiatan dan ID kegiatan
+                    // Determine activity type and ID
                     let jenisKegiatan = '';
                     let kegiatanId = '';
                     
@@ -391,6 +392,7 @@ $(document).ready(function() {
                     
                     $('#edit_jenis_kegiatan').val(jenisKegiatan).trigger('change');
                     
+                    // Wait for the activities dropdown to be populated
                     setTimeout(() => {
                         $('#edit_kegiatan_id').val(kegiatanId);
                     }, 1000);
@@ -450,8 +452,9 @@ $(document).ready(function() {
     });
 
     // Handler tombol hapus
-    $('.delete-btn').click(function() {
-        const id = $(this).data('id');
+    $(document).on('click', '.btn-danger', function(e) {
+        e.preventDefault();
+        const id = $(this).closest('button').attr('onclick').match(/\d+/)[0];
         
         Swal.fire({
             title: 'Apakah Anda yakin?',
@@ -468,7 +471,7 @@ $(document).ready(function() {
                     url: `/admin/dosen/agenda/jabatan/${id}`,
                     method: 'DELETE',
                     data: {
-                        _token: '{{ csrf_token() }}'
+                        _token: $('meta[name="csrf-token"]').attr('content')
                     },
                     success: function(response) {
                         if(response.status === 'success') {
