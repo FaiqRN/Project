@@ -124,6 +124,7 @@
                                 </div>
                             </div>
                         </div>
+                        <small class="form-text text-muted">Minimal pilih anggota sebanyak 2 user</small>
                         <button type="button" class="btn btn-success btn-sm mt-2" onclick="addAnggotaRow()">
                             <i class="fas fa-plus"></i> Tambah Anggota
                         </button>

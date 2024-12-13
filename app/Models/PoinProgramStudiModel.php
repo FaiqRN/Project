@@ -70,4 +70,16 @@ class PoinProgramStudiModel extends Model
 
         return $poinDasar + ($this->poin_tambahan ?? 0);
     }
+
+    // Perlu disesuaikan nama method untuk konsistensi
+    public function kegiatanProgramStudi() // seharusnya ini, bukan kegiatanProdi()
+    {
+        return $this->belongsTo(KegiatanProgramStudiModel::class, 'kegiatan_program_studi_id');
+    }
+
+    public function canAddPoints()
+    {
+    return $this->kegiatan->status_kegiatan === 'selesai' && 
+        empty($this->status_poin_tambahan);
+    }
 }

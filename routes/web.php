@@ -15,6 +15,7 @@ use App\Http\Controllers\AdminUpdateProgressAgendaController;
 use App\Http\Controllers\ProgressKegiatanController;
 use App\Http\Controllers\UnggahDokumenAkhirController;
 use App\Http\Controllers\LihatKegiatanController;
+use App\Http\Controllers\PembagianPoinController;
 
 // Guest Routes (untuk user yang belum login)
 Route::middleware(['guest'])->group(function () {
@@ -112,6 +113,13 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
                 Route::get('/list', [UnggahDokumenAkhirController::class, 'getKegiatanList'])->name('pic.unggah-dokumen.list');
                 Route::post('/store', [UnggahDokumenAkhirController::class, 'store'])->name('pic.unggah-dokumen.store');
                 Route::get('/download/{id}/{type}', [UnggahDokumenAkhirController::class, 'download'])->name('pic.unggah-dokumen.download');
+            });
+
+// Tambahkan di dalam route group yang sesuai (e.g., middleware PIC)
+            Route::prefix('pembagian-poin')->group(function () {
+                Route::get('/', [PembagianPoinController::class, 'index'])->name('pic.pembagian-poin');
+                Route::get('/data', [PembagianPoinController::class, 'getDataPoin'])->name('pic.pembagian-poin.data');
+                Route::post('/tambah', [PembagianPoinController::class, 'tambahPoin'])->name('pic.pembagian-poin.tambah');
             });
         });
     });

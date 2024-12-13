@@ -70,4 +70,10 @@ class PoinJurusanModel extends Model
 
         return $poinDasar + ($this->poin_tambahan ?? 0);
     }
+
+    public function canAddPoints()
+    {
+    return $this->kegiatan->status_kegiatan === 'selesai' && 
+        empty($this->status_poin_tambahan);
+    }
 }
