@@ -2,8 +2,9 @@
 
 @section('content')
 <div class="container-fluid">
+    <!-- Detail Poin Card -->
     <div class="card">
-        <div class="card-header bg-primary text-white">
+        <div class="card-header">
             <h3 class="card-title">Penambahan Poin Anggota Kegiatan</h3>
         </div>
         <div class="card-body">
@@ -32,16 +33,17 @@
 </div>
 
 <!-- Modal Tambah Poin -->
-<div class="modal fade" id="modalTambahPoin" tabindex="-1">
+<div class="modal fade" id="modalTambahPoin">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
+            <div class="modal-header">
                 <h5 class="modal-title">Tambah Poin</h5>
-                <button type="button" class="close text-white" data-dismiss="modal">
+                <button type="button" class="close" data-dismiss="modal">
                     <span>&times;</span>
                 </button>
             </div>
-            <form id="formTambahPoin">
+            <form id="formTambahPoin" method="POST">
+                @csrf
                 <div class="modal-body">
                     <input type="hidden" name="id" id="poin_id">
                     <input type="hidden" name="jenis" id="jenis_kegiatan">
@@ -59,14 +61,13 @@
                     <div class="form-group">
                         <label>Poin Tambahan</label>
                         <input type="number" class="form-control" name="poin_tambahan" min="1" max="3" required>
-                        <small class="form-text text-muted">Masukkan poin tambahan antara 1-3</small>
+                        <small class="text-muted">Masukkan poin tambahan antara 1-3</small>
                     </div>
                     
                     <div class="form-group">
-                        <label>Keterangan Tambahan</label>
-                        <textarea class="form-control" name="keterangan_tambahan" rows="3" required 
-                                 minlength="10" placeholder="Minimal 10 karakter"></textarea>
-                        <small class="form-text text-muted">Berikan keterangan mengenai alasan penambahan poin</small>
+                        <label>Keterangan</label>
+                        <textarea class="form-control" name="keterangan_tambahan" rows="3" required minlength="10"></textarea>
+                        <small class="text-muted">Minimal 10 karakter</small>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -77,17 +78,43 @@
         </div>
     </div>
 </div>
+
 @endsection
+
+@push('css')
+<style>
+    .badge {
+        padding: 0.4em 0.8em;
+    }
+    .badge-pending {
+        background-color: #ffc107;
+        color: #000;
+    }
+    .badge-disetujui {
+        background-color: #28a745;
+        color: #fff;
+    }
+    .badge-ditolak {
+        background-color: #dc3545;
+        color: #fff;
+    }
+    .table th, .table td {
+        vertical-align: middle !important;
+    }
+</style>
+@endpush
 
 @push('js')
 <script>
 $(document).ready(function() {
+    // Setup CSRF
     $.ajaxSetup({
         headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
         }
     });
 
+    // Initialize DataTable
     const table = $('#poinTable').DataTable({
         processing: true,
         serverSide: false,
@@ -110,23 +137,43 @@ $(document).ready(function() {
                 }
             },
             { data: 'poin_dasar' },
-            { data: 'poin_tambahan' },
-            { data: 'total_poin' },
+            { 
+                data: 'poin_tambahan',
+                render: function(data, type, row) {
+                    return row.status_poin_tambahan === 'disetujui' ? data : '0';
+                }
+            },
+            { 
+                data: null,
+                render: function(data, type, row) {
+                    let total = row.poin_dasar;
+                    if (row.status_poin_tambahan === 'disetujui') {
+                        total += row.poin_tambahan;
+                    }
+                    return total;
+                }
+            },
             { 
                 data: 'status_poin_tambahan',
                 render: function(data) {
-                    if (!data || data === '-') return '-';
+                    if (data === '-') return '-';
                     const badges = {
                         'pending': 'warning',
                         'disetujui': 'success',
                         'ditolak': 'danger'
                     };
-                    return `<span class="badge badge-${badges[data]}">${data}</span>`;
+                    let statusText = data;
+                    if (data === 'pending') {
+                        statusText = 'Menunggu Persetujuan';
+                    }
+                    return `<span class="badge badge-${badges[data]}">${statusText}</span>`;
                 }
             },
             { data: 'keterangan_tambahan' },
             {
                 data: null,
+                orderable: false,
+                searchable: false,
                 render: function(data) {
                     if (!data.can_add_points) return '';
                     return `
@@ -138,6 +185,7 @@ $(document).ready(function() {
         ]
     });
 
+    // Handle Tambah Poin button
     $('#poinTable').on('click', '.tambah-poin', function() {
         const data = table.row($(this).closest('tr')).data();
         $('#poin_id').val(data.id);
@@ -147,25 +195,33 @@ $(document).ready(function() {
         $('#modalTambahPoin').modal('show');
     });
 
+    // Handle form submission
     $('#formTambahPoin').on('submit', function(e) {
         e.preventDefault();
         
-        const formData = new FormData(this);
+        if (!$('input[name="poin_tambahan"]').val() || !$('textarea[name="keterangan_tambahan"]').val()) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Validasi Error',
+                text: 'Poin tambahan dan keterangan harus diisi'
+            });
+            return;
+        }
         
         $.ajax({
             url: '{{ route("pic.pembagian-poin.tambah") }}',
             type: 'POST',
             data: {
-                id: formData.get('id'),
-                jenis: formData.get('jenis'),
-                poin_tambahan: formData.get('poin_tambahan'),
-                keterangan_tambahan: formData.get('keterangan_tambahan')
+                id: $('#poin_id').val(),
+                jenis: $('#jenis_kegiatan').val(),
+                poin_tambahan: $('input[name="poin_tambahan"]').val(),
+                keterangan_tambahan: $('textarea[name="keterangan_tambahan"]').val()
             },
             success: function(response) {
                 if (response.success) {
                     Swal.fire({
                         icon: 'success',
-                        title: 'Berhasil!',
+                        title: 'Berhasil',
                         text: response.message,
                         timer: 1500,
                         showConfirmButton: false
@@ -176,38 +232,25 @@ $(document).ready(function() {
                 }
             },
             error: function(xhr) {
+                let errorMessage = 'Terjadi kesalahan saat menambahkan poin';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                }
                 Swal.fire({
                     icon: 'error',
-                    title: 'Gagal!',
-                    text: xhr.responseJSON?.message || 'Terjadi kesalahan saat menambahkan poin'
+                    title: 'Gagal',
+                    text: errorMessage
                 });
             }
         });
     });
 
+    // Reset form when modal is closed
     $('#modalTambahPoin').on('hidden.bs.modal', function() {
         $('#formTambahPoin')[0].reset();
+        $('.is-invalid').removeClass('is-invalid');
+        $('.invalid-feedback').remove();
     });
 });
 </script>
-@endpush
-
-@push('css')
-<style>
-.badge {
-    padding: 0.4em 0.8em;
-}
-.badge-pending {
-    background-color: #ffc107;
-    color: #000;
-}
-.badge-disetujui {
-    background-color: #28a745;
-    color: #fff;
-}
-.badge-ditolak {
-    background-color: #dc3545;
-    color: #fff;
-}
-</style>
 @endpush
