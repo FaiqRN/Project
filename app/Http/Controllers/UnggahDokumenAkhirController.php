@@ -10,6 +10,8 @@ use App\Models\KegiatanProgramStudiModel;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\Log;
+
 
 class UnggahDokumenAkhirController extends Controller
 {
@@ -149,6 +151,47 @@ class UnggahDokumenAkhirController extends Controller
             return Storage::download($finalDoc->file_akhir);
         } catch (\Exception $e) {
             return response()->json(['message' => 'File tidak ditemukan'], 404);
+        }
+    }
+
+    public function update(Request $request)
+    {
+        try {
+            DB::beginTransaction();
+    
+            $request->validate([
+                'kegiatan_id' => 'required',
+                'kegiatan_type' => 'required|in:jurusan,prodi',
+                'dokumen_akhir' => 'required|file|mimes:pdf|max:10240'
+            ]);
+    
+            // Cari dokumen yang akan diupdate
+            if ($request->kegiatan_type === 'jurusan') {
+                $finalDoc = FinalDocumentModel::where('kegiatan_jurusan_id', $request->kegiatan_id)->firstOrFail();
+            } else {
+                $finalDoc = FinalDocumentModel::where('kegiatan_program_studi_id', $request->kegiatan_id)->firstOrFail();
+            }
+    
+            // Hapus file lama jika ada
+            if (Storage::exists($finalDoc->file_akhir)) {
+                Storage::delete($finalDoc->file_akhir);
+            }
+    
+            // Upload file baru
+            $file = $request->file('dokumen_akhir');
+            $fileName = time() . '_' . $file->getClientOriginalName();
+            $path = $file->storeAs('public/dokumen_akhir', $fileName);
+    
+            // Update record di database
+            $finalDoc->file_akhir = $path;
+            $finalDoc->save();
+    
+            DB::commit();
+            return response()->json(['message' => 'Dokumen akhir berhasil diperbarui'], 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error updating document: ' . $e->getMessage());
+            return response()->json(['message' => 'Terjadi kesalahan: ' . $e->getMessage()], 500);
         }
     }
 }

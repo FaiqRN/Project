@@ -112,6 +112,7 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
                 Route::get('/', [UnggahDokumenAkhirController::class, 'index'])->name('pic.unggah-dokumen');
                 Route::get('/list', [UnggahDokumenAkhirController::class, 'getKegiatanList'])->name('pic.unggah-dokumen.list');
                 Route::post('/store', [UnggahDokumenAkhirController::class, 'store'])->name('pic.unggah-dokumen.store');
+                Route::post('/update', [UnggahDokumenAkhirController::class, 'update'])->name('pic.unggah-dokumen.update');
                 Route::get('/download/{id}/{type}', [UnggahDokumenAkhirController::class, 'download'])->name('pic.unggah-dokumen.download');
             });
 
