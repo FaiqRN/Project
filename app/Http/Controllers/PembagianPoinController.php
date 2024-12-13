@@ -3,15 +3,20 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
+use App\Models\KegiatanJurusanModel;
+use App\Models\KegiatanProgramStudiModel;
+use App\Models\PoinJurusanModel;
+use App\Models\PoinProgramStudiModel;
+use App\Models\JabatanModel;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class PembagianPoinController extends Controller
 {
+    
     public function index()
     {
-        return view('pic.pembagian-poin', [
+        return view('pic.poin', [
             'breadcrumb' => (object)[
                 'title' => 'Penambahan Poin',
                 'list' => ['Home', 'Agenda', 'Penambahan Poin']
@@ -21,139 +26,171 @@ class PembagianPoinController extends Controller
 
     public function getDataPoin()
     {
-        try {
-            // Mendapatkan user_id PIC yang sedang login
-            $picId = Auth::id();
+        $userId = session('user_id');
 
-            $data = DB::table('t_kegiatan_jurusan as kj')
-                ->select([
-                    'j.jabatan_id',
-                    'j.jabatan',
-                    'u.nama_lengkap as nama_user',
-                    DB::raw('"Jurusan" as jenis'),
-                    'kj.nama_kegiatan_jurusan as nama_kegiatan',
-                    'kj.status_kegiatan',
-                    'pj.poin_jurusan_id as id',
-                    'pj.poin_tambahan',
-                    'pj.keterangan_tambahan',
-                    'pj.status_poin_tambahan'
-                ])
-                ->join('t_jabatan as j', 'kj.kegiatan_jurusan_id', '=', 'j.kegiatan_jurusan_id')
-                ->join('m_user as u', 'j.user_id', '=', 'u.user_id')
-                ->leftJoin('t_poin_jurusan as pj', 'j.jabatan_id', '=', 'pj.jabatan_id')
-                ->where('kj.user_id', $picId)
-                ->where('kj.status_kegiatan', 'selesai')
-                ->union(
-                    DB::table('t_kegiatan_program_studi as kp')
-                    ->select([
-                        'j.jabatan_id',
-                        'j.jabatan',
-                        'u.nama_lengkap as nama_user',
-                        DB::raw('"Program Studi" as jenis'),
-                        'kp.nama_kegiatan_program_studi as nama_kegiatan',
-                        'kp.status_kegiatan',
-                        'pp.poin_program_studi_id as id',
-                        'pp.poin_tambahan',
-                        'pp.keterangan_tambahan',
-                        'pp.status_poin_tambahan'
-                    ])
-                    ->join('t_jabatan as j', 'kp.kegiatan_program_studi_id', '=', 'j.kegiatan_program_studi_id')
-                    ->join('m_user as u', 'j.user_id', '=', 'u.user_id')
-                    ->leftJoin('t_poin_program_studi as pp', 'j.jabatan_id', '=', 'pp.jabatan_id')
-                    ->where('kp.user_id', $picId)
-                    ->where('kp.status_kegiatan', 'selesai')
-                )
+        // Ambil kegiatan yang sudah selesai dimana user adalah PIC
+        $kegiatanJurusan = KegiatanJurusanModel::where('user_id', $userId)
+            ->where('status_kegiatan', 'selesai')
+            ->get();
+            
+        $kegiatanProdi = KegiatanProgramStudiModel::where('user_id', $userId)
+            ->where('status_kegiatan', 'selesai')
+            ->get();
+
+        $data = [];
+
+        // Proses kegiatan jurusan
+        foreach ($kegiatanJurusan as $kegiatan) {
+            $anggota = JabatanModel::with('user')
+                ->where('kegiatan_jurusan_id', $kegiatan->kegiatan_jurusan_id)
                 ->get();
 
-            $formattedData = $data->map(function($item) {
-                $poinDasar = $this->getPoinDasar($item->jabatan, $item->jenis);
+            foreach ($anggota as $jabatan) {
+                $poin = PoinJurusanModel::where('jabatan_id', $jabatan->jabatan_id)->first();
                 
-                return [
-                    'id' => $item->id,
-                    'jenis' => $item->jenis,
-                    'nama_user' => $item->nama_user,
-                    'nama_kegiatan' => $item->nama_kegiatan,
-                    'jabatan' => ucwords(str_replace('_', ' ', $item->jabatan)),
-                    'status_kegiatan' => $item->status_kegiatan,
-                    'poin_dasar' => $poinDasar,
-                    'poin_tambahan' => $item->poin_tambahan ?? 0,
-                    'total_poin' => $poinDasar + ($item->status_poin_tambahan === 'disetujui' ? ($item->poin_tambahan ?? 0) : 0),
-                    'status_poin_tambahan' => $item->status_poin_tambahan ?? '-',
-                    'keterangan_tambahan' => $item->keterangan_tambahan ?? '-',
-                    'can_add_points' => empty($item->status_poin_tambahan)
+                $data[] = [
+                    'kegiatan_id' => $kegiatan->kegiatan_jurusan_id,
+                    'tipe_kegiatan' => 'jurusan',
+                    'nama_kegiatan' => $kegiatan->nama_kegiatan_jurusan,
+                    'nama_anggota' => $jabatan->user->nama_lengkap,
+                    'jabatan' => ucwords(str_replace('_', ' ', $jabatan->jabatan)),
+                    'poin_dasar' => $this->getPoinDasar($poin, $jabatan->jabatan),
+                    'poin_tambahan' => $poin ? $poin->poin_tambahan : 0,
+                    'keterangan_tambahan' => $poin ? $poin->keterangan_tambahan : '',
+                    'status_poin' => $poin ? $poin->status_poin_tambahan : null,
+                    'jabatan_id' => $jabatan->jabatan_id,
+                    'can_add_points' => !$poin || empty($poin->status_poin_tambahan)
                 ];
-            });
-
-            return response()->json(['data' => $formattedData]);
-        } catch (\Exception $e) {
-            Log::error('Error dalam getDataPoin:', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            return response()->json(['error' => 'Terjadi kesalahan dalam memproses data'], 500);
+            }
         }
+
+        // Proses kegiatan program studi
+        foreach ($kegiatanProdi as $kegiatan) {
+            $anggota = JabatanModel::with('user')
+                ->where('kegiatan_program_studi_id', $kegiatan->kegiatan_program_studi_id)
+                ->get();
+
+            foreach ($anggota as $jabatan) {
+                $poin = PoinProgramStudiModel::where('jabatan_id', $jabatan->jabatan_id)->first();
+                
+                $data[] = [
+                    'kegiatan_id' => $kegiatan->kegiatan_program_studi_id,
+                    'tipe_kegiatan' => 'prodi',
+                    'nama_kegiatan' => $kegiatan->nama_kegiatan_program_studi,
+                    'nama_anggota' => $jabatan->user->nama_lengkap,
+                    'jabatan' => ucwords(str_replace('_', ' ', $jabatan->jabatan)),
+                    'poin_dasar' => $this->getPoinDasar($poin, $jabatan->jabatan),
+                    'poin_tambahan' => $poin ? $poin->poin_tambahan : 0,
+                    'keterangan_tambahan' => $poin ? $poin->keterangan_tambahan : '',
+                    'status_poin' => $poin ? $poin->status_poin_tambahan : null,
+                    'jabatan_id' => $jabatan->jabatan_id,
+                    'can_add_points' => !$poin || empty($poin->status_poin_tambahan)
+                ];
+            }
+        }
+
+        return response()->json(['data' => $data]);
     }
 
-    private function getPoinDasar($jabatan, $jenis)
+    private function getPoinDasar($poin, $jabatan)
     {
-        $poinConfig = [
-            'Jurusan' => [
-                'ketua_pelaksana' => 3,
-                'sekertaris' => 2.5,
-                'bendahara' => 2.5,
-                'anggota' => 2
-            ],
-            'Program Studi' => [
-                'ketua_pelaksana' => 3,
-                'sekertaris' => 2.5,
-                'bendahara' => 2.5,
-                'anggota' => 2
-            ]
-        ];
-
-        return $poinConfig[$jenis][$jabatan] ?? 0;
+        if (!$poin) return 0;
+        
+        switch ($jabatan) {
+            case 'ketua_pelaksana':
+                return $poin->poin_ketua_pelaksana;
+            case 'sekertaris':
+                return $poin->poin_sekertaris;
+            case 'bendahara':
+                return $poin->poin_bendahara;
+            case 'anggota':
+                return $poin->poin_anggota;
+            default:
+                return 0;
+        }
     }
 
     public function tambahPoin(Request $request)
     {
-        DB::beginTransaction();
+        $request->validate([
+            'jabatan_id' => 'required|exists:t_jabatan,jabatan_id',
+            'poin_tambahan' => 'required|integer|min:1|max:3',
+            'keterangan_tambahan' => 'required|string|max:255',
+            'tipe_kegiatan' => 'required|in:jurusan,prodi'
+        ]);
+
         try {
-            $validated = $request->validate([
-                'id' => 'required',
-                'jenis' => 'required',
-                'poin_tambahan' => 'required|integer|min:1|max:3',
-                'keterangan_tambahan' => 'required|string|min:10'
-            ]);
+            DB::beginTransaction();
 
-            $tableName = $validated['jenis'] === 'Jurusan' ? 't_poin_jurusan' : 't_poin_program_studi';
-            $idColumn = $validated['jenis'] === 'Jurusan' ? 'poin_jurusan_id' : 'poin_program_studi_id';
+            $jabatan = JabatanModel::with(['kegiatanJurusan', 'kegiatanProgramStudi'])
+                ->findOrFail($request->jabatan_id);
 
-            // Update poin
-            DB::table($tableName)
-                ->where($idColumn, $validated['id'])
-                ->update([
-                    'poin_tambahan' => $validated['poin_tambahan'],
-                    'keterangan_tambahan' => $validated['keterangan_tambahan'],
-                    'status_poin_tambahan' => 'pending',
-                    'updated_at' => now()
-                ]);
+            if ($request->tipe_kegiatan === 'jurusan') {
+                $poin = PoinJurusanModel::firstOrCreate(
+                    ['jabatan_id' => $jabatan->jabatan_id],
+                    [
+                        'kegiatan_jurusan_id' => $jabatan->kegiatan_jurusan_id,
+                        'poin_ketua_pelaksana' => 3,
+                        'poin_sekertaris' => 2.5,
+                        'poin_bendahara' => 2.5,
+                        'poin_anggota' => 2,
+                        'total_poin' => 0
+                    ]
+                );
+            } else {
+                $poin = PoinProgramStudiModel::firstOrCreate(
+                    ['jabatan_id' => $jabatan->jabatan_id],
+                    [
+                        'kegiatan_program_studi_id' => $jabatan->kegiatan_program_studi_id,
+                        'poin_ketua_pelaksana' => 3,
+                        'poin_sekertaris' => 2.5,
+                        'poin_bendahara' => 2.5,
+                        'poin_anggota' => 2,
+                        'total_poin' => 0
+                    ]
+                );
+            }
+
+            $poin->poin_tambahan = $request->poin_tambahan;
+            $poin->keterangan_tambahan = $request->keterangan_tambahan;
+            $poin->status_poin_tambahan = 'pending';
+            $poin->total_poin = $poin->hitungTotalPoin();
+            $poin->save();
 
             DB::commit();
-            return response()->json([
-                'success' => true,
-                'message' => 'Poin berhasil ditambahkan dan menunggu persetujuan admin'
-            ]);
 
-        } catch (\Exception $e) {
-            DB::rollback();
-            Log::error('Error saat menambah poin:', [
-                'message' => $e->getMessage(),
-                'data' => $request->all()
-            ]);
             return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
+                'message' => 'Poin tambahan berhasil disimpan',
+                'status' => 'success'
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
+                'status' => 'error'
             ], 500);
         }
+    }
+
+    public function getRingkasanPoin()
+    {
+        $userId = session('user_id');
+        
+        // Query untuk mendapatkan total poin dari berbagai jenis kegiatan
+        $totalPoinJurusan = DB::table('t_poin_jurusan as pj')
+            ->join('t_jabatan as j', 'pj.jabatan_id', '=', 'j.jabatan_id')
+            ->where('j.user_id', $userId)
+            ->sum(DB::raw('pj.total_poin'));
+
+        $totalPoinProdi = DB::table('t_poin_program_studi as pp')
+            ->join('t_jabatan as j', 'pp.jabatan_id', '=', 'j.jabatan_id')
+            ->where('j.user_id', $userId)
+            ->sum(DB::raw('pp.total_poin'));
+
+        return response()->json([
+            'total_poin_jurusan' => $totalPoinJurusan,
+            'total_poin_prodi' => $totalPoinProdi,
+            'total_keseluruhan' => $totalPoinJurusan + $totalPoinProdi
+        ]);
     }
 }
