@@ -15,7 +15,6 @@
                             Tidak ada agenda yang tersedia.
                         </div>
                     @else
-                        <!-- Tabel Agenda -->
                         <table id="agenda-table" class="table table-bordered table-striped">
                             <thead>
                                 <tr>
@@ -64,14 +63,12 @@
                                     </td>
                                     <td>
                                         <button type="button" class="btn btn-info btn-sm btn-detail" 
-                                                data-id="{{ $agenda->agenda_id }}"
-                                                data-toggle="tooltip" 
-                                                title="Lihat Detail">
-                                            <i class                                        <button type="button" class="btn btn-primary btn-sm btn-upload" 
-                                                data-id="{{ $agenda->agenda_id }}"
-                                                data-toggle="tooltip" 
-                                                title="Upload Dokumentasi">
-                                            <i class="fas fa-upload"></i>
+                                                data-id="{{ $agenda->agenda_id }}">
+                                            <i class="fas fa-eye"></i> Detail & Hapus
+                                        </button>
+                                        <button type="button" class="btn btn-primary btn-sm btn-download" 
+                                                data-id="{{ $agenda->agenda_id }}">
+                                            <i class="fas fa-download"></i> Unduh
                                         </button>
                                     </td>
                                 </tr>
@@ -79,9 +76,9 @@
                             </tbody>
                         </table>
 
-                        <!-- Modal Detail Agenda -->
+                        <!-- Modal Detail -->
                         <div class="modal fade" id="detailModal" tabindex="-1">
-                            <div class="modal-dialog modal-lg">
+                            <div class="modal-dialog modal-xl">
                                 <div class="modal-content">
                                     <div class="modal-header">
                                         <h5 class="modal-title">Detail Agenda</h5>
@@ -131,365 +128,185 @@
                                                     </tr>
                                                 </table>
                                             </div>
-                                        </div>
-                                        <div class="submission-list mt-4">
-                                            <h6>Daftar Dokumentasi</h6>
-                                            <table class="table table-bordered table-striped">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Nama User</th>
-                                                        <th>Status</th>
-                                                        <th>Tanggal Upload</th>
-                                                        <th>Aksi</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody id="submission-table-body">
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Modal Upload -->
-                        <div class="modal fade" id="uploadModal" tabindex="-1">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title">Upload Dokumentasi</h5>
-                                        <button type="button" class="close" data-dismiss="modal">
-                                            <span>&times;</span>
-                                        </button>
-                                    </div>
-                                    <form id="uploadForm" enctype="multipart/form-data">
-                                        @csrf
-                                        <div class="modal-body">
-                                            <div class="form-group">
-                                                <label>User: <span class="text-danger">*</span></label>
-                                                <select class="form-control" name="user_id" required>
-                                                    <option value="">Pilih User</option>
-                                                </select>
-                                                <div class="invalid-feedback"></div>
-                                            </div>
-
-                                            <div class="form-group">
-                                                <label>Nama dokumentasi: <span class="text-danger">*</span></label>
-                                                <input type="text" class="form-control" name="nama_dokumentasi" required>
-                                                <div class="invalid-feedback"></div>
-                                            </div>
-
-                                            <div class="form-group">
-                                                <label>Deskripsi dokumentasi: <span class="text-danger">*</span></label>
-                                                <textarea class="form-control" name="deskripsi_dokumentasi" rows="3" required></textarea>
-                                                <div class="invalid-feedback"></div>
-                                            </div>
-
-                                            <div class="form-group">
-                                                <label>Tanggal: <span class="text-danger">*</span></label>
-                                                <input type="date" class="form-control" name="tanggal" 
-                                                       value="{{ date('Y-m-d') }}" required>
-                                                <div class="invalid-feedback"></div>
-                                            </div>
-
-                                            <div class="upload-area">
-                                                <div class="text-center p-4 upload-box" 
-                                                     style="border: 2px dashed #dee2e6; border-radius: 4px;">
-                                                    <h6 class="mb-3">UNGGAH DOKUMEN</h6>
-                                                    <p class="text-muted mb-3">
-                                                        Format file: JPEG, PNG, PDF, DOC, DOCX (Maks. 10MB)
-                                                    </p>
-                                                    <input type="file" id="file-upload" name="file_dokumentasi" 
-                                                           accept=".jpeg,.jpg,.png,.pdf,.doc,.docx"
-                                                           style="display: none;" required>
-                                                    <label for="file-upload" class="btn btn-outline-primary mb-0">
-                                                        Pilih File
-                                                    </label>
-                                                    <div id="selected-file-name" class="mt-2"></div>
-                                                    <div class="invalid-feedback"></div>
+                                            <div class="submission-list mt-4">
+                                                <h6>Daftar Dokumentasi</h6>
+                                                <div class="table-responsive">
+                                                    <table class="table table-bordered table-striped">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Nama User</th>
+                                                                <th>Status</th>
+                                                                <th>Tanggal Upload</th>
+                                                                <th>Nama File</th>
+                                                                <th>Deskripsi</th>
+                                                                <th>Aksi</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody id="submission-table-body">
+                                                        </tbody>
+                                                    </table>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
-                                            <button type="submit" class="btn btn-primary">Upload</button>
-                                        </div>
-                                    </form>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    @endif
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
-@endsection
-
-@push('css')
-<style>
-.progress {
-    height: 20px;
-    margin-bottom: 5px;
-}
-.progress-bar {
-    background-color: #28a745;
-}
-.badge {
-    padding: 8px 12px;
-    font-size: 0.9em;
-}
-.badge-warning {
-    background-color: #ffc107;
-    color: #000;
-}
-.badge-success {
-    background-color: #28a745;
-    color: #fff;
-}
-.badge-info {
-    background-color: #17a2b8;
-    color: #fff;
-}
-.upload-area {
-    background: #f8f9fa;
-    margin-top: 1rem;
-}
-.upload-box {
-    transition: all 0.3s ease;
-}
-.upload-box.is-invalid {
-    border-color: #dc3545;
-}
-#selected-file-name {
-    color: #6c757d;
-    font-style: italic;
-    margin-top: 10px;
-}
-.table-borderless td {
-    padding: 0.5rem;
-}
-.modal-lg {
-    max-width: 900px;
-}
-</style>
-@endpush
-
-@push('js')
-<script>
-$(document).ready(function() {
-    // Inisialisasi DataTable
-    $('#agenda-table').DataTable({
-        responsive: true,
-        language: {
-            url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json"
-        }
-    });
-
-    // Event handler untuk tombol detail
-    $('.btn-detail').click(function() {
-        const id = $(this).data('id');
-        
-        // Fetch detail agenda
-        $.get(`/admin/dosen/update-progress/${id}/detail`, function(response) {
-            if (response.status === 'success') {
-                const agenda = response.data.agenda;
-                const submissions = response.data.user_submissions;
-                
-                // Update informasi agenda
-                $('#detail-nama-agenda').text(agenda.nama_agenda);
-                $('#detail-kegiatan').text(agenda.kegiatan_jurusan ? 
-                    agenda.kegiatan_jurusan.nama_kegiatan_jurusan : 
-                    agenda.kegiatan_program_studi.nama_kegiatan_program_studi);
-                $('#detail-tanggal').text(moment(agenda.tanggal_agenda).format('DD-MM-YYYY'));
-                
-                // Update informasi progress
-                $('#detail-total-user').text(submissions.length);
-                $('#detail-uploaded').text(submissions.filter(s => s.has_submitted).length);
-                $('#detail-status').html(`<span class="badge badge-${agenda.status_agenda === 'selesai' ? 
-                    'success' : (agenda.status_agenda === 'tahap penyelesaian' ? 'warning' : 'info')}">
-                    ${agenda.status_agenda}</span>`);
-                
-                // Render submission table
-                const tableBody = submissions.map(submission => `
-                    <tr>
-                        <td>${submission.user_name}</td>
-                        <td>
-                            <span class="badge badge-${submission.has_submitted ? 'success' : 'warning'}">
-                                ${submission.has_submitted ? 'Sudah Upload' : 'Belum Upload'}
-                            </span>
-                        </td>
-                        <td>${submission.has_submitted ? 
-                            moment(submission.submission_date).format('DD-MM-YYYY') : '-'}</td>
-                        <td>
-                            ${submission.has_submitted ? 
-                                `<button class="btn btn-danger btn-sm btn-delete-doc" 
-                                    data-agenda-id="${id}" 
-                                    data-user-id="${submission.user_id}">
-                                    <i class="fas fa-trash"></i>
-                                </button>` : 
-                                '-'}
-                        </td>
-                    </tr>
-                `).join('');
-                
-                $('#submission-table-body').html(tableBody);
-                
-                // Show modal
-                $('#detailModal').modal('show');
+    @endsection
+    
+    @push('css')
+    <link rel="stylesheet" href="//cdn.datatables.net/1.10.24/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.0.18/sweetalert2.min.css">
+    <style>
+    .progress {
+        height: 20px;
+        margin-bottom: 5px;
+    }
+    .progress-bar {
+        background-color: #28a745;
+    }
+    .badge {
+        padding: 8px 12px;
+        font-size: 0.9em;
+    }
+    .badge-warning {
+        background-color: #ffc107;
+        color: #000;
+    }
+    .badge-success {
+        background-color: #28a745;
+        color: #fff;
+    }
+    .badge-info {
+        background-color: #17a2b8;
+        color: #fff;
+    }
+    .table-borderless td {
+        padding: 0.5rem;
+    }
+    .modal-xl {
+        max-width: 1140px;
+    }
+    .btn {
+        margin-right: 5px;
+    }
+    .btn i {
+        margin-right: 3px;
+    }
+    </style>
+    @endpush
+    
+    @push('js')
+    <script src="//cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
+    <script src="//cdn.datatables.net/1.10.24/js/dataTables.bootstrap4.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.0.18/sweetalert2.min.js"></script>
+    <script>
+    $(document).ready(function() {
+        // Initialize DataTable
+        $('#agenda-table').DataTable({
+            responsive: true,
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json"
             }
         });
-    });
-
-    // Event handler untuk tombol upload
-    $('.btn-upload').click(function() {
+    
+        // Handle detail button click
+        $('.btn-detail').click(function() {
         const id = $(this).data('id');
-        
-        // Reset form
-        $('#uploadForm')[0].reset();
-        $('#selected-file-name').text('');
-        $('.is-invalid').removeClass('is-invalid');
-        $('.invalid-feedback').text('');
-        
-        // Fetch users untuk dropdown
-        $.get(`/admin/dosen/update-progress/${id}/users`, function(response) {
-            if (response.status === 'success') {
-                const userOptions = response.data.users.map(user => 
-                    `<option value="${user.user_id}">${user.nama}</option>`
-                ).join('');
-                
-                $('select[name="user_id"]').html('<option value="">Pilih User</option>' + userOptions);
-                
-                // Set agenda ID untuk form upload
-                $('#uploadForm').data('agenda-id', id);
-                
-                // Show modal
-                $('#uploadModal').modal('show');
-            }
-        });
-    });
-
-    // Handle perubahan file
-    $('#file-upload').change(function() {
-        const file = this.files[0];
-        const fileName = file ? file.name : '';
-        const fileSize = file ? (file.size / 1024 / 1024).toFixed(2) : 0;
-        let fileInfo = '';
-        
-        if (file) {
-            fileInfo = `${fileName} (${fileSize}MB)`;
-            
-            // Validasi ukuran file
-            if (fileSize > 10) {
-                fileInfo += ' - File terlalu besar (max 10MB)';
-                $(this).val('');
-                $('.upload-box').addClass('is-invalid');
-                $('.upload-box').siblings('.invalid-feedback').text('Ukuran file maksimal 10MB');
-                return;
-            }
-            
-            // Validasi tipe file
-            const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-            if (!allowedTypes.includes(file.type)) {
-                fileInfo += ' - Tipe file tidak didukung';
-                $(this).val('');
-                $('.upload-box').addClass('is-invalid');
-                $('.upload-box').siblings('.invalid-feedback').text('Format file harus JPEG, PNG, PDF, DOC, atau DOCX');
-                return;
-            }
-            
-            $('.upload-box').removeClass('is-invalid');
-        } else {
-            fileInfo = 'Tidak ada file dipilih';
-        }
-        
-        $('#selected-file-name').text(fileInfo);
-    });
-
-    // Handle submit form upload
-    $('#uploadForm').submit(function(e) {
-        e.preventDefault();
-        
-        // Reset validasi
-        $('.is-invalid').removeClass('is-invalid');
-        $('.invalid-feedback').text('');
-        
-        const formData = new FormData(this);
-        const agendaId = $(this).data('agenda-id');
         
         $.ajax({
-            url: `/admin/dosen/update-progress/${agendaId}/update`,
-            type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
+            // Pastikan URL sesuai dengan route yang didefinisikan
+            url: `/admin/dosen/update-progress/${id}/detail`,
+            type: 'GET',
+            dataType: 'json',
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
             beforeSend: function() {
-                // Disable submit button
-                $('button[type="submit"]').prop('disabled', true);
-                
-                // Tampilkan loading
                 Swal.fire({
-                    title: 'Mohon Tunggu',
-                    text: 'Sedang mengupload dokumentasi...',
+                    title: 'Loading...',
+                    text: 'Mengambil data detail agenda',
                     allowOutsideClick: false,
+                    showConfirmButton: false,
                     didOpen: () => {
-                        Swal.showLoading()
+                        Swal.showLoading();
                     }
                 });
             },
             success: function(response) {
-                $('#uploadModal').modal('hide');
+                Swal.close();
+                console.log('Response:', response); // Debug response
                 
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Berhasil',
-                    text: response.message
-                }).then(() => {
-                    window.location.reload();
-                });
-            },
-            error: function(xhr) {
-                // Enable submit button
-                $('button[type="submit"]').prop('disabled', false);
-                
-                if (xhr.status === 422) {
-                    // Validation errors
-                    const errors = xhr.responseJSON.errors;
-                    Object.keys(errors).forEach(function(key) {
-                        const input = $(`[name="${key}"]`);
-                        input.addClass('is-invalid');
-                        input.siblings('.invalid-feedback').text(errors[key][0]);
-                        
-                        if (key === 'file_dokumentasi') {
-                            $('.upload-box').addClass('is-invalid');
-                            $('.upload-box').siblings('.invalid-feedback').text(errors[key][0]);
-                        }
-                    });
+                if (response.status === 'success') {
+                    const agenda = response.data.agenda;
+                    const submissions = response.data.user_submissions;
                     
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Validasi Gagal',
-                        text: 'Mohon periksa kembali input Anda'
-                    });
+                    // Update modal content
+                    $('#detail-nama-agenda').text(agenda.nama_agenda);
+                    $('#detail-kegiatan').text(
+                        agenda.kegiatan_jurusan ? 
+                            agenda.kegiatan_jurusan.nama_kegiatan_jurusan : 
+                            (agenda.kegiatan_program_studi ? 
+                                agenda.kegiatan_program_studi.nama_kegiatan_program_studi : 
+                                '-')
+                    );
+                    $('#detail-tanggal').text(moment(agenda.tanggal_agenda).format('DD-MM-YYYY'));
+                    
+                    // Update progress information
+                    const uploadedCount = submissions.filter(s => s.has_submitted).length;
+                    $('#detail-total-user').text(submissions.length);
+                    $('#detail-uploaded').text(uploadedCount);
+                    
+                    // Generate submissions table content
+                    const tableBody = submissions.map(submission => `
+                        <tr>
+                            <td>${submission.user_name}</td>
+                            <td>
+                                <span class="badge badge-${submission.has_submitted ? 'success' : 'warning'}">
+                                    ${submission.has_submitted ? 'Sudah Upload' : 'Belum Upload'}
+                                </span>
+                            </td>
+                            <td>${submission.has_submitted ? moment(submission.submission_date).format('DD-MM-YYYY') : '-'}</td>
+                            <td>${submission.has_submitted ? submission.dokumentasi.nama : '-'}</td>
+                            <td>${submission.has_submitted ? submission.dokumentasi.deskripsi : '-'}</td>
+                            <td>
+                                ${submission.has_submitted ? `
+                                    <button class="btn btn-danger btn-sm delete-doc" data-id="${submission.dokumentasi.id}">
+                                        <i class="fas fa-trash"></i> Hapus
+                                    </button>
+                                ` : '-'}
+                            </td>
+                        </tr>
+                    `).join('');
+                    
+                    $('#submission-table-body').html(tableBody);
+                    $('#detailModal').modal('show');
                 } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Gagal',
-                        text: xhr.responseJSON?.message || 'Terjadi kesalahan saat mengupload dokumentasi'
-                    });
+                    Swal.fire('Error', response.message || 'Terjadi kesalahan', 'error');
                 }
+            },
+            error: function(xhr, status, error) {
+                Swal.close();
+                console.error('AJAX Error:', {xhr, status, error}); // Debug error
+                Swal.fire('Error', 'Terjadi kesalahan pada server', 'error');
             }
         });
     });
 
-    // Handle delete dokumentasi
-    $(document).on('click', '.btn-delete-doc', function() {
-        const agendaId = $(this).data('agenda-id');
-        const userId = $(this).data('user-id');
+    
+        // Handle download button click
+        $(document).on('click', '.delete-doc', function() {
+        const id = $(this).data('id');
         
         Swal.fire({
             title: 'Konfirmasi Hapus',
-            text: 'Anda yakin ingin menghapus dokumentasi ini?',
+            text: 'Apakah Anda yakin ingin menghapus dokumentasi ini?',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
@@ -499,39 +316,163 @@ $(document).ready(function() {
         }).then((result) => {
             if (result.isConfirmed) {
                 $.ajax({
-                    url: `/admin/dosen/update-progress/${agendaId}/delete/${userId}`,
+                    url: `/admin/dosen/update-progress/${id}/delete`,
                     type: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
                     success: function(response) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Berhasil',
-                            text: response.message
-                        }).then(() => {
-                            window.location.reload();
-                        });
+                        if (response.status === 'success') {
+                            Swal.fire('Berhasil', 'Dokumentasi berhasil dihapus', 'success')
+                            .then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            Swal.fire('Error', response.message || 'Gagal menghapus dokumentasi', 'error');
+                        }
                     },
                     error: function(xhr) {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Gagal',
-                            text: xhr.responseJSON?.message || 'Terjadi kesalahan saat menghapus dokumentasi'
-                        });
+                        Swal.fire('Error', 'Terjadi kesalahan pada server', 'error');
                     }
                 });
             }
         });
-              $('.upload-box').addClass('is-invalid');
-                $('.upload-box').siblings('.invalid-feedback').text('Format file harus JPEG, PNG, PDF, DOC, atau DOCX');
-                return;
+    });
+
+    
+        // Handle delete document
+        $(document).on('click', '.delete-doc', function() {
+            const id = $(this).data('id');
+            
+            Swal.fire({
+                title: 'Konfirmasi Hapus',
+                text: 'Apakah Anda yakin ingin menghapus dokumentasi ini?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    deleteDocument(id);
+                }
+            });
+        });
+    
+        // Helper Functions
+        function updateModalContent(data) {
+            const { agenda, user_submissions } = data;
+            
+            // Update basic info
+            $('#detail-nama-agenda').text(agenda.nama_agenda);
+            $('#detail-kegiatan').text(agenda.kegiatan_jurusan ? 
+                agenda.kegiatan_jurusan.nama_kegiatan_jurusan : 
+                (agenda.kegiatan_program_studi ? 
+                    agenda.kegiatan_program_studi.nama_kegiatan_program_studi : 
+                    '-'));
+            $('#detail-tanggal').text(moment(agenda.tanggal_agenda).format('DD-MM-YYYY'));
+            
+            // Update progress info
+            const uploadedCount = user_submissions.filter(s => s.has_submitted).length;
+            const totalCount = user_submissions.length;
+            
+            $('#detail-total-user').text(totalCount);
+            $('#detail-uploaded').text(uploadedCount);
+            $('#detail-status').html(getStatusBadge(uploadedCount, totalCount));
+            
+            // Update submissions table
+            const tableBody = user_submissions.map(submission => `
+                <tr>
+                    <td>${submission.user_name}</td>
+                    <td>
+                        <span class="badge badge-${submission.has_submitted ? 'success' : 'warning'}">
+                            ${submission.has_submitted ? 'Sudah Upload' : 'Belum Upload'}
+                        </span>
+                    </td>
+                    <td>${submission.has_submitted ? moment(submission.submission_date).format('DD-MM-YYYY') : '-'}</td>
+                    <td>${submission.has_submitted ? submission.dokumentasi.nama : '-'}</td>
+                    <td>${submission.has_submitted ? submission.dokumentasi.deskripsi : '-'}</td>
+                    <td>
+                        ${submission.has_submitted ? `
+                            <button class="btn btn-danger btn-sm delete-doc" data-id="${submission.dokumentasi.id}">
+                                <i class="fas fa-trash"></i> Hapus
+                            </button>
+                        ` : '-'}
+                    </td>
+                </tr>
+            `).join('');
+            
+            $('#submission-table-body').html(tableBody);
+        }
+    
+        function deleteDocument(id) {
+            $.ajax({
+                url: `/admin/dosen/update-progress/${id}/delete`,
+                type: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                beforeSend: function() {
+                    Swal.fire({
+                        title: 'Loading...',
+                        text: 'Menghapus dokumentasi',
+                        allowOutsideClick: false,
+                        showConfirmButton: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                },
+                success: function(response) {
+                    if (response.status === 'success') {
+                        $('#detailModal').modal('hide');
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil',
+                            text: 'Dokumentasi berhasil dihapus'
+                        }).then(() => {
+                            window.location.reload();
+                        });
+                    } else {
+                        showError('Gagal menghapus dokumentasi', response.message);
+                    }
+                },
+                error: function(xhr) {
+                    handleAjaxError(xhr);
+                }
+            });
+        }
+    
+        function getStatusBadge(uploadedCount, totalCount) {
+            let status, badgeClass;
+            
+            if (uploadedCount === 0) {
+                status = 'Berlangsung';
+                badgeClass = 'info';
+            } else if (uploadedCount === totalCount) {
+                status = 'Selesai';
+                badgeClass = 'success';
+            } else {
+                status = 'Tahap Penyelesaian';
+                badgeClass = 'warning';
             }
             
-            $('.upload-box').removeClass('is-invalid');
-        } else {
-            fileInfo = 'Tidak ada file dipilih';
+            return `<span class="badge badge-${badgeClass}">${status}</span>`;
         }
-        
-        $('#selected-file-name').text(fileInfo);
+    
+        function showError(title, message) {
+            Swal.fire({
+                icon: 'error',
+                title: title,
+                text: message
+            });
+        }
+    
+        function handleAjaxError(xhr) {
+            console.error('Ajax Error:', xhr);
+            showError('Error', xhr.responseJSON?.message || 'Terjadi kesalahan pada server');
+        }
     });
-});
-</script>
-@endpush
+    </script>
+    @endpush

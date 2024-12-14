@@ -277,17 +277,15 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
             });
 
 
-            Route::prefix('update-progress')->name('update-progress.')->group(function () {
-                Route::get('/get-data', [AdminUpdateProgressAgendaController::class, 'index'])
-                    ->name('data');
-                Route::get('/detail/{id}', [AdminUpdateProgressAgendaController::class, 'getDetailAgenda'])
-                    ->name('detail');
-                Route::post('/store/{id}', [AdminUpdateProgressAgendaController::class, 'updateProgress'])
-                    ->name('store');
-                Route::get('/status/{id}', [AdminUpdateProgressAgendaController::class, 'checkAgendaStatus'])
-                    ->name('status');
-                Route::delete('/delete/{agendaId}/{userId}', [AdminUpdateProgressAgendaController::class, 'deleteProgress'])
-                    ->name('delete');
+            Route::prefix('admin/dosen/update-progress')->group(function () {
+                Route::get('/', [AdminUpdateProgressAgendaController::class, 'index'])
+                     ->name('admin.dosen.update-progress');
+                Route::get('/{id}/detail', [AdminUpdateProgressAgendaController::class, 'getDetailAgenda'])
+                     ->name('admin.dosen.update-progress.detail');
+                Route::delete('/{id}/delete', [AdminUpdateProgressAgendaController::class, 'deleteProgress'])
+                     ->name('admin.dosen.update-progress.delete');
+                Route::get('/{id}/download', [AdminUpdateProgressAgendaController::class, 'downloadDokumentasi'])
+                     ->name('admin.dosen.update-progress.download');
             });
 
 
