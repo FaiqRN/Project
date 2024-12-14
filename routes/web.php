@@ -17,11 +17,12 @@ use App\Http\Controllers\UnggahDokumenAkhirController;
 use App\Http\Controllers\LihatKegiatanController;
 use App\Http\Controllers\PembagianPoinController;
 
+
 // Guest Routes (untuk user yang belum login)
 Route::middleware(['guest'])->group(function () {
     // Redirect ke login jika mengakses root URL
     Route::get('/', function () {
-        return redirect('/login');
+        return view('layouts.welcome');
     });
 
     // Route Login
@@ -202,8 +203,18 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
 
         // Dosen Management Routes
         Route::prefix('dosen')->name('dosen.')->group(function () {
-            Route::get('/update-progress', [AdminUpdateProgressAgendaController::class, 'index'])->name('update-progress');
-            // Agenda Routes
+            
+            // Update Progress Routes
+            Route::get('/update-progress', [AdminUpdateProgressAgendaController::class, 'index'])
+                 ->name('update-progress');
+            Route::get('/update-progress/{id}/detail', [AdminUpdateProgressAgendaController::class, 'getDetailAgenda'])
+                 ->name('update-progress.detail');
+            Route::delete('/update-progress/{id}/delete', [AdminUpdateProgressAgendaController::class, 'deleteProgress'])
+                 ->name('update-progress.delete');
+            Route::get('/update-progress/{id}/download', [AdminUpdateProgressAgendaController::class, 'downloadDokumentasi'])
+                 ->name('update-progress.download');
+            
+            //route jabatan
             Route::prefix('agenda')->name('agenda.')->group(function () {
                 Route::controller(JabatanController::class)->group(function () {
                     Route::get('/jabatan/get-user-level/{userId}', 'getUserLevel')->name('jabatan.getUserLevel');
@@ -275,19 +286,6 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
                     ]
                 ])->name('unggah-dokumen');
             });
-
-
-            Route::prefix('admin/dosen/update-progress')->group(function () {
-                Route::get('/', [AdminUpdateProgressAgendaController::class, 'index'])
-                     ->name('admin.dosen.update-progress');
-                Route::get('/{id}/detail', [AdminUpdateProgressAgendaController::class, 'getDetailAgenda'])
-                     ->name('admin.dosen.update-progress.detail');
-                Route::delete('/{id}/delete', [AdminUpdateProgressAgendaController::class, 'deleteProgress'])
-                     ->name('admin.dosen.update-progress.delete');
-                Route::get('/{id}/download', [AdminUpdateProgressAgendaController::class, 'downloadDokumentasi'])
-                     ->name('admin.dosen.update-progress.download');
-            });
-
 
             Route::view('/kegiatan-non-jti', 'admin.dosen.kegiatan-non-jti', [
                 'breadcrumb' => (object)[
