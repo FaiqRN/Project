@@ -84,7 +84,8 @@
 
                     {{-- Update Progress --}}
                     <li class="nav-item">
-                        <a href="{{ route('admin.dosen.update-progress') }}" class="nav-link {{ $currentRoute === 'admin.dosen.update-progress' ? 'active' : '' }}">
+                        <a href="{{ route('admin.dosen.update-progress') }}" 
+                           class="nav-link {{ request()->routeIs('admin.dosen.update-progress') ? 'active' : '' }}">
                             <i class="fa fa-fw fa-hourglass-half nav-icon"></i>
                             <p>Update Progress</p>
                         </a>
