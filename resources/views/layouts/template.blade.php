@@ -37,8 +37,9 @@
 
         /* Mengubah warna hover pada menu sidebar */
         .sidebar-dark-primary .nav-sidebar > .nav-item > .nav-link:hover {
-            background-color: rgba(255, 255, 255, 0.1) !important;
-        }
+        background-color: #FF6500 !important;
+        color: white !important;
+}
 
         /* Mengubah warna header/navbar */
         .main-header.navbar {
@@ -56,9 +57,9 @@
             background-color: white !important;
         }
 
-        /* Modifikasi tampilan brand/logo area */
+        /* Modifikasi tampilan logo POLINEMA */
         .brand-link {
-            background-color: #03346E !important;
+            background-color: #3868a3 !important;
             color: white !important;
             height: 70px !important;
             display: flex !important;
