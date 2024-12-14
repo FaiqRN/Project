@@ -8,19 +8,20 @@
             <h3 class="card-title">Penambahan Poin Kegiatan</h3>
         </div>
         <div class="card-body">
-            <!-- Ringkasan Poin -->
-                <div class="col-md-4">
-                    <div class="small-box bg-success">
+            <!-- Total Keseluruhan -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="small-box bg-primary">
                         <div class="inner">
-                            <h3 id="total-poin-prodi">0</h3>
-                            <p>Total Poin Program Studi</p>
+                            <h3 id="total-poin-keseluruhan">0</h3>
+                            <p>Total Poin Keseluruhan</p>
                         </div>
                         <div class="icon">
                             <i class="fas fa-star"></i>
                         </div>
                     </div>
                 </div>
-
+            </div>
 
             <!-- Tabel Data Poin -->
             <div class="table-responsive">
@@ -29,6 +30,7 @@
                         <tr>
                             <th width="5%">No</th>
                             <th width="20%">Nama Kegiatan</th>
+                            <th width="10%">Tipe Kegiatan</th>
                             <th width="15%">Nama Anggota</th>
                             <th width="10%">Jabatan</th>
                             <th width="8%">Poin Dasar</th>
@@ -69,6 +71,11 @@
                     <div class="form-group">
                         <label>Nama Kegiatan</label>
                         <input type="text" class="form-control" id="nama_kegiatan" readonly>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Tipe Kegiatan</label>
+                        <input type="text" class="form-control" id="display_tipe_kegiatan" readonly>
                     </div>
                     
                     <div class="form-group">
@@ -125,12 +132,29 @@
         font-size: 0.9em;
         padding: 0.5em 0.8em;
     }
+    .small-box {
+        border-radius: 0.25rem;
+        position: relative;
+        display: block;
+        margin-bottom: 20px;
+        box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+    }
+    .btn {
+        margin: 2px;
+    }
 </style>
 @endpush
 
 @push('js')
 <script>
 $(document).ready(function() {
+    const TIPE_KEGIATAN_LABELS = {
+        'jurusan': 'Jurusan',
+        'prodi': 'Program Studi',
+        'institusi': 'Institusi',
+        'luar_institusi': 'Luar Institusi'
+    };
+
     // Inisialisasi DataTable
     let table = $('#tabel-poin').DataTable({
         processing: true,
@@ -147,25 +171,35 @@ $(document).ready(function() {
                 }
             },
             { data: 'nama_kegiatan' },
+            { 
+                data: 'tipe_kegiatan',
+                render: function(data) {
+                    return TIPE_KEGIATAN_LABELS[data] || data;
+                }
+            },
             { data: 'nama_anggota' },
             { data: 'jabatan' },
-            { data: 'poin_dasar' },
+            { 
+                data: 'poin_dasar',
+                render: function(data) {
+                    return parseFloat(data).toFixed(1);
+                }
+            },
             { 
                 data: 'poin_tambahan',
                 render: function(data) {
-                    return data || '0';
+                    return parseFloat(data || 0).toFixed(1);
                 }
             },
-            {
-                data: null,
+            { 
+                data: 'total_poin',
                 render: function(data) {
-                    return (parseFloat(data.poin_dasar) + parseFloat(data.poin_tambahan || 0)).toFixed(1);
+                    return parseFloat(data).toFixed(1);
                 }
             },
             {
                 data: 'status_poin',
                 render: function(data) {
-                    if (!data) return '<span class="badge badge-secondary">Belum ada</span>';
                     switch(data) {
                         case 'pending':
                             return '<span class="badge badge-warning">Pending</span>';
@@ -173,6 +207,8 @@ $(document).ready(function() {
                             return '<span class="badge badge-success">Disetujui</span>';
                         case 'ditolak':
                             return '<span class="badge badge-danger">Ditolak</span>';
+                        case 'belum_ada':
+                            return '<span class="badge badge-secondary">Belum Ada Poin Tambahan</span>';
                         default:
                             return '<span class="badge badge-secondary">-</span>';
                     }
@@ -189,14 +225,14 @@ $(document).ready(function() {
                             data-nama="${data.nama_anggota}"
                             data-kegiatan="${data.nama_kegiatan}"
                             data-tipe="${data.tipe_kegiatan}">
-                            <i class="fas fa-plus"></i>
+                            <i class="fas fa-plus"></i> Tambah
                         </button>`;
                     }
                     
                     if (data.keterangan_tambahan) {
-                        buttons += `<button class="btn btn-sm btn-info ml-1 btn-detail" 
+                        buttons += `<button class="btn btn-sm btn-info btn-detail" 
                             data-keterangan="${data.keterangan_tambahan}">
-                            <i class="fas fa-info-circle"></i>
+                            <i class="fas fa-info-circle"></i> Detail
                         </button>`;
                     }
                     
@@ -215,6 +251,8 @@ $(document).ready(function() {
         $.get('{{ route("pic.pembagian-poin.ringkasan") }}', function(response) {
             $('#total-poin-jurusan').text(response.total_poin_jurusan.toFixed(1));
             $('#total-poin-prodi').text(response.total_poin_prodi.toFixed(1));
+            $('#total-poin-institusi').text(response.total_poin_institusi.toFixed(1));
+            $('#total-poin-luar-institusi').text(response.total_poin_luar_institusi.toFixed(1));
             $('#total-poin-keseluruhan').text(response.total_keseluruhan.toFixed(1));
         });
     }
@@ -222,10 +260,14 @@ $(document).ready(function() {
     // Event handler untuk tombol tambah poin
     $('#tabel-poin').on('click', '.btn-tambah-poin', function() {
         let button = $(this);
+        let tipeKegiatan = button.data('tipe');
+        
         $('#jabatan_id').val(button.data('jabatan-id'));
-        $('#tipe_kegiatan').val(button.data('tipe'));
+        $('#tipe_kegiatan').val(tipeKegiatan);
         $('#nama_anggota').val(button.data('nama'));
         $('#nama_kegiatan').val(button.data('kegiatan'));
+        $('#display_tipe_kegiatan').val(TIPE_KEGIATAN_LABELS[tipeKegiatan]);
+        
         $('#modal-tambah-poin').modal('show');
     });
 
@@ -250,6 +292,7 @@ $(document).ready(function() {
                     text: response.message
                 }).then(() => {
                     $('#modal-tambah-poin').modal('hide');
+                    $('#form-tambah-poin')[0].reset();
                     table.ajax.reload();
                     loadRingkasanPoin();
                 });
@@ -266,6 +309,12 @@ $(document).ready(function() {
 
     // Load ringkasan poin saat halaman dimuat
     loadRingkasanPoin();
+
+    // Refresh data setiap 30 detik
+    setInterval(function() {
+        table.ajax.reload(null, false);
+        loadRingkasanPoin();
+    }, 30000);
 });
 </script>
 @endpush
