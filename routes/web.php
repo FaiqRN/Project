@@ -202,10 +202,8 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
             // Update Progress Routes
             Route::get('/update-progress', [AdminUpdateProgressAgendaController::class, 'index'])
                  ->name('update-progress');
-            Route::get('/update-progress/{id}/detail', [AdminUpdateProgressAgendaController::class, 'getDetailAgenda'])
-                 ->name('update-progress.detail');
-            Route::delete('/update-progress/{id}/delete', [AdminUpdateProgressAgendaController::class, 'deleteProgress'])
-                 ->name('update-progress.delete');
+            Route::get('/admin/dosen/update-progress/{id}/detail', [AdminUpdateProgressAgendaController::class, 'getDetailAgenda'])->name('update-progress.detail');
+            Route::delete('/admin/dosen/update-progress/{id}/delete', [AdminUpdateProgressAgendaController::class, 'deleteProgress'])->name('update-progress.delete');                 
             Route::get('/update-progress/{id}/download', [AdminUpdateProgressAgendaController::class, 'downloadDokumentasi'])
                  ->name('update-progress.download');
             
