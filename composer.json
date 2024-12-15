@@ -7,12 +7,15 @@
     "require": {
         "php": "^8.1",
         "doctrine/dbal": "^3.9",
+        "dompdf/dompdf": "^3.0",
         "guzzlehttp/guzzle": "^7.2",
         "intervention/image": "2.7",
         "laravel/framework": "^10.10",
         "laravel/sanctum": "^3.3",
         "laravel/tinker": "^2.8",
         "laravel/ui": "^4.5",
+        "maatwebsite/excel": "^3.1",
+        "phpoffice/phpspreadsheet": "^1.29",
         "yajra/laravel-datatables-oracle": "^10.11"
     },
     "require-dev": {

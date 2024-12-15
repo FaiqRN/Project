@@ -8,9 +8,9 @@
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
             {{-- Beranda --}}
             <li class="nav-item">
-                <a href="{{ url('/') }}" class="nav-link {{ $activemenu === 'beranda' ? 'active' : '' }}">
+                <a href="{{ route('kaprodi.dashboard') }}" class="nav-link {{ $activemenu === 'dashboard' ? 'active' : '' }}">
                     <i class="fa fa-fw fa-home nav-icon"></i>
-                    <p>Beranda</p>
+                    <p>Dashboard</p>
                 </a>
             </li>
 
@@ -27,32 +27,26 @@
                     <li class="nav-item">
                         <a href="{{ route('kaprodi.kegiatan') }}" class="nav-link">
                             <i class="fas fa-eye nav-icon"></i>
-                            <p>Melihat Kegiatan</p>
+                            <p>Lihat Kegiatan</p>
                         </a>
                     </li>
                 </ul>
             </li>
 
-            {{-- Statistik --}}
+            {{-- Beban Kerja --}}
             <li class="nav-item">
-                <a href="#" class="nav-link {{ $activemenu === 'statistik' ? 'active' : '' }}">
+                <a href="#" class="nav-link {{ $activemenu === 'beban-kerja' ? 'active' : '' }}">
                     <i class="fa fa-fw fa-chart-bar nav-icon"></i>
                     <p>
-                        Statistik
+                        Beban Kerja
                         <i class="fa fa-fw fa-angle-left right"></i>
                     </p>
                 </a>
                 <ul class="nav nav-treeview">
                     <li class="nav-item">
-                        <a href="{{ url('/statistik/beban-kerja') }}" class="nav-link">
-                            <i class="fas fa-briefcase nav-icon"></i>
-                            <p> Detail Beban Kerja</p>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{{ url('/statistik/hasil') }}" class="nav-link">
-                            <i class="fas fa-award nav-icon"></i>
-                            <p> Verifikasi Poin Kegiatan </p>
+                        <a href="{{ route('kaprodi.beban-kerja.index') }}" class="nav-link">
+                            <i class="fas fa-chart-line nav-icon"></i>
+                            <p>Statistik Beban Kerja</p>
                         </a>
                     </li>
                 </ul>
@@ -69,7 +63,7 @@
                 </a>
                 <ul class="nav nav-treeview">
                     <li class="nav-item">
-                        <a href="{{ url('/kaprodi/surat-tugas/download') }}" class="nav-link">
+                        <a href="{{ route('kaprodi.surat-tugas.download') }}" class="nav-link">
                             <i class="fa fa-fw fa-file-download nav-icon"></i>
                             <p>Download Dokumen</p>
                         </a>
