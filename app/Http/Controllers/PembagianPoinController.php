@@ -147,15 +147,20 @@ class PembagianPoinController extends Controller
     private function formatDataPoin($kegiatan, $jabatan, $poin, $type)
     {
         $poinDasar = $this->getPoinDasar($poin, $jabatan->jabatan);
-        $totalPoin = $poin->hitungTotalPoin();
-
+        
+        // Hitung total poin berdasarkan status persetujuan
+        $totalPoin = $poinDasar;
+        if ($poin->status_poin_tambahan === 'disetujui') {
+            $totalPoin += ($poin->poin_tambahan ?? 0);
+        }
+    
         $namaKegiatan = match($type) {
             'jurusan' => $kegiatan->nama_kegiatan_jurusan,
             'prodi' => $kegiatan->nama_kegiatan_program_studi,
             'institusi' => $kegiatan->nama_kegiatan_institusi,
             'luar_institusi' => $kegiatan->nama_kegiatan_luar_institusi,
         };
-
+    
         return [
             'kegiatan_id' => $kegiatan->getKey(),
             'tipe_kegiatan' => $type,
@@ -168,7 +173,7 @@ class PembagianPoinController extends Controller
             'keterangan_tambahan' => $poin->keterangan_tambahan ?? '',
             'status_poin' => $poin->status_poin_tambahan ?? 'belum_ada',
             'jabatan_id' => $jabatan->jabatan_id,
-            'can_add_points' => empty($poin->status_poin_tambahan) || $poin->status_poin_tambahan === 'belum_ada'
+            'can_add_points' => empty($poin->status_poin_tambahan) || $poin->status_poin_tambahan === 'belum_ada' || $poin->status_poin_tambahan === 'ditolak'
         ];
     }
 
@@ -258,7 +263,7 @@ class PembagianPoinController extends Controller
                             'poin_sekertaris' => 2.5,
                             'poin_bendahara' => 2.5,
                             'poin_anggota' => 2,
-                            'total_poin' => 0
+                            'total_poin' => $this->hitungPoinDasar($jabatan->jabatan)
                         ]
                     );
                     break;
@@ -272,7 +277,7 @@ class PembagianPoinController extends Controller
                             'poin_sekertaris' => 2.5,
                             'poin_bendahara' => 2.5,
                             'poin_anggota' => 2,
-                            'total_poin' => 0
+                            'total_poin' => $this->hitungPoinDasar($jabatan->jabatan)
                         ]
                     );
                     break;
@@ -286,7 +291,7 @@ class PembagianPoinController extends Controller
                             'poin_sekertaris' => 3.5,
                             'poin_bendahara' => 3.5,
                             'poin_anggota' => 3,
-                            'total_poin' => 0
+                            'total_poin' => $this->hitungPoinDasar($jabatan->jabatan)
                         ]
                     );
                     break;
@@ -300,7 +305,7 @@ class PembagianPoinController extends Controller
                             'poin_sekertaris' => 4,
                             'poin_bendahara' => 4,
                             'poin_anggota' => 3,
-                            'total_poin' => 0
+                            'total_poin' => $this->hitungPoinDasar($jabatan->jabatan)
                         ]
                     );
                     break;
@@ -310,15 +315,16 @@ class PembagianPoinController extends Controller
                 $poin->poin_tambahan = $request->poin_tambahan;
                 $poin->keterangan_tambahan = $request->keterangan_tambahan;
                 $poin->status_poin_tambahan = 'pending';
-                $poin->total_poin = $poin->hitungTotalPoin();
+                // Total poin tetap poin dasar sampai disetujui
+                $poin->total_poin = $this->getPoinDasar($poin, $jabatan->jabatan);
                 $poin->save();
             }
 
             DB::commit();
 
             return response()->json([
-                'message' => 'Poin tambahan berhasil disimpan',
-                'status' => 'success'
+            'message' => 'Pengajuan poin tambahan berhasil disimpan dan menunggu persetujuan admin',
+            'status' => 'success'
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -337,22 +343,62 @@ class PembagianPoinController extends Controller
             $totalPoinJurusan = DB::table('t_poin_jurusan as pj')
                 ->join('t_jabatan as j', 'pj.jabatan_id', '=', 'j.jabatan_id')
                 ->where('j.user_id', $userId)
-                ->sum(DB::raw('pj.total_poin'));
+                ->where(function($query) {
+                    $query->where('status_poin_tambahan', 'disetujui')
+                          ->orWhereNull('status_poin_tambahan');
+                })
+                ->sum(DB::raw('CASE 
+                WHEN status_poin_tambahan = "disetujui" THEN total_poin 
+                ELSE poin_ketua_pelaksana * (jabatan = "ketua_pelaksana") + 
+                     poin_sekertaris * (jabatan = "sekertaris") + 
+                     poin_bendahara * (jabatan = "bendahara") + 
+                     poin_anggota * (jabatan = "anggota")
+                END'));
 
             $totalPoinProdi = DB::table('t_poin_program_studi as pp')
                 ->join('t_jabatan as j', 'pp.jabatan_id', '=', 'j.jabatan_id')
                 ->where('j.user_id', $userId)
-                ->sum(DB::raw('pp.total_poin'));
+                ->where(function($query) {
+                    $query->where('status_poin_tambahan', 'disetujui')
+                          ->orWhereNull('status_poin_tambahan');
+                })
+                ->sum(DB::raw('CASE 
+                WHEN status_poin_tambahan = "disetujui" THEN total_poin 
+                ELSE poin_ketua_pelaksana * (jabatan = "ketua_pelaksana") + 
+                     poin_sekertaris * (jabatan = "sekertaris") + 
+                     poin_bendahara * (jabatan = "bendahara") + 
+                     poin_anggota * (jabatan = "anggota")
+                END'));
 
             $totalPoinInstitusi = DB::table('t_poin_institusi as pi')
                 ->join('t_jabatan as j', 'pi.jabatan_id', '=', 'j.jabatan_id')
                 ->where('j.user_id', $userId)
-                ->sum(DB::raw('pi.total_poin'));
+                ->where(function($query) {
+                    $query->where('status_poin_tambahan', 'disetujui')
+                          ->orWhereNull('status_poin_tambahan');
+                })
+                ->sum(DB::raw('CASE 
+                WHEN status_poin_tambahan = "disetujui" THEN total_poin 
+                ELSE poin_ketua_pelaksana * (jabatan = "ketua_pelaksana") + 
+                     poin_sekertaris * (jabatan = "sekertaris") + 
+                     poin_bendahara * (jabatan = "bendahara") + 
+                     poin_anggota * (jabatan = "anggota")
+                END'));
 
             $totalPoinLuarInstitusi = DB::table('t_poin_luar_institusi as pl')
                 ->join('t_jabatan as j', 'pl.jabatan_id', '=', 'j.jabatan_id')
                 ->where('j.user_id', $userId)
-                ->sum(DB::raw('pl.total_poin'));
+                ->where(function($query) {
+                    $query->where('status_poin_tambahan', 'disetujui')
+                          ->orWhereNull('status_poin_tambahan');
+                })
+                ->sum(DB::raw('CASE 
+                WHEN status_poin_tambahan = "disetujui" THEN total_poin 
+                ELSE poin_ketua_pelaksana * (jabatan = "ketua_pelaksana") + 
+                     poin_sekertaris * (jabatan = "sekertaris") + 
+                     poin_bendahara * (jabatan = "bendahara") + 
+                     poin_anggota * (jabatan = "anggota")
+                END'));
 
             return response()->json([
                 'total_poin_jurusan' => $totalPoinJurusan,

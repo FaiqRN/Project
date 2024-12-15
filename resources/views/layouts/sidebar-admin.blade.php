@@ -68,7 +68,7 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="{{ route('admin.dosen.agenda.persetujuan-poin') }}" class="nav-link {{ $currentRoute === 'admin.dosen.agenda.persetujuan-poin' ? 'active' : '' }}">
+                                <a href="{{ route('admin.dosen.agenda.persetujuan-poin.index') }}" class="nav-link {{ str_starts_with($currentRoute, 'admin.dosen.agenda.persetujuan-poin.') ? 'active' : '' }}">
                                     <i class="fa fa-fw fa-circle nav-icon"></i>
                                     <p>Persetujuan Poin</p>
                                 </a>

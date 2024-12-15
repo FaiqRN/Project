@@ -170,10 +170,25 @@ $(document).ready(function() {
                 data: null,
                 render: function(data) {
                     if (data.status === 'pending') {
-                        return `
-                            <button class="btn btn-sm btn-info btn-detail" data-poin='${JSON.stringify(data)}'>
+                        let buttons = '';
+                        buttons += `
+                            <button class="btn btn-sm btn-success btn-approve" data-id="${data.id}" data-tipe="${data.tipe_poin}">
+                                <i class="fas fa-check"></i> Setuju
+                            </button>
+                            <button class="btn btn-sm btn-danger btn-reject" data-id="${data.id}" data-tipe="${data.tipe_poin}">
+                                <i class="fas fa-times"></i> Tolak
+                            </button>
+                            <button class="btn btn-sm btn-info btn-detail" 
+                                data-kegiatan="${data.nama_kegiatan}"
+                                data-anggota="${data.nama_anggota}"
+                                data-jabatan="${data.jabatan}"
+                                data-poindasar="${data.poin_dasar}"
+                                data-pointambahan="${data.poin_tambahan}"
+                                data-keterangan="${data.keterangan}">
                                 <i class="fas fa-info-circle"></i> Detail
-                            </button>`;
+                            </button>
+                        `;
+                        return buttons;
                     }
                     return '-';
                 }
@@ -187,23 +202,21 @@ $(document).ready(function() {
 
     // Event handler untuk tombol detail
     $('#tabel-poin').on('click', '.btn-detail', function() {
-        const data = JSON.parse($(this).data('poin'));
-        selectedPoin = data;
-        
-        $('#detail-kegiatan').text(data.nama_kegiatan);
-        $('#detail-anggota').text(data.nama_anggota);
-        $('#detail-jabatan').text(data.jabatan);
-        $('#detail-poin-dasar').text(parseFloat(data.poin_dasar).toFixed(1));
-        $('#detail-poin-tambahan').text(parseFloat(data.poin_tambahan).toFixed(1));
-        $('#detail-keterangan').text(data.keterangan);
-        
+        const button = $(this);
+        $('#detail-kegiatan').text(button.data('kegiatan'));
+        $('#detail-anggota').text(button.data('anggota'));
+        $('#detail-jabatan').text(button.data('jabatan'));
+        $('#detail-poin-dasar').text(parseFloat(button.data('poindasar')).toFixed(1));
+        $('#detail-poin-tambahan').text(parseFloat(button.data('pointambahan')).toFixed(1));
+        $('#detail-keterangan').text(button.data('keterangan'));
         $('#modal-detail').modal('show');
     });
 
-    // Event handler untuk tombol setujui
-    $('.btn-setuju').click(function() {
-        if (!selectedPoin) return;
-
+    // Event handler untuk tombol setujui langsung dari tabel
+    $('#tabel-poin').on('click', '.btn-approve', function() {
+        const id = $(this).data('id');
+        const tipe = $(this).data('tipe');
+        
         Swal.fire({
             title: 'Konfirmasi Persetujuan',
             text: "Apakah Anda yakin akan menyetujui penambahan poin ini?",
@@ -215,15 +228,16 @@ $(document).ready(function() {
             cancelButtonText: 'Batal'
         }).then((result) => {
             if (result.isConfirmed) {
-                updateStatus(selectedPoin.id, selectedPoin.tipe_poin, 'disetujui');
+                updateStatus(id, tipe, 'disetujui');
             }
         });
     });
 
-    // Event handler untuk tombol tolak
-    $('.btn-tolak').click(function() {
-        if (!selectedPoin) return;
-
+    // Event handler untuk tombol tolak langsung dari tabel
+    $('#tabel-poin').on('click', '.btn-reject', function() {
+        const id = $(this).data('id');
+        const tipe = $(this).data('tipe');
+        
         Swal.fire({
             title: 'Konfirmasi Penolakan',
             text: "Apakah Anda yakin akan menolak penambahan poin ini?",
@@ -235,7 +249,7 @@ $(document).ready(function() {
             cancelButtonText: 'Batal'
         }).then((result) => {
             if (result.isConfirmed) {
-                updateStatus(selectedPoin.id, selectedPoin.tipe_poin, 'ditolak');
+                updateStatus(id, tipe, 'ditolak');
             }
         });
     });
@@ -251,9 +265,6 @@ $(document).ready(function() {
                 status: status
             },
             success: function(response) {
-                $('#modal-detail').modal('hide');
-                selectedPoin = null;
-                
                 Swal.fire({
                     icon: 'success',
                     title: 'Berhasil',

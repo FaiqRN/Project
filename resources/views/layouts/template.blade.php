@@ -26,7 +26,7 @@
     <style>
         /* Mengubah warna sidebar */
         .main-sidebar {
-            background-color: #03346E !important;
+            background-color: #3282B8 !important;
         }
         
         /* Mengubah warna teks sidebar */
@@ -43,7 +43,7 @@
 
         /* Mengubah warna header/navbar */
         .main-header.navbar {
-            background-color: #FF6500 !important;
+            background-color: #3868a3 !important;
         }
 
         /* Mengubah warna teks dan ikon pada header */
@@ -92,17 +92,22 @@
 
         /* Mengubah style tombol pada header */
         .main-header .btn-primary {
-            background-color: #03346E !important;
-            border-color: #03346E !important;
+            background-color: #08459b !important;
+            border-color: #08459b !important;
             padding: 8px 20px !important;
             font-weight: 500 !important;
             margin-right: 10px !important;
         }
 
+        .main-header .btn-primary:hover {
+            background-color: #001e6b !important;
+            border-color: #001e6b !important;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2) !important;
+        }
         /* Style khusus untuk tombol logout */
         .main-header .btn-danger {
-            background-color: #E60026 !important;
-            border-color: #E60026 !important;
+            background-color: #FF0033 !important;
+            border-color: #FF0033 !important;
             color: white !important;
             font-weight: bold !important;
             padding: 8px 25px !important;
@@ -113,8 +118,8 @@
         }
 
         .main-header .btn-danger:hover {
-            background-color: #FF0033 !important;
-            border-color: #FF0033 !important;
+            background-color: #ba0725 !important;
+            border-color: #ba0725 !important;
             box-shadow: 0 4px 8px rgba(0,0,0,0.2) !important;
         }
 

@@ -34,7 +34,7 @@
 
     <style>
         .main-footer {
-            background-color: #021526;
+            background-color: #0F4C75;
             color: white;
             margin: 0;
             padding: 0;
@@ -110,7 +110,7 @@
         }
 
         .copyright {
-            background-color: #000;
+            background-color: #1B262C;
             text-align: center;
             padding: 5px 0;
             margin: 0;

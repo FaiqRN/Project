@@ -16,7 +16,8 @@ use App\Http\Controllers\ProgressKegiatanController;
 use App\Http\Controllers\UnggahDokumenAkhirController;
 use App\Http\Controllers\LihatKegiatanController;
 use App\Http\Controllers\PembagianPoinController;
-
+use App\Http\Controllers\AdminPembagianPoinController;
+use App\Http\Controllers\AdminUnggahDokumenAkhirController;
 
 // Guest Routes (untuk user yang belum login)
 Route::middleware(['guest'])->group(function () {
@@ -46,9 +47,7 @@ Route::middleware(['auth.check'])->group(function () {
 // Dosen Routes
 Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
     Route::prefix('dosen')->group(function () {
-        Route::get('/', function () {
-            return redirect()->route('dosen.dashboard');
-        });
+
            
         Route::get('/dashboard', function () {
             return view('dosen.dashboard', [
@@ -130,9 +129,7 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
 
     // Kaprodi Routes
     Route::middleware(['auth.role:Kaprodi'])->prefix('kaprodi')->group(function () {
-        Route::get('/', function () {
-            return redirect()->route('kaprodi.dashboard');
-        });
+
        
         Route::get('/dashboard', function () {
             return view('kaprodi.dashboard', [
@@ -176,9 +173,7 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
 
     // Admin Routes
     Route::middleware(['auth.role:Admin'])->prefix('admin')->name('admin.')->group(function () {
-        Route::get('/', function () {
-            return redirect()->route('admin.dashboard');
-        });
+
 
 
         Route::get('/dashboard', function () {
@@ -271,20 +266,21 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
                 });
 
 
-                Route::view('/persetujuan-poin', 'admin.dosen.agenda.persetujuan-poin', [
-                    'breadcrumb' => (object)[
-                        'title' => 'Persetujuan Poin',
-                        'list' => ['Home', 'Dosen', 'Agenda', 'Persetujuan Poin']
-                    ]
-                ])->name('persetujuan-poin');
+                Route::prefix('persetujuan-poin')->name('persetujuan-poin.')->group(function () {
+                    Route::get('/', [AdminPembagianPoinController::class, 'index'])->name('index');
+                    Route::get('/data', [AdminPembagianPoinController::class, 'getDataPoin'])->name('data');
+                    Route::post('/update-status', [AdminPembagianPoinController::class, 'updateStatus'])->name('update-status');
+                });
 
 
-                Route::view('/unggah-dokumen', 'admin.dosen.agenda.unggah-dokumen', [
-                    'breadcrumb' => (object)[
-                        'title' => 'Unggah Dokumen',
-                        'list' => ['Home', 'Dosen', 'Agenda', 'Unggah Dokumen']
-                    ]
-                ])->name('unggah-dokumen');
+                Route::controller(AdminUnggahDokumenAkhirController::class)->group(function () {
+                    Route::get('/unggah-dokumen', 'index')->name('unggah-dokumen');
+                    Route::get('/unggah-dokumen/list', 'getKegiatanList')->name('unggah-dokumen.list');
+                    Route::post('/unggah-dokumen/store', 'store')->name('unggah-dokumen.store');
+                    Route::post('/unggah-dokumen/update', 'update')->name('unggah-dokumen.update');
+                    Route::delete('/unggah-dokumen/destroy/{id}/{type}', 'destroy')->name('unggah-dokumen.destroy');
+                    Route::get('/unggah-dokumen/download/{id}/{type}', 'download')->name('unggah-dokumen.download');
+                });;
             });
 
             Route::view('/kegiatan-non-jti', 'admin.dosen.kegiatan-non-jti', [
