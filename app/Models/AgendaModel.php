@@ -29,16 +29,15 @@ class AgendaModel extends Model
         'dokumentasi_id' => null
     ];
 
-    // Relasi dengan User
     public function user()
     {
-        return $this->belongsTo(UserModel::class, 'user_id', 'user_id');
+        return $this->belongsToMany(UserModel::class, 't_agenda_user', 'agenda_id', 'user_id');
     }
-
-    // Relasi dengan Dokumentasi
+    
+    // Di UserModel
     public function dokumentasi()
     {
-        return $this->belongsTo(DokumentasiModel::class, 'dokumentasi_id', 'dokumentasi_id');
+        return $this->hasMany(DokumentasiModel::class, 'user_id', 'user_id');
     }
 
     // Relasi dengan Kegiatan Luar Institusi

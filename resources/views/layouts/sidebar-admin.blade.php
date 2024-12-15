@@ -44,7 +44,8 @@
                         </a>
                         <ul class="nav nav-treeview">
                             <li class="nav-item">
-                                <a href="{{ route('admin.dosen.agenda.jabatan') }}" class="nav-link {{ $currentRoute === 'admin.dosen.agenda.jabatan' ? 'active' : '' }}">
+                                <a href="{{ route('admin.dosen.agenda.jabatan') }}" 
+                                class="nav-link {{ request()->routeIs('admin.dosen.agenda.jabatan') ? 'active' : '' }}">
                                     <i class="fa fa-fw fa-circle nav-icon"></i>
                                     <p>Pilih Jabatan</p>
                                 </a>

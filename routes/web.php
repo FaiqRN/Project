@@ -174,139 +174,135 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
         });
     });
 
-    // Admin Routes
-    Route::middleware(['auth.role:Admin'])->prefix('admin')->name('admin.')->group(function () {
-        Route::get('/', function () {
-            return redirect()->route('admin.dashboard');
+// Admin Routes
+Route::middleware(['auth.role:Admin'])->prefix('admin')->name('admin.')->group(function () {
+    // Dashboard
+    Route::get('/', function () {
+        return redirect()->route('admin.dashboard');
+    });
+
+    Route::get('/dashboard', function () {
+        return view('admin.dashboard', [
+            'breadcrumb' => (object)[
+                'title' => 'Dashboard Admin',
+                'list' => ['Home', 'Dashboard']
+            ]
+        ]);
+    })->name('dashboard');
+
+    // User Management
+    Route::controller(UserManagementController::class)->group(function () {
+        Route::get('/users', 'index')->name('users.index');
+        Route::post('/users', 'store')->name('users.store');
+        Route::get('/users/{id}', 'show')->name('users.show');
+        Route::put('/users/{id}', 'update')->name('users.update');
+        Route::delete('/users/{id}', 'destroy')->name('users.destroy');
+    });
+
+    // Dosen Management Routes
+    Route::prefix('dosen')->name('dosen.')->group(function () {
+        // Update Progress Routes
+        Route::controller(AdminUpdateProgressAgendaController::class)->group(function () {
+            Route::get('/update-progress', 'index')->name('update-progress');
+            Route::get('/update-progress/{id}/detail', 'getDetailAgenda')->name('update-progress.detail');
+            Route::delete('/update-progress/{id}/delete', 'deleteProgress')->name('update-progress.delete');
+            Route::get('/update-progress/{id}/download', 'downloadDokumentasi')->name('update-progress.download');
         });
 
-
-        Route::get('/dashboard', function () {
-            return view('admin.dashboard', [
-                'breadcrumb' => (object)[
-                    'title' => 'Dashboard Admin',
-                    'list' => ['Home', 'Dashboard']
-                ]
-            ]);
-        })->name('dashboard');
-
-
-        // User Management
-        Route::controller(UserManagementController::class)->group(function () {
-            Route::get('/users', 'index')->name('users.index');
-            Route::post('/users', 'store')->name('users.store');
-            Route::get('/users/{id}', 'show')->name('users.show');
-            Route::put('/users/{id}', 'update')->name('users.update');  
-            Route::delete('/users/{id}', 'destroy')->name('users.destroy');
-        });
-
-
-        // Dosen Management Routes
-        Route::prefix('dosen')->name('dosen.')->group(function () {
-            
-            // Update Progress Routes
-            Route::get('/update-progress', [AdminUpdateProgressAgendaController::class, 'index'])
-                 ->name('update-progress');
-            Route::get('/update-progress/{id}/detail', [AdminUpdateProgressAgendaController::class, 'getDetailAgenda'])
-                 ->name('update-progress.detail');
-            Route::delete('/update-progress/{id}/delete', [AdminUpdateProgressAgendaController::class, 'deleteProgress'])
-                 ->name('update-progress.delete');
-            Route::get('/update-progress/{id}/download', [AdminUpdateProgressAgendaController::class, 'downloadDokumentasi'])
-                 ->name('update-progress.download');
-            
-            //route jabatan
-            Route::prefix('agenda')->name('agenda.')->group(function () {
-                Route::controller(JabatanController::class)->group(function () {
-                    Route::get('/jabatan/get-user-level/{userId}', 'getUserLevel')->name('jabatan.getUserLevel');
-                    Route::get('/jabatan', 'index')->name('jabatan');
-                    Route::post('/jabatan', 'store')->name('jabatan.store');
-                    Route::get('/jabatan/{id}/edit', 'edit')->name('jabatan.edit');
-                    Route::put('/jabatan/{id}', 'update')->name('jabatan.update');
-                    Route::delete('/jabatan/{id}', 'destroy')->name('jabatan.destroy');
-                    Route::get('/jabatan/get-kegiatan', 'getKegiatan')->name('jabatan.getKegiatan');
-                });
-
-
-                Route::get('/kegiatan', [KegiatanController::class, 'index'])->name('kegiatan');
-
-
-                // Kegiatan Jurusan Routes
-                Route::prefix('jurusan')->group(function () {
-                    Route::get('/get-data', [KegiatanController::class, 'getKegiatanJurusan'])->name('jurusan.data');
-                    Route::post('/store', [KegiatanController::class, 'storeKegiatanJurusan'])->name('jurusan.store');
-                    Route::get('/{id}', [KegiatanController::class, 'showKegiatanJurusan'])->name('jurusan.show');
-                    Route::put('/update/{id}', [KegiatanController::class, 'updateKegiatanJurusan'])->name('jurusan.update');
-                    Route::delete('/delete/{id}', [KegiatanController::class, 'destroyKegiatanJurusan'])->name('jurusan.destroy');
-                });
-
-
-                // Kegiatan Prodi Routes
-                Route::prefix('prodi')->group(function () {
-                    Route::get('/get-data', [KegiatanController::class, 'getKegiatanProdi'])->name('prodi.data');
-                    Route::post('/store', [KegiatanController::class, 'storeKegiatanProdi'])->name('prodi.store');
-                    Route::get('/{id}', [KegiatanController::class, 'showKegiatanProdi'])->name('prodi.show');
-                    Route::put('/update/{id}', [KegiatanController::class, 'updateKegiatanProdi'])->name('prodi.update');
-                    Route::delete('/delete/{id}', [KegiatanController::class, 'destroyKegiatanProdi'])->name('prodi.destroy');
-                });
-
-                Route::get('/agenda-setting', [AdminAgendaController::class, 'index'])->name('agenda-setting');
-                Route::get('/get-data', [AdminAgendaController::class, 'getAgendaList'])->name('get-data');
-                Route::get('/get-kegiatan', [AdminAgendaController::class, 'getKegiatan'])->name('get-kegiatan');
-                Route::get('/download/{id}', [AdminAgendaController::class, 'download'])->name('download');
-                Route::post('/store', [AdminAgendaController::class, 'store'])->name('store');
-                Route::put('/update/{id}', [AdminAgendaController::class, 'update'])->name('update');
-                Route::delete('/delete/{id}', [AdminAgendaController::class, 'destroy'])->name('delete');
-
-                // Route untuk Pilih Anggota Admin (perbaikan route)
-                Route::prefix('pilih-anggota')->name('pilih-anggota.')->group(function () {
-                    Route::controller(AdminPilihAnggotaController::class)->group(function () {
-                        Route::get('/', 'index')->name('index');
-                        Route::get('/data', 'getData')->name('data');
-                        Route::get('/filtered-data', 'getFilteredData')->name('filtered-data');
-                        Route::post('/store', 'store')->name('store');
-                        Route::get('/edit/{id}', 'edit')->name('edit');
-                        Route::put('/update/{id}', 'update')->name('update');
-                        Route::delete('/delete/{id}', 'destroy')->name('delete');
-                    });
-                });
-
-
-                Route::view('/persetujuan-poin', 'admin.dosen.agenda.persetujuan-poin', [
-                    'breadcrumb' => (object)[
-                        'title' => 'Persetujuan Poin',
-                        'list' => ['Home', 'Dosen', 'Agenda', 'Persetujuan Poin']
-                    ]
-                ])->name('persetujuan-poin');
-
-
-                Route::view('/unggah-dokumen', 'admin.dosen.agenda.unggah-dokumen', [
-                    'breadcrumb' => (object)[
-                        'title' => 'Unggah Dokumen',
-                        'list' => ['Home', 'Dosen', 'Agenda', 'Unggah Dokumen']
-                    ]
-                ])->name('unggah-dokumen');
+        // Agenda Management Routes
+        Route::prefix('agenda')->name('agenda.')->group(function () {
+            // Jabatan Routes
+            Route::controller(JabatanController::class)->group(function () {
+                Route::get('/jabatan', 'index')->name('jabatan');
+                Route::post('/jabatan', 'store')->name('jabatan.store');
+                Route::get('/jabatan/{id}/edit', 'edit')->name('jabatan.edit');
+                Route::put('/jabatan/{id}', 'update')->name('jabatan.update');
+                Route::delete('/jabatan/{id}', 'destroy')->name('jabatan.destroy');
+                Route::get('/jabatan/get-user-level/{userId}', 'getUserLevel')->name('jabatan.getUserLevel');
+                Route::get('/jabatan/get-kegiatan', 'getKegiatan')->name('jabatan.getKegiatan');
             });
 
-            Route::view('/kegiatan-non-jti', 'admin.dosen.kegiatan-non-jti', [
+            // Kegiatan Routes
+            Route::get('/kegiatan', [KegiatanController::class, 'index'])->name('kegiatan');
+
+            // Kegiatan Jurusan Routes
+            Route::prefix('jurusan')->name('jurusan.')->group(function () {
+                Route::get('/get-data', [KegiatanController::class, 'getKegiatanJurusan'])->name('data');
+                Route::post('/store', [KegiatanController::class, 'storeKegiatanJurusan'])->name('store');
+                Route::get('/{id}', [KegiatanController::class, 'showKegiatanJurusan'])->name('show');
+                Route::put('/update/{id}', [KegiatanController::class, 'updateKegiatanJurusan'])->name('update');
+                Route::delete('/delete/{id}', [KegiatanController::class, 'destroyKegiatanJurusan'])->name('destroy');
+            });
+
+            // Kegiatan Prodi Routes
+            Route::prefix('prodi')->name('prodi.')->group(function () {
+                Route::get('/get-data', [KegiatanController::class, 'getKegiatanProdi'])->name('data');
+                Route::post('/store', [KegiatanController::class, 'storeKegiatanProdi'])->name('store');
+                Route::get('/{id}', [KegiatanController::class, 'showKegiatanProdi'])->name('show');
+                Route::put('/update/{id}', [KegiatanController::class, 'updateKegiatanProdi'])->name('update');
+                Route::delete('/delete/{id}', [KegiatanController::class, 'destroyKegiatanProdi'])->name('destroy');
+            });
+
+            // Agenda Setting Routes
+            Route::controller(AdminAgendaController::class)->group(function () {
+                Route::get('/agenda-setting', 'index')->name('agenda-setting');
+                Route::get('/get-data', 'getAgendaList')->name('get-data');
+                Route::get('/get-kegiatan', 'getKegiatan')->name('get-kegiatan');
+                Route::get('/download/{id}', 'download')->name('download');
+                Route::post('/store', 'store')->name('store');
+                Route::put('/update/{id}', 'update')->name('update');
+                Route::delete('/delete/{id}', 'destroy')->name('delete');
+            });
+
+            // Pilih Anggota Routes
+            Route::prefix('pilih-anggota')->name('pilih-anggota.')->group(function () {
+                Route::controller(AdminPilihAnggotaController::class)->group(function () {
+                    Route::get('/', 'index')->name('index');
+                    Route::get('/data', 'getData')->name('data');
+                    Route::get('/filtered-data', 'getFilteredData')->name('filtered-data');
+                    Route::post('/store', 'store')->name('store');
+                    Route::get('/edit/{id}', 'edit')->name('edit');
+                    Route::put('/update/{id}', 'update')->name('update');
+                    Route::delete('/delete/{id}', 'destroy')->name('delete');
+                });
+            });
+
+            // View Routes
+            Route::view('/persetujuan-poin', 'admin.dosen.agenda.persetujuan-poin', [
                 'breadcrumb' => (object)[
-                    'title' => 'Kegiatan Non-JTI',
-                    'list' => ['Home', 'Dosen', 'Kegiatan Non-JTI']
+                    'title' => 'Persetujuan Poin',
+                    'list' => ['Home', 'Dosen', 'Agenda', 'Persetujuan Poin']
                 ]
-            ])->name('kegiatan-non-jti');
+            ])->name('persetujuan-poin');
+
+            Route::view('/unggah-dokumen', 'admin.dosen.agenda.unggah-dokumen', [
+                'breadcrumb' => (object)[
+                    'title' => 'Unggah Dokumen',
+                    'list' => ['Home', 'Dosen', 'Agenda', 'Unggah Dokumen']
+                ]
+            ])->name('unggah-dokumen');
         });
 
+        // Kegiatan Non-JTI Route
+        Route::view('/kegiatan-non-jti', 'admin.dosen.kegiatan-non-jti', [
+            'breadcrumb' => (object)[
+                'title' => 'Kegiatan Non-JTI',
+                'list' => ['Home', 'Dosen', 'Kegiatan Non-JTI']
+            ]
+        ])->name('kegiatan-non-jti');
+    });
 
-        // Kaprodi Management Routes
-        Route::prefix('kaprodi')->name('kaprodi.')->group(function () {
-            Route::controller(SuratTugasController::class)->group(function () {
-                Route::get('/surat-tugas', 'index')->name('surat-tugas');
-                Route::post('/surat-tugas', 'store')->name('surat-tugas.store');
-                Route::get('/surat-tugas/{id}', 'show')->name('surat-tugas.show');
-                Route::put('/surat-tugas/{id}', 'update')->name('surat-tugas.update');
-                Route::delete('/surat-tugas/{id}', 'destroy')->name('surat-tugas.destroy');
-            });
+    // Kaprodi Management Routes
+    Route::prefix('kaprodi')->name('kaprodi.')->group(function () {
+        Route::controller(SuratTugasController::class)->group(function () {
+            Route::get('/surat-tugas', 'index')->name('surat-tugas');
+            Route::post('/surat-tugas', 'store')->name('surat-tugas.store');
+            Route::get('/surat-tugas/{id}', 'show')->name('surat-tugas.show');
+            Route::put('/surat-tugas/{id}', 'update')->name('surat-tugas.update');
+            Route::delete('/surat-tugas/{id}', 'destroy')->name('surat-tugas.destroy');
         });
     });
+});
 
     // Default Route setelah login (redirect berdasarkan role)
     Route::get('/home', function () {

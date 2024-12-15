@@ -13,36 +13,30 @@ use Illuminate\Support\Facades\DB;
 
 class AdminUpdateProgressAgendaController extends Controller
 {
+    
     public function index()
     {
-        // Ambil data agenda dengan relasi yang dibutuhkan
-        $agendas = AgendaModel::with([
-            'kegiatanJurusan',
-            'kegiatanProgramStudi',
-            'dokumentasi',
-            'users'
-        ])->get();
-    
-        // Hitung progress untuk setiap agenda
-        $agendas = $agendas->map(function($agenda) {
+        $agendas = AgendaModel::with(['kegiatanJurusan', 'kegiatanProgramStudi', 'users'])->get();
+
+        $agendas = $agendas->map(function ($agenda) {
             $totalUsers = $agenda->users()->count();
             $uploadedUsers = DokumentasiModel::where('agenda_id', $agenda->agenda_id)
-                                           ->distinct('user_id')
-                                           ->count('user_id');
-            
-            $progressPercentage = $totalUsers > 0 ? 
-                                round(($uploadedUsers / $totalUsers) * 100, 2) : 0;
-            
+                ->distinct('user_id')
+                ->count('user_id');
+
+            $progressPercentage = $totalUsers > 0 ? round(($uploadedUsers / $totalUsers) * 100, 2) : 0;
+
             $agenda->setAttribute('progress', [
                 'total_users' => $totalUsers,
                 'uploaded_users' => $uploadedUsers,
                 'percentage' => $progressPercentage
             ]);
-            
+
             $agenda->setAttribute('display_status', $this->determineStatus($uploadedUsers, $totalUsers));
+
             return $agenda;
         });
-    
+
         return view('admin.dosen.update-progress', [
             'agendas' => $agendas,
             'breadcrumb' => (object)[
@@ -55,29 +49,33 @@ class AdminUpdateProgressAgendaController extends Controller
     public function getDetailAgenda($id)
     {
         try {
+            // Ambil agenda dengan semua relasi yang dibutuhkan
             $agenda = AgendaModel::with([
                 'kegiatanJurusan',
                 'kegiatanProgramStudi',
-                'users'
+                'users' // Relasi dengan user (dosen)
             ])->findOrFail($id);
     
+            // Ambil semua dokumentasi yang terkait dengan agenda ini
+            $dokumentasi = DokumentasiModel::where('agenda_id', $id)
+                ->with('user') // Relasi dengan user untuk mendapatkan nama dosen
+                ->get();
+    
+            // Siapkan data user submissions
             $userSubmissions = [];
             foreach ($agenda->users as $user) {
-                $dokumentasi = DokumentasiModel::where('agenda_id', $id)
-                                             ->where('user_id', $user->user_id)
-                                             ->first();
+                // Cari dokumentasi untuk user ini
+                $dokUser = $dokumentasi->where('user_id', $user->user_id)->first();
                 
                 $userSubmissions[] = [
                     'user_id' => $user->user_id,
-                    'user_name' => $user->nama,
-                    'has_submitted' => !is_null($dokumentasi),
-                    'submission_date' => $dokumentasi ? $dokumentasi->tanggal : null,
-                    'dokumentasi' => $dokumentasi ? [
-                        'id' => $dokumentasi->dokumentasi_id,
-                        'nama' => $dokumentasi->nama_dokumentasi,
-                        'deskripsi' => $dokumentasi->deskripsi_dokumentasi,
-                        'file_name' => basename($dokumentasi->file_dokumentasi),
-                        'tanggal' => $dokumentasi->tanggal
+                    'nama_dosen' => $user->nama_lengkap, // Sesuaikan dengan field nama di UserModel
+                    'has_submitted' => !is_null($dokUser),
+                    'dokumentasi' => $dokUser ? [
+                        'id' => $dokUser->dokumentasi_id,
+                        'nama_file' => $dokUser->nama_dokumentasi,
+                        'deskripsi' => $dokUser->deskripsi_dokumentasi,
+                        'tanggal_upload' => $dokUser->tanggal
                     ] : null
                 ];
             }
@@ -85,54 +83,53 @@ class AdminUpdateProgressAgendaController extends Controller
             return response()->json([
                 'status' => 'success',
                 'data' => [
-                    'agenda' => $agenda,
+                    'agenda' => [
+                        'id' => $agenda->agenda_id,
+                        'nama' => $agenda->nama_agenda,
+                        'kegiatan' => $agenda->kegiatanJurusan ? 
+                                     $agenda->kegiatanJurusan->nama_kegiatan_jurusan : 
+                                     $agenda->kegiatanProgramStudi->nama_kegiatan_program_studi,
+                        'tanggal' => $agenda->tanggal_agenda
+                    ],
                     'user_submissions' => $userSubmissions
                 ]
             ]);
     
         } catch (\Exception $e) {
+            Log::error('Error in getDetailAgenda: ' . $e->getMessage());
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal mengambil detail agenda: ' . $e->getMessage()
+                'message' => 'Gagal memuat detail agenda: ' . $e->getMessage()
             ], 500);
         }
     }
-
+    
     public function deleteProgress($id)
     {
         try {
-            DB::beginTransaction();
-
             $dokumentasi = DokumentasiModel::findOrFail($id);
-            
-            // Hapus file fisik
+    
+            // Hapus file dari storage
             if (Storage::exists($dokumentasi->file_dokumentasi)) {
                 Storage::delete($dokumentasi->file_dokumentasi);
             }
-
-            // Hapus record dokumentasi
-            $agendaId = $dokumentasi->agenda_id;
+    
+            // Hapus data dari database
             $dokumentasi->delete();
-            
-            // Update status agenda
-            $this->updateAgendaStatus($agendaId);
-
-            DB::commit();
-
+    
             return response()->json([
                 'status' => 'success',
                 'message' => 'Dokumentasi berhasil dihapus'
             ]);
-
         } catch (\Exception $e) {
-            DB::rollback();
             return response()->json([
                 'status' => 'error',
                 'message' => 'Gagal menghapus dokumentasi: ' . $e->getMessage()
             ], 500);
         }
     }
-
+    
+    
     public function downloadDokumentasi($id)
     {
         try {
@@ -183,15 +180,4 @@ class AdminUpdateProgressAgendaController extends Controller
         return 'tahap penyelesaian';
     }
 
-    private function updateAgendaStatus($agendaId)
-    {
-        $agenda = AgendaModel::findOrFail($agendaId);
-        $totalUsers = $agenda->users()->count();
-        $uploadedUsers = DokumentasiModel::where('agenda_id', $agendaId)
-                                       ->distinct('user_id')
-                                       ->count('user_id');
-
-        $agenda->status_agenda = $this->determineStatus($uploadedUsers, $totalUsers);
-        $agenda->save();
-    }
 }

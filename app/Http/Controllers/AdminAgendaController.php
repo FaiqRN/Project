@@ -27,9 +27,9 @@ class AdminAgendaController extends Controller
     public function getAgendaList(Request $request)
     {
         try {
-            $query = AgendaModel::with(['user', 'kegiatanJurusan', 'kegiatanProgramStudi'])
+            $query = AgendaModel::with(['users', 'kegiatanJurusan', 'kegiatanProgramStudi'])
                 ->orderBy('tanggal_agenda', 'desc');
-
+    
             return DataTables::of($query)
                 ->addIndexColumn()
                 ->addColumn('nama_kegiatan', function ($agenda) {
@@ -40,8 +40,10 @@ class AdminAgendaController extends Controller
                     }
                     return '-';
                 })
+                // Perbaikan di bagian ini
                 ->addColumn('pic', function ($agenda) {
-                    return $agenda->user ? $agenda->user->nama_user : '-';
+                    // Menggunakan nama_lengkap sebagai gantinya
+                    return $agenda->users->first() ? $agenda->users->first()->nama_lengkap : '-';
                 })
                 ->addColumn('tanggal_agenda', function ($agenda) {
                     return date('d-m-Y', strtotime($agenda->tanggal_agenda));
@@ -55,21 +57,13 @@ class AdminAgendaController extends Controller
                     }
                     return '-';
                 })
-                // Di dalam fungsi getAgendaList controller
                 ->addColumn('aksi', function ($agenda) {
-                    $tanggalMulai = $agenda->kegiatanJurusan ? $agenda->kegiatanJurusan->tanggal_mulai : 
-                                    ($agenda->kegiatanProgramStudi ? $agenda->kegiatanProgramStudi->tanggal_mulai : null);
-                    $tanggalSelesai = $agenda->kegiatanJurusan ? $agenda->kegiatanJurusan->tanggal_selesai : 
-                                      ($agenda->kegiatanProgramStudi ? $agenda->kegiatanProgramStudi->tanggal_selesai : null);
-                    
                     return '<div class="btn-group">
                             <button type="button" class="btn btn-warning btn-sm edit-agenda" 
                                 data-id="' . $agenda->agenda_id . '"
                                 data-nama="' . $agenda->nama_agenda . '"
                                 data-tanggal="' . date('Y-m-d', strtotime($agenda->tanggal_agenda)) . '"
-                                data-deskripsi="' . $agenda->deskripsi . '"
-                                data-tanggal_mulai="' . date('Y-m-d', strtotime($tanggalMulai)) . '"
-                                data-tanggal_selesai="' . date('Y-m-d', strtotime($tanggalSelesai)) . '">
+                                data-deskripsi="' . $agenda->deskripsi . '">
                                 <i class="fas fa-edit"></i> Edit
                             </button>
                             <button type="button" class="btn btn-danger btn-sm delete-agenda" 
@@ -80,7 +74,7 @@ class AdminAgendaController extends Controller
                 })
                 ->rawColumns(['dokumen', 'aksi'])
                 ->make(true);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Terjadi kesalahan: ' . $e->getMessage()
