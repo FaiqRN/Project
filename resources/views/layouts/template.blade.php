@@ -36,10 +36,18 @@
         }
 
         /* Mengubah warna hover pada menu sidebar */
-        .sidebar-dark-primary .nav-sidebar > .nav-item > .nav-link:hover {
+        .sidebar-dark-primary .nav-sidebar > .nav-item > .nav-link:hover,
+        .sidebar-dark-primary .nav-sidebar > .nav-item > .nav-link.active,
+        .sidebar-dark-primary .nav-sidebar .nav-treeview > .nav-item > .nav-link:hover,
+        .sidebar-dark-primary .nav-sidebar .nav-treeview > .nav-item > .nav-link.active {
         background-color: #FF6500 !important;
         color: white !important;
-}
+    }
+
+    .sidebar-dark-primary .nav-sidebar .nav-treeview > .nav-item > .nav-link {
+        background-color: transparent !important;
+        color: white !important;
+    }
 
         /* Mengubah warna header/navbar */
         .main-header.navbar {
@@ -59,22 +67,19 @@
 
         /* Modifikasi tampilan logo POLINEMA */
         .brand-link {
-            background-color: #3868a3 !important;
-            color: white !important;
-            height: 70px !important;
-            display: flex !important;
-            align-items: center !important;
-            padding: 10px 15px !important;
-        }
+        background-color: #3868a3 !important;
+        height: 60px !important;  /* Sesuaikan tinggi dengan navbar */
+        padding: 0 15px !important;
+        display: flex !important;
+        align-items: center !important;
+    }
 
         .brand-link .brand-image {
-            height: 45px !important;
-            width: 45px !important;
-            max-height: 45px !important;
-            margin-left: 0 !important;
-            margin-right: 10px !important;
-            margin-top: 0 !important;
-        }
+        height: 40px !important;
+        width: 40px !important;
+        max-height: 40px !important;
+        margin: 0 10px 0 0 !important;
+    }
 
         .brand-link .brand-text {
             font-size: 22px !important;
@@ -104,24 +109,25 @@
             border-color: #001e6b !important;
             box-shadow: 0 4px 8px rgba(0,0,0,0.2) !important;
         }
+        
         /* Style khusus untuk tombol logout */
         .main-header .btn-danger {
-            background-color: #FF0033 !important;
-            border-color: #FF0033 !important;
-            color: white !important;
-            font-weight: bold !important;
-            padding: 8px 25px !important;
-            text-transform: uppercase !important;
-            letter-spacing: 0.5px !important;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
-            margin-right: 15px !important;
-        }
+        background-color: #FF6500 !important;
+        border-color: #FF6500 !important;
+        color: white !important;
+        font-weight: bold !important;
+        padding: 8px 25px !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+        margin-right: 15px !important;
+    }
 
-        .main-header .btn-danger:hover {
-            background-color: #ba0725 !important;
-            border-color: #ba0725 !important;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2) !important;
-        }
+    .main-header .btn-danger:hover {
+        background-color: #cc3310 !important;
+        border-color: #cc3310 !important;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2) !important;
+    }
 
         /* Style untuk navbar buttons container */
         .main-header .navbar-nav {

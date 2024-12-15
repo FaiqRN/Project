@@ -7,22 +7,25 @@ use App\Models\DokumentasiModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Log;
-use ZipArchive;
 use Illuminate\Support\Facades\DB;
+use ZipArchive;
 
 class AdminUpdateProgressAgendaController extends Controller
 {
     public function index()
-    {
-        // Ambil data agenda dengan relasi yang dibutuhkan
+{
+    try {
+        // Ambil semua agenda dengan eager loading dan ordering
         $agendas = AgendaModel::with([
             'kegiatanJurusan',
             'kegiatanProgramStudi',
             'dokumentasi',
-            'users'
-        ])->get();
-    
+            'users.dokumentasi'
+        ])
+        ->orderBy('tanggal_agenda', 'asc')  // Urutkan berdasarkan tanggal
+        ->orderBy('agenda_id', 'asc')       // Kemudian berdasarkan ID
+        ->get();
+
         // Hitung progress untuk setiap agenda
         $agendas = $agendas->map(function($agenda) {
             $totalUsers = $agenda->users()->count();
@@ -42,7 +45,7 @@ class AdminUpdateProgressAgendaController extends Controller
             $agenda->setAttribute('display_status', $this->determineStatus($uploadedUsers, $totalUsers));
             return $agenda;
         });
-    
+
         return view('admin.dosen.update-progress', [
             'agendas' => $agendas,
             'breadcrumb' => (object)[
@@ -50,50 +53,62 @@ class AdminUpdateProgressAgendaController extends Controller
                 'list' => ['Home', 'Dosen', 'Update Progress Agenda']
             ]
         ]);
+    } catch (\Exception $e) {
+        return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
     }
-
+}
     public function getDetailAgenda($id)
     {
         try {
+            // Ambil agenda dengan eager loading
             $agenda = AgendaModel::with([
-                'kegiatanJurusan',
-                'kegiatanProgramStudi',
-                'users'
+                'kegiatanJurusan', 
+                'kegiatanProgramStudi', 
+                'users' => function($query) {
+                    $query->with(['dokumentasi' => function($q) {
+                        $q->orderBy('created_at', 'desc');
+                    }]);
+                }
             ])->findOrFail($id);
-    
-            $userSubmissions = [];
-            foreach ($agenda->users as $user) {
-                $dokumentasi = DokumentasiModel::where('agenda_id', $id)
-                                             ->where('user_id', $user->user_id)
-                                             ->first();
+
+            // Ambil dokumentasi terkait agenda ini
+            $dokumentasi = DokumentasiModel::where('agenda_id', $id)
+                                         ->with('user')
+                                         ->get()
+                                         ->keyBy('user_id');
+
+            // Map user submissions dengan informasi lengkap
+            $userSubmissions = $agenda->users->map(function ($user) use ($dokumentasi) {
+                $dokUser = $dokumentasi->get($user->user_id);
                 
-                $userSubmissions[] = [
+                return [
                     'user_id' => $user->user_id,
-                    'user_name' => $user->nama,
-                    'has_submitted' => !is_null($dokumentasi),
-                    'submission_date' => $dokumentasi ? $dokumentasi->tanggal : null,
-                    'dokumentasi' => $dokumentasi ? [
-                        'id' => $dokumentasi->dokumentasi_id,
-                        'nama' => $dokumentasi->nama_dokumentasi,
-                        'deskripsi' => $dokumentasi->deskripsi_dokumentasi,
-                        'file_name' => basename($dokumentasi->file_dokumentasi),
-                        'tanggal' => $dokumentasi->tanggal
+                    'nama_dosen' => $user->nama_lengkap,
+                    'has_submitted' => !is_null($dokUser),
+                    'dokumentasi' => $dokUser ? [
+                        'id' => $dokUser->dokumentasi_id,
+                        'nama_file' => $dokUser->nama_dokumentasi
                     ] : null
                 ];
-            }
-    
+            });
+
             return response()->json([
                 'status' => 'success',
                 'data' => [
-                    'agenda' => $agenda,
+                    'agenda' => [
+                        'nama_agenda' => $agenda->nama_agenda,
+                        'jenis_kegiatan' => $agenda->kegiatanJurusan 
+                            ? $agenda->kegiatanJurusan->nama_kegiatan_jurusan 
+                            : $agenda->kegiatanProgramStudi->nama_kegiatan_program_studi,
+                        'tanggal' => $agenda->tanggal_agenda
+                    ],
                     'user_submissions' => $userSubmissions
                 ]
             ]);
-    
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal mengambil detail agenda: ' . $e->getMessage()
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
             ], 500);
         }
     }
@@ -105,16 +120,13 @@ class AdminUpdateProgressAgendaController extends Controller
 
             $dokumentasi = DokumentasiModel::findOrFail($id);
             
-            // Hapus file fisik
             if (Storage::exists($dokumentasi->file_dokumentasi)) {
                 Storage::delete($dokumentasi->file_dokumentasi);
             }
 
-            // Hapus record dokumentasi
             $agendaId = $dokumentasi->agenda_id;
             $dokumentasi->delete();
             
-            // Update status agenda
             $this->updateAgendaStatus($agendaId);
 
             DB::commit();
@@ -145,7 +157,6 @@ class AdminUpdateProgressAgendaController extends Controller
                 throw new \Exception('Tidak ada file dokumentasi untuk diunduh');
             }
 
-            // Buat ZIP file
             $zipFileName = 'dokumentasi_' . $agenda->agenda_id . '.zip';
             $tempPath = storage_path('app/temp');
             $zipPath = $tempPath . '/' . $zipFileName;
@@ -162,7 +173,7 @@ class AdminUpdateProgressAgendaController extends Controller
             foreach ($dokumentasi as $file) {
                 if (Storage::exists($file->file_dokumentasi)) {
                     $originalFile = storage_path('app/' . $file->file_dokumentasi);
-                    $fileName = $file->user->nama . '_' . basename($file->file_dokumentasi);
+                    $fileName = $file->user->nama_lengkap . '_' . basename($file->file_dokumentasi);
                     $zip->addFile($originalFile, $fileName);
                 }
             }
@@ -193,5 +204,12 @@ class AdminUpdateProgressAgendaController extends Controller
 
         $agenda->status_agenda = $this->determineStatus($uploadedUsers, $totalUsers);
         $agenda->save();
+
+        // Update status kegiatan jika diperlukan
+        if($agenda->kegiatanJurusan) {
+            $agenda->kegiatanJurusan->checkStatus();
+        } elseif($agenda->kegiatanProgramStudi) {
+            $agenda->kegiatanProgramStudi->checkStatus();
+        }
     }
 }

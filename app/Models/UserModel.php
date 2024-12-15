@@ -60,4 +60,9 @@ class UserModel extends Model
         return $this->belongsToMany(AgendaModel::class, 't_agenda_user', 'user_id', 'agenda_id')
                     ->withTimestamps();
     }
+
+    public function dokumentasi()
+{
+    return $this->hasMany(DokumentasiModel::class, 'user_id', 'user_id');
+}
 }
