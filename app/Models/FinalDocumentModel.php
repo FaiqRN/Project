@@ -23,7 +23,11 @@ class FinalDocumentModel extends Model
     protected static function boot()
     {
         parent::boot();
-        
+        static::saving(function ($model) {
+            if (!empty($model->kegiatan_jurusan_id) && !empty($model->kegiatan_program_studi_id)) {
+                throw new \Exception('Dokumen hanya boleh terkait dengan satu kegiatan');
+            }
+        });
         // Ketika dokumen final disimpan
         static::saved(function($finalDoc) {
             if($finalDoc->kegiatan_jurusan_id) {
@@ -34,12 +38,6 @@ class FinalDocumentModel extends Model
         });
 
         // Ketika dokumen final dihapus
-        static::deleted(function($finalDoc) {
-            if($finalDoc->kegiatan_jurusan_id) {
-                $finalDoc->kegiatanJurusan->checkStatus();
-            } elseif($finalDoc->kegiatan_program_studi_id) {
-                $finalDoc->kegiatanProdi->checkStatus();
-            }
-        });
+
     }
 }

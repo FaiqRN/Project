@@ -31,6 +31,7 @@ class UnggahDokumenAkhirController extends Controller
 
         // Ambil kegiatan jurusan
         $kegiatanJurusan = KegiatanJurusanModel::where('user_id', $userId)
+            ->where('status_kegiatan', 'selesai')
             ->with(['finalDocument'])
             ->get()
             ->map(function ($kegiatan) {
@@ -46,6 +47,7 @@ class UnggahDokumenAkhirController extends Controller
 
         // Ambil kegiatan program studi
         $kegiatanProdi = KegiatanProgramStudiModel::where('user_id', $userId)
+            ->where('status_kegiatan', 'selesai')
             ->with(['finalDocument'])
             ->get()
             ->map(function ($kegiatan) {
@@ -110,25 +112,33 @@ class UnggahDokumenAkhirController extends Controller
             ]);
 
             // Upload file
+            if ($request->kegiatan_type === 'jurusan') {
+                $kegiatan = KegiatanJurusanModel::findOrFail($request->kegiatan_id);
+                $finalDoc = FinalDocumentModel::firstOrNew([
+                    'kegiatan_jurusan_id' => $request->kegiatan_id
+                ]);
+            } else {
+                $kegiatan = KegiatanProgramStudiModel::findOrFail($request->kegiatan_id);
+                $finalDoc = FinalDocumentModel::firstOrNew([
+                    'kegiatan_program_studi_id' => $request->kegiatan_id
+                ]);
+            }
+
+            // Hapus file lama jika ada
+            if ($finalDoc->exists && Storage::exists($finalDoc->file_akhir)) {
+                Storage::delete($finalDoc->file_akhir);
+            }
+
+            // Upload file baru
             $file = $request->file('dokumen_akhir');
             $fileName = time() . '_' . $file->getClientOriginalName();
             $path = $file->storeAs('public/dokumen_akhir', $fileName);
 
-            // Simpan dokumen final
-            $finalDoc = new FinalDocumentModel();
+            // Update atau buat dokumen baru
             $finalDoc->file_akhir = $path;
-
-            if ($request->kegiatan_type === 'jurusan') {
-                $finalDoc->kegiatan_jurusan_id = $request->kegiatan_id;
-                $kegiatan = KegiatanJurusanModel::findOrFail($request->kegiatan_id);
-            } else {
-                $finalDoc->kegiatan_program_studi_id = $request->kegiatan_id;
-                $kegiatan = KegiatanProgramStudiModel::findOrFail($request->kegiatan_id);
-            }
-
             $finalDoc->save();
 
-            // Update status kegiatan
+            // Pastikan status kegiatan tetap selesai
             $kegiatan->status_kegiatan = 'selesai';
             $kegiatan->save();
 
@@ -136,6 +146,7 @@ class UnggahDokumenAkhirController extends Controller
             return response()->json(['message' => 'Dokumen akhir berhasil diunggah'], 200);
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::error('Error storing document: ' . $e->getMessage());
             return response()->json(['message' => 'Terjadi kesalahan: ' . $e->getMessage()], 500);
         }
     }
@@ -148,8 +159,14 @@ class UnggahDokumenAkhirController extends Controller
             } else {
                 $finalDoc = FinalDocumentModel::where('kegiatan_program_studi_id', $id)->firstOrFail();
             }
+            
+            if (!Storage::exists($finalDoc->file_akhir)) {
+                throw new \Exception('File tidak ditemukan di storage');
+            }
+            
             return Storage::download($finalDoc->file_akhir);
         } catch (\Exception $e) {
+            Log::error('Error downloading document: ' . $e->getMessage());
             return response()->json(['message' => 'File tidak ditemukan'], 404);
         }
     }
@@ -168,8 +185,10 @@ class UnggahDokumenAkhirController extends Controller
             // Cari dokumen yang akan diupdate
             if ($request->kegiatan_type === 'jurusan') {
                 $finalDoc = FinalDocumentModel::where('kegiatan_jurusan_id', $request->kegiatan_id)->firstOrFail();
+                $kegiatan = KegiatanJurusanModel::findOrFail($request->kegiatan_id);
             } else {
                 $finalDoc = FinalDocumentModel::where('kegiatan_program_studi_id', $request->kegiatan_id)->firstOrFail();
+                $kegiatan = KegiatanProgramStudiModel::findOrFail($request->kegiatan_id);
             }
     
             // Hapus file lama jika ada

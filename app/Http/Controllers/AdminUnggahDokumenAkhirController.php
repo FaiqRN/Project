@@ -108,19 +108,29 @@ class AdminUnggahDokumenAkhirController extends Controller
                 'dokumen_akhir' => 'required|file|mimes:pdf|max:10240'
             ]);
 
+            // Upload file baru
             $file = $request->file('dokumen_akhir');
             $fileName = time() . '_' . $file->getClientOriginalName();
             $path = $file->storeAs('public/dokumen_akhir', $fileName);
 
-            $finalDoc = new FinalDocumentModel();
-            $finalDoc->file_akhir = $path;
-
+            // Cek apakah sudah ada dokumen sebelumnya
             if ($request->kegiatan_type === 'jurusan') {
-                $finalDoc->kegiatan_jurusan_id = $request->kegiatan_id;
+                $finalDoc = FinalDocumentModel::firstOrNew([
+                    'kegiatan_jurusan_id' => $request->kegiatan_id
+                ]);
             } else {
-                $finalDoc->kegiatan_program_studi_id = $request->kegiatan_id;
+                $finalDoc = FinalDocumentModel::firstOrNew([
+                    'kegiatan_program_studi_id' => $request->kegiatan_id
+                ]);
             }
 
+            // Hapus file lama jika ada
+            if ($finalDoc->exists && Storage::exists($finalDoc->file_akhir)) {
+                Storage::delete($finalDoc->file_akhir);
+            }
+
+            // Update atau buat dokumen baru
+            $finalDoc->file_akhir = $path;
             $finalDoc->save();
 
             DB::commit();
@@ -174,8 +184,10 @@ class AdminUnggahDokumenAkhirController extends Controller
 
             if ($type === 'jurusan') {
                 $finalDoc = FinalDocumentModel::where('kegiatan_jurusan_id', $id)->firstOrFail();
+                $kegiatan = KegiatanJurusanModel::findOrFail($id);
             } else {
                 $finalDoc = FinalDocumentModel::where('kegiatan_program_studi_id', $id)->firstOrFail();
+                $kegiatan = KegiatanProgramStudiModel::findOrFail($id);
             }
 
             if (Storage::exists($finalDoc->file_akhir)) {
@@ -185,7 +197,10 @@ class AdminUnggahDokumenAkhirController extends Controller
             $finalDoc->delete();
 
             DB::commit();
-            return response()->json(['message' => 'Dokumen berhasil dihapus'], 200);
+            return response()->json([
+                'message' => 'Dokumen berhasil dihapus. Dosen dapat mengunggah ulang dokumen.',
+                'status' => 'success'
+            ], 200);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['message' => 'Terjadi kesalahan: ' . $e->getMessage()], 500);

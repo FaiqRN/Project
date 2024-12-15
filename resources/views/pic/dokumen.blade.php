@@ -17,7 +17,7 @@
                                     <th>Nama Kegiatan</th>
                                     <th width="15%">Status</th>
                                     <th width="15%">Dokumen Akhir</th>
-                                    <th width="15%">Aksi</th>
+                                    <th width="20%">Aksi</th>
                                 </tr>
                             </thead>
                         </table>
@@ -34,7 +34,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Unggah Dokumen Akhir</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close" data-dismiss="modal">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -64,7 +64,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Edit Dokumen Akhir</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close" data-dismiss="modal">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -116,7 +116,6 @@
 <script src="{{ asset('adminlte/plugins/sweetalert2/sweetalert2.min.js') }}"></script>
 <script>
 $(document).ready(function() {
-    // Inisialisasi DataTable
     var table = $('#kegiatan-table').DataTable({
         processing: true,
         serverSide: true,
@@ -141,10 +140,11 @@ $(document).ready(function() {
                 next: "Selanjutnya",
                 previous: "Sebelumnya"
             }
-        }
+        },
+        order: [[1, 'asc']]
     });
 
-    // Handle tombol upload
+    // Handle tombol upload dan re-upload
     $('#kegiatan-table').on('click', '.upload-btn', function() {
         $('#kegiatan_id').val($(this).data('id'));
         $('#kegiatan_type').val($(this).data('type'));
@@ -162,7 +162,7 @@ $(document).ready(function() {
     $('#kegiatan-table').on('click', '.download-btn', function() {
         var id = $(this).data('id');
         var type = $(this).data('type');
-        window.location.href = "{{ url('dosen/dokumen/download') }}/" + id + "/" + type;
+        window.location.href = "{{ route('pic.unggah-dokumen.download', ['', '']) }}/" + id + "/" + type;
     });
 
     // Handle submit form upload
@@ -181,14 +181,20 @@ $(document).ready(function() {
                 Swal.fire({
                     title: 'Berhasil!',
                     text: response.message,
-                    icon: 'success'
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
                 });
                 table.ajax.reload();
             },
             error: function(xhr) {
+                let message = 'Terjadi kesalahan';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    message = xhr.responseJSON.message;
+                }
                 Swal.fire({
                     title: 'Error!',
-                    text: xhr.responseJSON.message,
+                    text: message,
                     icon: 'error'
                 });
             }
@@ -211,14 +217,20 @@ $(document).ready(function() {
                 Swal.fire({
                     title: 'Berhasil!',
                     text: response.message,
-                    icon: 'success'
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
                 });
                 table.ajax.reload();
             },
             error: function(xhr) {
+                let message = 'Terjadi kesalahan';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    message = xhr.responseJSON.message;
+                }
                 Swal.fire({
                     title: 'Error!',
-                    text: xhr.responseJSON.message,
+                    text: message,
                     icon: 'error'
                 });
             }
