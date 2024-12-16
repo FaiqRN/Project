@@ -38,15 +38,15 @@
                 <a href="#" class="nav-link {{ $activemenu === 'beban-kerja' ? 'active' : '' }}">
                     <i class="fa fa-fw fa-chart-bar nav-icon"></i>
                     <p>
-                        Beban Kerja
+                        Statistik
                         <i class="fa fa-fw fa-angle-left right"></i>
                     </p>
                 </a>
                 <ul class="nav nav-treeview">
                     <li class="nav-item">
-                        <a href="{{ route('kaprodi.beban-kerja.index') }}" class="nav-link">
-                            <i class="fas fa-chart-line nav-icon"></i>
-                            <p>Statistik Beban Kerja</p>
+                        <a href="{{ route('kaprodi.beban-kerja.index') }}" class="nav-link {{ request()->routeIs('kaprodi.beban-kerja.*') ? 'active' : '' }}">
+                            <i class="fas fa-cogs"></i>
+                            <p>Beban Kerja</p>
                         </a>
                     </li>
                 </ul>
