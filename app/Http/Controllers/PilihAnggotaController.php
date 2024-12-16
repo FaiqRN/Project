@@ -1,6 +1,8 @@
 <?php
 
+
 namespace App\Http\Controllers;
+
 
 use App\Models\AgendaModel;
 use App\Models\UserModel;
@@ -11,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
 
+
 class PilihAnggotaController extends Controller
 {
     public function index()
@@ -20,11 +23,12 @@ class PilihAnggotaController extends Controller
             ->where('user_id', $userId)
             ->where('status_kegiatan', 'berlangsung')
             ->first();
-            
+           
         $kegiatanProdi = KegiatanProgramStudiModel::with(['surat'])
             ->where('user_id', $userId)
             ->where('status_kegiatan', 'berlangsung')
             ->first();
+
 
         $agendas = AgendaModel::where(function($query) use ($kegiatanJurusan, $kegiatanProdi) {
             if ($kegiatanJurusan) {
@@ -35,19 +39,22 @@ class PilihAnggotaController extends Controller
             }
         })->get();
 
-        $dosens = UserModel::where('level_id', 3)->get();
-        
+
+        // Modified to get all users with level 3 (dosen) and level 4 (PIC)
+        $users = UserModel::whereIn('level_id', [3, 4])->get();
+       
         return view('pic.pilih', [
             'kegiatanJurusan' => $kegiatanJurusan,
             'kegiatanProdi' => $kegiatanProdi,
             'agendas' => $agendas,
-            'dosens' => $dosens,
+            'dosens' => $users, // Changed variable name to be more generic since it now includes PIC
             'breadcrumb' => (object)[
                 'title' => 'Pilih Anggota',
                 'list' => ['Home', 'Agenda', 'Pilih Anggota']
             ]
         ]);
     }
+
 
     public function getData()
     {
@@ -60,6 +67,7 @@ class PilihAnggotaController extends Controller
             $kegiatanProdi = KegiatanProgramStudiModel::where('user_id', $userId)
                 ->where('status_kegiatan', 'berlangsung')
                 ->first();
+
 
             $query = DB::table('t_agenda_user as au')
                 ->join('t_agenda as a', 'au.agenda_id', '=', 'a.agenda_id')
@@ -77,11 +85,16 @@ class PilihAnggotaController extends Controller
                     'a.agenda_id',
                     'a.nama_agenda',
                     'u.nama_lengkap',
-                    'u.nidn'
+                    'u.nidn',
+                    'u.level_id' // Added level_id to identify user type
                 ]);
+
 
             return DataTables::of($query)
                 ->addIndexColumn()
+                ->addColumn('role', function($row) {
+                    return $row->level_id == 3 ? 'Dosen' : 'PIC';
+                })
                 ->addColumn('action', function($row) {
                     return '<div class="btn-group">
                     <button type="button" class="btn btn-warning btn-sm" onclick="editData('.$row->id.')">
@@ -95,6 +108,7 @@ class PilihAnggotaController extends Controller
                 ->rawColumns(['action'])
                 ->make(true);
 
+
         } catch (\Exception $e) {
             return response()->json([
                 'error' => true,
@@ -103,6 +117,8 @@ class PilihAnggotaController extends Controller
         }
     }
 
+
+    // Rest of the methods remain the same...
     public function store(Request $request)
     {
         try {
@@ -111,7 +127,7 @@ class PilihAnggotaController extends Controller
                 'user_ids' => 'required|array|min:1',
                 'user_ids.*' => 'required|exists:m_user,user_id'
             ]);
-    
+   
             $userId = session('user_id');
             $agenda = AgendaModel::findOrFail($request->agenda_id);
            
@@ -125,27 +141,27 @@ class PilihAnggotaController extends Controller
                     ->where('user_id', $userId)
                     ->exists();
             }
-    
+   
             if (!$hasAccess) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Anda tidak memiliki akses untuk agenda ini'
                 ], 403);
             }
-    
+   
             // Cek duplikasi untuk semua user_id
             $existingUsers = AgendaUserModel::where('agenda_id', $request->agenda_id)
                 ->whereIn('user_id', $request->user_ids)
                 ->pluck('user_id')
                 ->toArray();
-                
+               
             if (!empty($existingUsers)) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Beberapa dosen sudah ditambahkan ke agenda ini'
+                    'message' => 'Beberapa dosen/PIC sudah ditambahkan ke agenda ini'
                 ], 422);
             }
-    
+   
             // Simpan semua data anggota
             $dataToInsert = array_map(function($user_id) use ($request) {
                 return [
@@ -155,14 +171,14 @@ class PilihAnggotaController extends Controller
                     'updated_at' => now()
                 ];
             }, $request->user_ids);
-    
+   
             AgendaUserModel::insert($dataToInsert);
-    
+   
             return response()->json([
                 'success' => true,
-                'message' => 'Berhasil menambahkan dosen ke agenda'
+                'message' => 'Berhasil menambahkan anggota ke agenda'
             ]);
-    
+   
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -170,6 +186,7 @@ class PilihAnggotaController extends Controller
             ], 500);
         }
     }
+
 
     public function edit($id)
     {
@@ -178,6 +195,7 @@ class PilihAnggotaController extends Controller
             $agendaUser = AgendaUserModel::with('agenda')->findOrFail($id);
             $agenda = $agendaUser->agenda;
 
+
             $hasAccess = false;
             if ($agenda->kegiatan_jurusan_id) {
                 $hasAccess = KegiatanJurusanModel::where('kegiatan_jurusan_id', $agenda->kegiatan_jurusan_id)
@@ -189,6 +207,7 @@ class PilihAnggotaController extends Controller
                     ->exists();
             }
 
+
             if (!$hasAccess) {
                 return response()->json([
                     'success' => false,
@@ -196,10 +215,12 @@ class PilihAnggotaController extends Controller
                 ], 403);
             }
 
+
             return response()->json([
                 'success' => true,
                 'data' => $agendaUser
             ]);
+
 
         } catch (\Exception $e) {
             return response()->json([
@@ -208,6 +229,7 @@ class PilihAnggotaController extends Controller
             ], 500);
         }
     }
+
 
     public function update(Request $request, $id)
     {
@@ -215,11 +237,11 @@ class PilihAnggotaController extends Controller
             $request->validate([
                 'user_id' => 'required|exists:m_user,user_id'
             ]);
-    
+   
             $userId = session('user_id');
             $agendaUser = AgendaUserModel::with('agenda')->findOrFail($id);
             $agenda = $agendaUser->agenda;
-    
+   
             $hasAccess = false;
             if ($agenda->kegiatan_jurusan_id) {
                 $hasAccess = KegiatanJurusanModel::where('kegiatan_jurusan_id', $agenda->kegiatan_jurusan_id)
@@ -230,36 +252,36 @@ class PilihAnggotaController extends Controller
                     ->where('user_id', $userId)
                     ->exists();
             }
-    
+   
             if (!$hasAccess) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Anda tidak memiliki akses untuk agenda ini'
                 ], 403);
             }
-    
+   
             // Cek duplikasi
             $exists = AgendaUserModel::where('agenda_id', $agenda->agenda_id)
                                    ->where('user_id', $request->user_id)
                                    ->where('id', '!=', $id)
                                    ->exists();
-            
+           
             if ($exists) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Dosen sudah ditambahkan ke agenda ini'
+                    'message' => 'Anggota sudah ditambahkan ke agenda ini'
                 ], 422);
             }
-    
+   
             // Update hanya user_id
             $agendaUser->user_id = $request->user_id;
             $agendaUser->save();
-    
+   
             return response()->json([
                 'success' => true,
                 'message' => 'Data berhasil diperbarui'
             ]);
-    
+   
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -268,13 +290,14 @@ class PilihAnggotaController extends Controller
         }
     }
 
+
     public function destroy($id)
     {
         try {
             $userId = session('user_id');
             $agendaUser = AgendaUserModel::with('agenda')->findOrFail($id);
             $agenda = $agendaUser->agenda;
-    
+   
             $hasAccess = false;
             if ($agenda->kegiatan_jurusan_id) {
                 $hasAccess = KegiatanJurusanModel::where('kegiatan_jurusan_id', $agenda->kegiatan_jurusan_id)
@@ -285,21 +308,21 @@ class PilihAnggotaController extends Controller
                     ->where('user_id', $userId)
                     ->exists();
             }
-    
+   
             if (!$hasAccess) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Anda tidak memiliki akses untuk agenda ini'
                 ], 403);
             }
-    
+   
             $agendaUser->delete();
-    
+   
             return response()->json([
                 'success' => true,
                 'message' => 'Data berhasil dihapus'
             ]);
-    
+   
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -308,3 +331,4 @@ class PilihAnggotaController extends Controller
         }
     }
 }
+

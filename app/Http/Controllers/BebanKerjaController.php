@@ -8,334 +8,131 @@ use App\Models\PoinJurusanModel;
 use App\Models\PoinProgramStudiModel;
 use App\Models\PoinInstitusiModel;
 use App\Models\PoinLuarInstitusiModel;
+use App\Models\JabatanModel;
+use App\Models\KegiatanLuarInstitusiModel;
+use App\Models\KegiatanInstitusiModel;
+use App\Models\KegiatanJurusanModel;
+use App\Models\KegiatanProgramStudiModel;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use Dompdf\Dompdf;
-use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\DB;
+
 class BebanKerjaController extends Controller
 {
     public function index()
     {
+        $currentMonth = Carbon::now();
+        $totalDosen = $this->hitungTotalDosen();
+        $totalKegiatan = $this->hitungTotalKegiatan($currentMonth);
+        $totalPoin = $this->hitungTotalPoin($currentMonth);
+
         return view('kaprodi.beban-kerja.statistik', [
+            'totalDosen' => $totalDosen,
+            'totalKegiatan' => $totalKegiatan,
+            'totalPoin' => $totalPoin,
+            'currentMonth' => $currentMonth->format('F Y'),
             'breadcrumb' => (object)[
                 'title' => 'Statistik Beban Kerja',
-                'list' => ['Home', 'Statistik', 'Beban Kerja']
+                'list' => ['Home', 'Beban Kerja', 'Statistik']
             ]
         ]);
     }
 
+    // Fungsi menghitung total dosen
+    private function hitungTotalDosen()
+    {
+        return DB::table('m_user')->where('level_id', 3)->count();
+    }
+
+    // Fungsi menghitung total kegiatan selesai
+    private function hitungTotalKegiatan($currentMonth)
+    {
+        $startDate = $currentMonth->copy()->startOfMonth();
+        $endDate = $currentMonth->copy()->endOfMonth();
+
+        $tables = [
+            't_kegiatan_jurusan',
+            't_kegiatan_program_studi',
+            't_kegiatan_institusi',
+            't_kegiatan_luar_institusi',
+        ];
+
+        $total = 0;
+
+        foreach ($tables as $table) {
+            $total += DB::table($table)
+                ->where('status_kegiatan', 'selesai')
+                ->whereBetween('created_at', [$startDate, $endDate])
+                ->count();
+        }
+
+        return $total;
+    }
+
+    // Fungsi menghitung total poin
+    private function hitungTotalPoin($currentMonth)
+    {
+        $startDate = $currentMonth->copy()->startOfMonth();
+        $endDate = $currentMonth->copy()->endOfMonth();
+
+        $queries = [
+            ['t_poin_jurusan', 't_kegiatan_jurusan', 'kegiatan_jurusan_id'],
+            ['t_poin_program_studi', 't_kegiatan_program_studi', 'kegiatan_program_studi_id'],
+            ['t_poin_institusi', 't_kegiatan_institusi', 'kegiatan_institusi_id'],
+            ['t_poin_luar_institusi', 't_kegiatan_luar_institusi', 'kegiatan_luar_institusi_id']
+        ];
+
+        $totalPoin = 0;
+
+        foreach ($queries as $query) {
+            [$poinTable, $kegiatanTable, $kegiatanId] = $query;
+
+            $totalPoin += DB::table($poinTable)
+                ->join('t_jabatan', "$poinTable.jabatan_id", '=', 't_jabatan.jabatan_id')
+                ->join($kegiatanTable, "t_jabatan.$kegiatanId", '=', "$kegiatanTable.$kegiatanId")
+                ->where("$kegiatanTable.status_kegiatan", 'selesai')
+                ->whereBetween("$kegiatanTable.created_at", [$startDate, $endDate])
+                ->sum("$poinTable.total_poin");
+        }
+
+        return $totalPoin;
+    }
+
+    // Fungsi Statistik Data untuk Chart
     public function getStatistikData(Request $request)
     {
-        try {
-            // Parse tanggal dari request dengan validasi
-            $startDate = $request->has('start_date') ? 
-                        Carbon::parse($request->start_date)->startOfDay() : 
-                        Carbon::now()->subMonths(6)->startOfDay();
-            $endDate = $request->has('end_date') ? 
-                      Carbon::parse($request->end_date)->endOfDay() : 
-                      Carbon::now()->endOfDay();
+        $bulan = $request->get('bulan', date('Y-m'));
+        $startDate = Carbon::createFromFormat('Y-m', $bulan)->startOfMonth();
+        $endDate = Carbon::createFromFormat('Y-m', $bulan)->endOfMonth();
 
-            // Ambil semua user dosen dan PIC
-            $dosen = UserModel::whereHas('level', function($q) {
-                $q->whereIn('level_nama', ['Dosen', 'PIC']);
-            })->get();
+        $data = DB::table('m_user as u')
+            ->select(
+                'u.nama_lengkap',
+                DB::raw('SUM(
+                    COALESCE(pj.total_poin, 0) +
+                    COALESCE(pp.total_poin, 0) +
+                    COALESCE(pi.total_poin, 0) +
+                    COALESCE(pl.total_poin, 0)
+                ) as total_poin')
+            )
+            ->leftJoin('t_jabatan as j', 'u.user_id', '=', 'j.user_id')
+            ->leftJoin('t_poin_jurusan as pj', 'j.jabatan_id', '=', 'pj.jabatan_id')
+            ->leftJoin('t_poin_program_studi as pp', 'j.jabatan_id', '=', 'pp.jabatan_id')
+            ->leftJoin('t_poin_institusi as pi', 'j.jabatan_id', '=', 'pi.jabatan_id')
+            ->leftJoin('t_poin_luar_institusi as pl', 'j.jabatan_id', '=', 'pl.jabatan_id')
+            ->where('u.level_id', 3)
+            ->groupBy('u.user_id', 'u.nama_lengkap')
+            ->havingRaw('SUM(
+                COALESCE(pj.total_poin, 0) +
+                COALESCE(pp.total_poin, 0) +
+                COALESCE(pi.total_poin, 0) +
+                COALESCE(pl.total_poin, 0)
+            ) > 0')
+            ->get();
 
-            $data = [];
-            $maxPoin = 0;
-
-            foreach($dosen as $d) {
-                // Hitung poin untuk setiap jenis kegiatan
-                $poinData = $this->calculateUserPoints($d->user_id, $startDate, $endDate);
-                $totalPoin = array_sum($poinData);
-                
-                if($totalPoin > $maxPoin) {
-                    $maxPoin = $totalPoin;
-                }
-
-                $data[] = array_merge([
-                    'user_id' => $d->user_id,
-                    'nama' => $d->nama_lengkap,
-                    'nidn' => $d->nidn,
-                    'program_studi' => $d->program_studi
-                ], $poinData);
-            }
-
-            // Normalisasi dengan SAW (nilai lebih kecil = prioritas lebih tinggi)
-            $normalizedData = $this->normalizeDataSAW($data, $maxPoin);
-
-            return response()->json([
-                'status' => 'success',
-                'data' => $normalizedData
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    public function detailPoin()
-    {
-        return view('kaprodi.beban-kerja.detail-poin', [
-            'breadcrumb' => (object)[
-                'title' => 'Detail Poin Beban Kerja',
-                'list' => ['Home', 'Statistik', 'Detail Poin']
-            ]
+        return response()->json([
+            'labels' => $data->pluck('nama_lengkap'),
+            'poin' => $data->pluck('total_poin')
         ]);
-    }
-
-    public function getDetailData(Request $request)
-    {
-        try {
-            $startDate = $request->has('start_date') ? 
-                        Carbon::parse($request->start_date)->startOfDay() : 
-                        Carbon::now()->subMonths(6)->startOfDay();
-            $endDate = $request->has('end_date') ? 
-                      Carbon::parse($request->end_date)->endOfDay() : 
-                      Carbon::now()->endOfDay();
-
-            $detailData = $this->getCompleteDetailData($startDate, $endDate);
-
-            return response()->json([
-                'status' => 'success',
-                'data' => $detailData
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    public function downloadPDF(Request $request)
-    {
-        try {
-            $startDate = Carbon::parse($request->start_date)->startOfDay();
-            $endDate = Carbon::parse($request->end_date)->endOfDay();
-    
-            $data = $this->getCompleteDetailData($startDate, $endDate);
-    
-            // Generate PDF content
-            $html = view('kaprodi.beban-kerja.pdf', [
-                'data' => $data,
-                'periode' => [
-                    'start' => $startDate->format('d M Y'),
-                    'end' => $endDate->format('d M Y')
-                ]
-            ])->render();
-    
-            // Create PDF using DomPDF
-            $dompdf = new \Dompdf\Dompdf();
-            $dompdf->loadHtml($html);
-            $dompdf->setPaper('A4', 'landscape');
-            $dompdf->render();
-    
-            // Output PDF for download
-            return $dompdf->stream('laporan-beban-kerja.pdf', [
-                "Attachment" => true
-            ]);
-    
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Gagal mengunduh PDF: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    public function downloadExcel(Request $request)
-    {
-        try {
-            $startDate = Carbon::parse($request->start_date)->startOfDay();
-            $endDate = Carbon::parse($request->end_date)->endOfDay();
-    
-            // Ambil data
-            $data = $this->getCompleteDetailData($startDate, $endDate);
-    
-            // Buat spreadsheet baru
-            $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
-            $sheet = $spreadsheet->getActiveSheet();
-    
-            // Set header
-            $sheet->setCellValue('A1', 'Nama');
-            $sheet->setCellValue('B1', 'NIDN');
-            $sheet->setCellValue('C1', 'Program Studi');
-            $sheet->setCellValue('D1', 'Poin Jurusan');
-            $sheet->setCellValue('E1', 'Poin Prodi');
-            $sheet->setCellValue('F1', 'Poin Institusi');
-            $sheet->setCellValue('G1', 'Poin Luar Institusi');
-            $sheet->setCellValue('H1', 'Total Poin');
-            $sheet->setCellValue('I1', 'Ranking');
-    
-            // Isi data
-            $row = 2;
-            foreach($data as $item) {
-                $sheet->setCellValue('A'.$row, $item['nama']);
-                $sheet->setCellValue('B'.$row, $item['nidn']);
-                $sheet->setCellValue('C'.$row, $item['program_studi']);
-                $sheet->setCellValue('D'.$row, $item['total_poin']['jurusan']);
-                $sheet->setCellValue('E'.$row, $item['total_poin']['prodi']);
-                $sheet->setCellValue('F'.$row, $item['total_poin']['institusi']);
-                $sheet->setCellValue('G'.$row, $item['total_poin']['luar_institusi']);
-                $sheet->setCellValue('H'.$row, $item['total_keseluruhan']);
-                $sheet->setCellValue('I'.$row, $row-1);
-                $row++;
-            }
-    
-            // Auto-size columns
-            foreach(range('A','I') as $col) {
-                $sheet->getColumnDimension($col)->setAutoSize(true);
-            }
-    
-            // Create Excel file
-            $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
-            
-            // Set header untuk download
-            header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-            header('Content-Disposition: attachment;filename="laporan-beban-kerja.xlsx"');
-            header('Cache-Control: max-age=0');
-    
-            $writer->save('php://output');
-            exit;
-    
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Gagal mengunduh Excel: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    private function calculateUserPoints($userId, $startDate, $endDate)
-    {
-        // Hitung poin jurusan
-        $poinJurusan = PoinJurusanModel::whereHas('jabatan', function($q) use($userId) {
-            $q->where('user_id', $userId);
-        })
-        ->whereBetween('created_at', [$startDate, $endDate])
-        ->sum('total_poin');
-
-        // Hitung poin prodi
-        $poinProdi = PoinProgramStudiModel::whereHas('jabatan', function($q) use($userId) {
-            $q->where('user_id', $userId);
-        })
-        ->whereBetween('created_at', [$startDate, $endDate])
-        ->sum('total_poin');
-
-        // Hitung poin institusi
-        $poinInstitusi = PoinInstitusiModel::whereHas('jabatan', function($q) use($userId) {
-            $q->where('user_id', $userId);
-        })
-        ->whereBetween('created_at', [$startDate, $endDate])
-        ->sum('total_poin');
-
-        // Hitung poin luar institusi
-        $poinLuar = PoinLuarInstitusiModel::whereHas('jabatan', function($q) use($userId) {
-            $q->where('user_id', $userId);
-        })
-        ->whereBetween('created_at', [$startDate, $endDate])
-        ->sum('total_poin');
-
-        return [
-            'poin_jurusan' => $poinJurusan,
-            'poin_prodi' => $poinProdi,
-            'poin_institusi' => $poinInstitusi,
-            'poin_luar' => $poinLuar,
-            'total_poin' => $poinJurusan + $poinProdi + $poinInstitusi + $poinLuar
-        ];
-    }
-
-    private function normalizeDataSAW($data, $maxPoin)
-    {
-        foreach($data as &$item) {
-            // Inverse normalization karena semakin kecil poin, semakin tinggi prioritas
-            $item['nilai_saw'] = $maxPoin > 0 ? (($maxPoin - $item['total_poin']) / $maxPoin) : 0;
-        }
-
-        // Urutkan berdasarkan nilai SAW (descending)
-        usort($data, function($a, $b) {
-            return $b['nilai_saw'] <=> $a['nilai_saw'];
-        });
-
-        // Tambahkan ranking
-        foreach($data as $index => &$item) {
-            $item['ranking'] = $index + 1;
-        }
-
-        return $data;
-    }
-
-    private function getCompleteDetailData($startDate, $endDate)
-    {
-        $detailData = [];
-
-        // Ambil semua user dosen dan PIC
-        $users = UserModel::whereHas('level', function($q) {
-            $q->whereIn('level_nama', ['Dosen', 'PIC']);
-        })->get();
-
-        foreach($users as $user) {
-            // Ambil semua kegiatan jurusan
-            $kegiatanJurusan = PoinJurusanModel::with(['jabatan.kegiatanJurusan'])
-                ->whereHas('jabatan', function($q) use($user) {
-                    $q->where('user_id', $user->user_id);
-                })
-                ->whereBetween('created_at', [$startDate, $endDate])
-                ->get();
-
-            // Ambil semua kegiatan prodi
-            $kegiatanProdi = PoinProgramStudiModel::with(['jabatan.kegiatanProgramStudi'])
-                ->whereHas('jabatan', function($q) use($user) {
-                    $q->where('user_id', $user->user_id);
-                })
-                ->whereBetween('created_at', [$startDate, $endDate])
-                ->get();
-
-            // Ambil semua kegiatan institusi
-            $kegiatanInstitusi = PoinInstitusiModel::with(['jabatan.kegiatanInstitusi'])
-                ->whereHas('jabatan', function($q) use($user) {
-                    $q->where('user_id', $user->user_id);
-                })
-                ->whereBetween('created_at', [$startDate, $endDate])
-                ->get();
-
-            // Ambil semua kegiatan luar institusi
-            $kegiatanLuar = PoinLuarInstitusiModel::with(['jabatan.kegiatanLuarInstitusi'])
-                ->whereHas('jabatan', function($q) use($user) {
-                    $q->where('user_id', $user->user_id);
-                })
-                ->whereBetween('created_at', [$startDate, $endDate])
-                ->get();
-
-            // Hitung total poin
-            $totalPoin = [
-                'jurusan' => $kegiatanJurusan->sum('total_poin'),
-                'prodi' => $kegiatanProdi->sum('total_poin'),
-                'institusi' => $kegiatanInstitusi->sum('total_poin'),
-                'luar_institusi' => $kegiatanLuar->sum('total_poin')
-            ];
-
-            $detailData[] = [
-                'user_id' => $user->user_id,
-                'nama' => $user->nama_lengkap,
-                'nidn' => $user->nidn,
-                'program_studi' => $user->program_studi,
-                'jabatan_fungsional' => $user->jabatan_fungsional,
-                'kegiatan_jurusan' => $kegiatanJurusan,
-                'kegiatan_prodi' => $kegiatanProdi,
-                'kegiatan_institusi' => $kegiatanInstitusi,
-                'kegiatan_luar' => $kegiatanLuar,
-                'total_poin' => $totalPoin,
-                'total_keseluruhan' => array_sum($totalPoin)
-            ];
-        }
-
-        return $detailData;
     }
 }

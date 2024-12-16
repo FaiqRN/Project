@@ -1,8 +1,10 @@
 <?php
 
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+
 
 return new class extends Migration
 {
@@ -16,21 +18,25 @@ return new class extends Migration
             $table->unsignedBigInteger('surat_id');
             $table->unsignedBigInteger('user_id');
 
+
             $table->string('nama_kegiatan_luar_institusi', 200);
             $table->text('deskripsi_kegiatan');
             $table->text('lokasi_kegiatan');
             $table->date('tanggal_mulai');
             $table->date('tanggal_selesai');
             $table->enum('status_kegiatan', ['berlangsung', 'selesai'])->default('berlangsung');
+            $table->enum('status_persetujuan', ['pending', 'disetujui','ditolak'])->default('pending');
             $table->string('penyelenggara', 150)->nullable();
             $table->text('surat_penugasan')->nullable();
             $table->timestamps();
-        
+       
+
 
             $table->foreign('user_id')
                   ->references('user_id')
                   ->on('m_user')
                   ->onDelete('restrict');
+
 
             $table->foreign('surat_id')
                   ->references('surat_id')
@@ -38,6 +44,7 @@ return new class extends Migration
                   ->onDelete('restrict');
         });
     }
+
 
     /**
      * Reverse the migrations.
@@ -47,3 +54,8 @@ return new class extends Migration
         Schema::dropIfExists('t_kegiatan_luar_institusi');
     }
 };
+
+
+
+
+

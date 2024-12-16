@@ -151,19 +151,16 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
             ]);
         })->name('kaprodi.kegiatan');
 
-
-        Route::prefix('beban-kerja')->group(function () {
+        // route beban kerja 
+        Route::prefix('kaprodi/beban-kerja')->group(function () {
             Route::get('/', [BebanKerjaController::class, 'index'])
                  ->name('kaprodi.beban-kerja.index');
-            Route::get('/statistik-data', [BebanKerjaController::class, 'getStatistikData'])
+            Route::get('/statistik', [BebanKerjaController::class, 'getStatistikData'])
                  ->name('kaprodi.beban-kerja.statistik');
             Route::get('/detail-data', [BebanKerjaController::class, 'getDetailData'])
                  ->name('kaprodi.beban-kerja.detail.data');
-            Route::get('/export-pdf', [BebanKerjaController::class, 'downloadPDF'])
-                 ->name('kaprodi.beban-kerja.pdf');
-            Route::get('/export-excel', [BebanKerjaController::class, 'downloadExcel'])
-                 ->name('kaprodi.beban-kerja.excel');
         });
+        
         // Route untuk surat tugas
         Route::prefix('surat-tugas')->group(function () {
             Route::get('/download', [SuratTugasController::class, 'download'])
