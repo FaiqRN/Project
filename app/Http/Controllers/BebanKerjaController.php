@@ -98,7 +98,6 @@ class BebanKerjaController extends Controller
         return $totalPoin;
     }
 
-    // Fungsi Statistik Data untuk Chart
     public function getStatistikData(Request $request)
     {
         $bulan = $request->get('bulan', date('Y-m'));
@@ -135,4 +134,43 @@ class BebanKerjaController extends Controller
             'poin' => $data->pluck('total_poin')
         ]);
     }
+
+    public function getDetailData(Request $request)
+    {
+        $data = DB::table('m_user as u')
+            ->select(
+                'u.nama_lengkap as nama_dosen',
+                DB::raw("COALESCE(kj.nama_kegiatan_jurusan, kp.nama_kegiatan_program_studi, ki.nama_kegiatan_institusi, kl.nama_kegiatan_luar_institusi) as nama_kegiatan"),
+                DB::raw("CASE 
+                    WHEN kj.nama_kegiatan_jurusan IS NOT NULL THEN 'Kegiatan Jurusan' 
+                    WHEN kp.nama_kegiatan_program_studi IS NOT NULL THEN 'Kegiatan Program Studi'
+                    WHEN ki.nama_kegiatan_institusi IS NOT NULL THEN 'Kegiatan Institusi'
+                    ELSE 'Kegiatan Luar Institusi'
+                END as jenis_kegiatan"),
+                DB::raw("COALESCE(kj.tanggal_mulai, kp.tanggal_mulai, ki.tanggal_mulai, kl.tanggal_mulai) as tanggal"),
+                'kj.status_kegiatan as status',
+                DB::raw('COALESCE(pj.total_poin, 0) as poin_jti'),
+                DB::raw('COALESCE(pl.total_poin, 0) as poin_non_jti'),
+                DB::raw('COALESCE(pj.total_poin, 0) + COALESCE(pl.total_poin, 0) as total_poin')
+            )
+            ->leftJoin('t_jabatan as j', 'u.user_id', '=', 'j.user_id')
+            ->leftJoin('t_kegiatan_jurusan as kj', 'j.kegiatan_jurusan_id', '=', 'kj.kegiatan_jurusan_id')
+            ->leftJoin('t_poin_jurusan as pj', 'j.jabatan_id', '=', 'pj.jabatan_id')
+            ->leftJoin('t_kegiatan_program_studi as kp', 'j.kegiatan_program_studi_id', '=', 'kp.kegiatan_program_studi_id')
+            ->leftJoin('t_kegiatan_institusi as ki', 'j.kegiatan_institusi_id', '=', 'ki.kegiatan_institusi_id')
+            ->leftJoin('t_kegiatan_luar_institusi as kl', 'j.kegiatan_luar_institusi_id', '=', 'kl.kegiatan_luar_institusi_id')
+            ->leftJoin('t_poin_luar_institusi as pl', 'j.jabatan_id', '=', 'pl.jabatan_id')
+            ->where('u.level_id', 3)
+            ->where('kj.status_kegiatan', 'selesai')
+            ->orWhere('kp.status_kegiatan', 'selesai')
+            ->orWhere('ki.status_kegiatan', 'selesai')
+            ->orWhere('kl.status_kegiatan', 'selesai')
+            ->get();
+    
+        return response()->json(['data' => $data]);
+    }
+
+
+
+
 }

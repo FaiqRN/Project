@@ -181,5 +181,79 @@
         // Reload chart saat filter berubah
         $('#bulanFilter').change(loadChart);
     });
+
+        // Initialize DataTable
+        function initializeDataTable() {
+        if (!dataTable) {
+            dataTable = $('#detailTable').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: {
+                    url: '{{ route("kaprodi.beban-kerja.detail.data") }}',
+                    data: function(d) {
+                        d.period = $('#periodFilter').val();
+                    }
+                },
+                columns: [
+                    {data: 'nama_dosen'},
+                    {data: 'nama_kegiatan'},
+                    {data: 'jenis_kegiatan'},
+                    {data: 'tanggal'},
+                    {
+                        data: 'status',
+                        render: function(data) {
+                            return `<span class="badge badge-success">Selesai</span>`;
+                        }
+                    },
+                    {data: 'poin_jti'},
+                    {data: 'poin_non_jti'},
+                    {data: 'total_poin'},
+                    {
+                        data: null,
+                        render: function(data) {
+                            return `<button class="btn btn-sm btn-info" onclick="showDetail(${data.id})">
+                                        <i class="fas fa-eye"></i> Detail
+                                    </button>`;
+                        }
+                    }
+                ]
+            });
+        } else {
+            dataTable.ajax.reload();
+        }
+    }
+
+    // Event Handlers
+    $('#btnLihatDetail').click(function() {
+        $('#statistikPage').addClass('d-none');
+        $('#detailPage').removeClass('d-none');
+        initializeDataTable();
+    });
+
+    $('#btnKembali').click(function() {
+        $('#detailPage').addClass('d-none');
+        $('#statistikPage').removeClass('d-none');
+        loadChart();
+    });
+
+    $('#periodFilter').change(function() {
+        if ($('#statistikPage').hasClass('d-none')) {
+            dataTable.ajax.reload();
+        } else {
+            loadChart();
+        }
+    });
+
+    // Initialize
+    loadChart();
+
+// Export Functions
+function exportPDF() {
+    window.location.href = `{{ route('kaprodi.beban-kerja.pdf') }}?period=${$('#periodFilter').val()}`;
+}
+
+function exportExcel() {
+    window.location.href = `{{ route('kaprodi.beban-kerja.excel') }}?period=${$('#periodFilter').val()}`;
+}
 </script>
 @endpush
