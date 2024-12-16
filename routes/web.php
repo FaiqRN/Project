@@ -159,6 +159,11 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
                  ->name('kaprodi.beban-kerja.statistik');
             Route::get('/detail-data', [BebanKerjaController::class, 'getDetailData'])
                  ->name('kaprodi.beban-kerja.detail.data');
+                 Route::get('/kaprodi/beban-kerja/detail-data', [BebanKerjaController::class, 'getDetailData'])->name('kaprodi.beban-kerja.detail.data');
+                 Route::get('/kaprodi/beban-kerja/export-pdf', [BebanKerjaController::class, 'exportPDF'])->name('kaprodi.beban-kerja.pdf');
+                 Route::get('/kaprodi/beban-kerja/export-excel', [BebanKerjaController::class, 'exportExcel'])->name('kaprodi.beban-kerja.excel');
+                 
+                 
         });
         
         // Route untuk surat tugas
@@ -260,7 +265,7 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
                 Route::put('/update/{id}', [AdminAgendaController::class, 'update'])->name('update');
                 Route::delete('/delete/{id}', [AdminAgendaController::class, 'destroy'])->name('delete');
 
-                // Route untuk Pilih Anggota Admin (perbaikan route)
+                // Route untuk Pilih Anggota Admin 
                 Route::prefix('pilih-anggota')->name('pilih-anggota.')->group(function () {
                     Route::controller(AdminPilihAnggotaController::class)->group(function () {
                         Route::get('/', 'index')->name('index');
@@ -312,7 +317,7 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
         });
     });
 
-    // Default Route setelah login (redirect berdasarkan role)
+    // Default Route setelah login 
     Route::get('/home', function () {
         $levelNama = strtolower(session('level_nama'));
         switch ($levelNama) {
@@ -331,7 +336,7 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
 });
 
 
-// Fallback route untuk URL yang tidak ditemukan
+
 Route::fallback(function () {
     if (session()->has('user_id')) {
         return redirect()->route('home');

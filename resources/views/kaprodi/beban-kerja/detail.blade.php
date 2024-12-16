@@ -75,50 +75,52 @@
                             </thead>
                         </table>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-@endsection
-
-@push('js')
+                    
 <script>
-    let table;
-    
     $(document).ready(function() {
-        table = $('#detailTable').DataTable({
-            processing: true,
-            serverSide: true,
-            ajax: {
-                url: '{{ route("kaprodi.beban-kerja.detail.data") }}',
-                data: function(d) {
-                    d.period = $('#periodFilter').val();
-                }
-            },
-            columns: [
-                {data: 'nama_dosen', name: 'nama_dosen'},
-                {data: 'nama_kegiatan', name: 'nama_kegiatan'},
-                {data: 'jenis_kegiatan', name: 'jenis_kegiatan'},
-                {data: 'tanggal', name: 'tanggal'},
-                {data: 'status', name: 'status'},
-                {data: 'poin_jti', name: 'poin_jti'},
-                {data: 'poin_non_jti', name: 'poin_non_jti'},
-                {data: 'total_poin', name: 'total_poin'}
-            ]
+        let detailTable;
+
+        // Tombol Lihat Detail
+        $('#btnDetail').on('click', function() {
+            $('#detailSection').removeClass('d-none');
+            loadDetailTable();
         });
 
-        $('#periodFilter').change(function() {
-            table.ajax.reload();
+        $('#btnKembali').on('click', function() {
+            $('#detailSection').addClass('d-none');
         });
+
+        function loadDetailTable() {
+            if (!detailTable) {
+                detailTable = $('#detailTable').DataTable({
+                    processing: true,
+                    serverSide: false,
+                    ajax: '{{ route("kaprodi.beban-kerja.detail.data") }}',
+                    columns: [
+                        { data: 'nama_dosen' },
+                        { data: 'nama_kegiatan' },
+                        { data: 'jenis_kegiatan' },
+                        { data: 'tanggal' },
+                        { data: 'status', render: function(data) {
+                            return `<span class="badge badge-success">${data}</span>`;
+                        }},
+                        { data: 'poin_jti' },
+                        { data: 'poin_non_jti' },
+                        { data: 'total_poin' }
+                    ]
+                });
+            } else {
+                detailTable.ajax.reload();
+            }
+        }
+
+        function exportPDF() {
+            window.location.href = '{{ route("kaprodi.beban-kerja.pdf") }}';
+        }
+
+        function exportExcel() {
+            window.location.href = '{{ route("kaprodi.beban-kerja.excel") }}';
+        }
     });
-
-    function exportPDF() {
-        window.location.href = '{{ route("kaprodi.beban-kerja.pdf") }}?period=' + $('#periodFilter').val();
-    }
-
-    function exportExcel() {
-        window.location.href = '{{ route("kaprodi.beban-kerja.excel") }}?period=' + $('#periodFilter').val();
-    }
 </script>
 @endpush

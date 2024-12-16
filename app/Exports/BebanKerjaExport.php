@@ -4,33 +4,31 @@ namespace App\Exports;
 
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithStyles;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class BebanKerjaExport implements FromCollection, WithHeadings, WithStyles, ShouldAutoSize
+class BebanKerjaExport implements FromCollection, WithHeadings, ShouldAutoSize, WithStyles
 {
     protected $data;
-    protected $chartData;
 
-    public function __construct($data, $chartData)
+    public function __construct($data)
     {
         $this->data = $data;
-        $this->chartData = $chartData;
     }
 
     public function collection()
     {
-        return collect($this->data)->map(function ($item) {
+        return collect($this->data)->map(function($item) {
             return [
                 'nama_dosen' => $item->nama_dosen,
                 'nama_kegiatan' => $item->nama_kegiatan,
                 'jenis_kegiatan' => $item->jenis_kegiatan,
                 'tanggal' => $item->tanggal,
                 'status' => 'Selesai',
-                'poin_jti' => $item->poin_jti,
-                'poin_non_jti' => $item->poin_non_jti,
-                'total_poin' => $item->total_poin
+                'poin_jti' => round($item->poin_jti),
+                'poin_non_jti' => round($item->poin_non_jti),
+                'total_poin' => round($item->total_poin)
             ];
         });
     }
@@ -45,7 +43,7 @@ class BebanKerjaExport implements FromCollection, WithHeadings, WithStyles, Shou
             'Status',
             'Poin JTI',
             'Poin Non-JTI',
-            'Total'
+            'Total Keseluruhan'
         ];
     }
 
@@ -53,6 +51,10 @@ class BebanKerjaExport implements FromCollection, WithHeadings, WithStyles, Shou
     {
         return [
             1 => ['font' => ['bold' => true]],
+            'A1:H1' => ['fill' => [
+                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'startColor' => ['rgb' => 'E2EFDA']
+            ]],
         ];
     }
 }
