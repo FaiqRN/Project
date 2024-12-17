@@ -21,6 +21,7 @@ use App\Http\Controllers\AdminUnggahDokumenAkhirController;
 use App\Http\Controllers\BebanKerjaController;
 use App\Http\Controllers\KegiatanNonJTIController;
 
+
  
 // Guest Routes (untuk user yang belum login)
 Route::middleware(['guest'])->group(function () {
@@ -29,6 +30,7 @@ Route::middleware(['guest'])->group(function () {
         return view('layouts.welcome');
     });
 
+
     // Route Login
     Route::controller(LoginController::class)->group(function () {
         Route::get('/login', 'showLoginForm')->name('login');
@@ -36,10 +38,12 @@ Route::middleware(['guest'])->group(function () {
     });
 });
 
+
 // Protected Routes (harus login untuk mengakses)
 Route::middleware(['auth.check'])->group(function () {
     // Logout Route
     Route::get('/logout', [LoginController::class, 'logout'])->name('logout');
+
 
     // Profile Route
     Route::get('/profile', [UserController::class, 'profile'])->name('profile');
@@ -47,9 +51,12 @@ Route::middleware(['auth.check'])->group(function () {
     Route::put('/profile/update', [UserController::class, 'update'])->name('profile.update');
 
 
+
+
 // Dosen Routes
 Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
     Route::prefix('dosen')->group(function () {
+
 
            
         Route::get('/dashboard', function () {
@@ -61,6 +68,7 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
             ]);
         })->name('dosen.dashboard');
 
+
         Route::get('/agenda', function () {
             return view('dosen.agenda.index', [
                 'breadcrumb' => (object)[
@@ -70,30 +78,34 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
             ]);
         })->name('dosen.agenda');
 
+
                 // Tambahkan Route Kegiatan Non-JTI
-                Route::prefix('kegiatan-non-jti')->group(function () {
-                    Route::get('/', [KegiatanNonJTIController::class, 'index'])->name('dosen.kegiatan-non-jti');
-                    Route::get('/list', [KegiatanNonJTIController::class, 'getKegiatanList'])->name('dosen.kegiatan-non-jti.list');
-                    Route::post('/store', [KegiatanNonJTIController::class, 'store'])->name('dosen.kegiatan-non-jti.store');
-                    Route::get('/{id}', [KegiatanNonJTIController::class, 'show'])->name('dosen.kegiatan-non-jti.show');
-                    Route::put('/{id}', [KegiatanNonJTIController::class, 'update'])->name('dosen.kegiatan-non-jti.update');
-                    Route::delete('/{id}', [KegiatanNonJTIController::class, 'destroy'])->name('dosen.kegiatan-non-jti.destroy');
-                    Route::get('/{id}/download-surat', [KegiatanNonJTIController::class, 'downloadSurat'])->name('dosen.kegiatan-non-jti.download-surat');
-                    Route::get('/{id}/detail', [KegiatanNonJTIController::class, 'getDetail'])->name('dosen.kegiatan-non-jti.detail');
-                });
+        Route::prefix('kegiatan-non-jti')->group(function () {
+            Route::get('/', [KegiatanNonJTIController::class, 'index'])->name('dosen.kegiatan-non-jti');
+            Route::get('/list', [KegiatanNonJTIController::class, 'getKegiatanList'])->name('dosen.kegiatan-non-jti.list');
+            Route::post('/store', [KegiatanNonJTIController::class, 'store'])->name('dosen.kegiatan-non-jti.store');
+            Route::get('/{id}', [KegiatanNonJTIController::class, 'show'])->name('dosen.kegiatan-non-jti.show');
+            Route::put('/{id}', [KegiatanNonJTIController::class, 'update'])->name('dosen.kegiatan-non-jti.update');
+            Route::delete('/{id}', [KegiatanNonJTIController::class, 'destroy'])->name('dosen.kegiatan-non-jti.destroy');
+            Route::get('/{id}/download-surat', [KegiatanNonJTIController::class, 'downloadSurat'])->name('dosen.kegiatan-non-jti.download-surat');
+            Route::get('/{id}/detail', [KegiatanNonJTIController::class, 'getDetail'])->name('dosen.kegiatan-non-jti.detail');
+        });
+
 
         // Route untuk Update Progress Agenda
         Route::prefix('update-progress')->group(function () {
         Route::get('/', [UpdateProgressAgendaController::class, 'index'])->name('dosen.update-progress');
         Route::get('/dosen/update-progress/{id}/check-status', [UpdateProgressAgendaController::class, 'checkAgendaStatus']);
         Route::get('/{id}/detail', [UpdateProgressAgendaController::class, 'getDetailAgenda']);
-        Route::post('/{id}/update', [UpdateProgressAgendaController::class, 'updateProgress']); 
+        Route::post('/{id}/update', [UpdateProgressAgendaController::class, 'updateProgress']);
     });
+
 
         Route::prefix('statuskegiatan')->group(function () {
             Route::get('/statuskegiatan', [ProgressKegiatanController::class, 'index'])->name('dosen.statuskegiatan');
             Route::get('/statuskegiatan/get-progress', [ProgressKegiatanController::class, 'getKegiatanProgress'])->name('dosen.statuskegiatan.get-progress');
         });
+
 
         // Route khusus PIC
         Route::middleware(['auth.role:PIC'])->group(function () {
@@ -101,7 +113,7 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
             Route::get('/kegiatan', [KegiatanController::class, 'showKegiatanPIC'])->name('pic.kegiatan');
             Route::get('/surat-tugas/download-file/{id}', [SuratTugasController::class, 'downloadSurat'])->name('surat-tugas.download-file');
             Route::post('/kegiatan/validate-tanggal-agenda', [KegiatanController::class, 'validateTanggalAgenda'])->name('kegiatan.validate.tanggal');
-            
+           
             // Agenda Routes (tambahkan ini)
             Route::prefix('agenda')->group(function () {
                 Route::get('/', [AgendaController::class, 'index'])->name('pic.agenda.index');
@@ -111,6 +123,7 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
                 Route::get('/download/{id}', [AgendaController::class, 'downloadDocument'])->name('pic.agenda.download');
                 Route::get('/get-data', [AdminAgendaController::class, 'getAgendaList'])->name('get-data');
             });
+
 
             // Route untuk Pilih Anggota
             Route::prefix('pilih')->group(function () {
@@ -131,7 +144,8 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
                 Route::get('/download/{id}/{type}', [UnggahDokumenAkhirController::class, 'download'])->name('pic.unggah-dokumen.download');
             });
 
-            // route pembagian poin PIC 
+
+            // route pembagian poin PIC
             Route::prefix('pembagian-poin')->group(function () {
                 Route::get('/', [PembagianPoinController::class, 'index'])->name('pic.pembagian-poin');
                 Route::get('/data', [PembagianPoinController::class, 'getDataPoin'])->name('pic.pembagian-poin.data');
@@ -142,8 +156,10 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
     });
 });
 
+
     // Kaprodi Routes
     Route::middleware(['auth.role:Kaprodi'])->prefix('kaprodi')->group(function () {
+
 
        
         Route::get('/dashboard', function () {
@@ -156,6 +172,8 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
         })->name('kaprodi.dashboard');
 
 
+
+
         Route::get('/kegiatan', function () {
             return view('kaprodi.kegiatan', [
                 'breadcrumb' => (object)[
@@ -165,7 +183,8 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
             ]);
         })->name('kaprodi.kegiatan');
 
-        // route beban kerja 
+
+        // route beban kerja
         Route::prefix('kaprodi/beban-kerja')->group(function () {
             Route::get('/', [BebanKerjaController::class, 'index'])
                  ->name('kaprodi.beban-kerja.index');
@@ -179,7 +198,7 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
                  
                  
         });
-        
+       
         // Route untuk surat tugas
         Route::prefix('surat-tugas')->group(function () {
             Route::get('/download', [SuratTugasController::class, 'download'])
@@ -190,18 +209,23 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
                 ->name('kaprodi.surat-tugas.showkaprodi');
         });
 
+
     // Route untuk Melihat Kegiatan
     Route::prefix('kaprodi/kegiatan')->group(function () {
         Route::get('/', [LihatKegiatanController::class, 'index'])->name('kaprodi.kegiatan');
         Route::get('/data', [LihatKegiatanController::class, 'getKegiatanData'])->name('kaprodi.kegiatan.data');
         Route::get('/download-dokumen/{jenis}/{id}', [LihatKegiatanController::class, 'downloadDokumenFinal'])
             ->name('kaprodi.kegiatan.download-dokumen');
-    
+   
         });
     });
 
+
     // Admin Routes
     Route::middleware(['auth.role:Admin'])->prefix('admin')->name('admin.')->group(function () {
+
+
+
 
 
 
@@ -215,6 +239,8 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
         })->name('dashboard');
 
 
+
+
         // User Management
         Route::controller(UserManagementController::class)->group(function () {
             Route::get('/users', 'index')->name('users.index');
@@ -225,17 +251,19 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
         });
 
 
+
+
         // Dosen Management Routes
         Route::prefix('dosen')->name('dosen.')->group(function () {
-            
+           
             // Update Progress Routes
             Route::get('/update-progress', [AdminUpdateProgressAgendaController::class, 'index'])
                  ->name('update-progress');
             Route::get('/admin/dosen/update-progress/{id}/detail', [AdminUpdateProgressAgendaController::class, 'getDetailAgenda'])->name('update-progress.detail');
-            Route::delete('/admin/dosen/update-progress/{id}/delete', [AdminUpdateProgressAgendaController::class, 'deleteProgress'])->name('update-progress.delete');                 
+            Route::delete('/admin/dosen/update-progress/{id}/delete', [AdminUpdateProgressAgendaController::class, 'deleteProgress'])->name('update-progress.delete');                
             Route::get('/update-progress/{id}/download', [AdminUpdateProgressAgendaController::class, 'downloadDokumentasi'])
                  ->name('update-progress.download');
-            
+           
             //route jabatan
             Route::prefix('agenda')->name('agenda.')->group(function () {
                 Route::controller(JabatanController::class)->group(function () {
@@ -249,7 +277,11 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
                 });
 
 
+
+
                 Route::get('/kegiatan', [KegiatanController::class, 'index'])->name('kegiatan');
+
+
 
 
                 // Kegiatan Jurusan Routes
@@ -262,6 +294,8 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
                 });
 
 
+
+
                 // Kegiatan Prodi Routes
                 Route::prefix('prodi')->group(function () {
                     Route::get('/get-data', [KegiatanController::class, 'getKegiatanProdi'])->name('prodi.data');
@@ -271,6 +305,7 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
                     Route::delete('/delete/{id}', [KegiatanController::class, 'destroyKegiatanProdi'])->name('prodi.destroy');
                 });
 
+
                 Route::get('/agenda-setting', [AdminAgendaController::class, 'index'])->name('agenda-setting');
                 Route::get('/get-data', [AdminAgendaController::class, 'getAgendaList'])->name('get-data');
                 Route::get('/get-kegiatan', [AdminAgendaController::class, 'getKegiatan'])->name('get-kegiatan');
@@ -279,7 +314,8 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
                 Route::put('/update/{id}', [AdminAgendaController::class, 'update'])->name('update');
                 Route::delete('/delete/{id}', [AdminAgendaController::class, 'destroy'])->name('delete');
 
-                // Route untuk Pilih Anggota Admin 
+
+                // Route untuk Pilih Anggota Admin
                 Route::prefix('pilih-anggota')->name('pilih-anggota.')->group(function () {
                     Route::controller(AdminPilihAnggotaController::class)->group(function () {
                         Route::get('/', 'index')->name('index');
@@ -293,11 +329,15 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
                 });
 
 
+
+
                 Route::prefix('persetujuan-poin')->name('persetujuan-poin.')->group(function () {
                     Route::get('/', [AdminPembagianPoinController::class, 'index'])->name('index');
                     Route::get('/data', [AdminPembagianPoinController::class, 'getDataPoin'])->name('data');
                     Route::post('/update-status', [AdminPembagianPoinController::class, 'updateStatus'])->name('update-status');
                 });
+
+
 
 
                 Route::controller(AdminUnggahDokumenAkhirController::class)->group(function () {
@@ -310,6 +350,7 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
                 });;
             });
 
+
             Route::view('/kegiatan-non-jti', 'admin.dosen.kegiatan-non-jti', [
                 'breadcrumb' => (object)[
                     'title' => 'Kegiatan Non-JTI',
@@ -317,6 +358,8 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
                 ]
             ])->name('kegiatan-non-jti');
         });
+
+
 
 
         // Kaprodi Management Routes
@@ -331,7 +374,8 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
         });
     });
 
-    // Default Route setelah login 
+
+    // Default Route setelah login
     Route::get('/home', function () {
         $levelNama = strtolower(session('level_nama'));
         switch ($levelNama) {
@@ -349,13 +393,9 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
     })->name('home');
 });
 
-
-
 Route::fallback(function () {
     if (session()->has('user_id')) {
         return redirect()->route('home');
     }
     return redirect()->route('login');
 });
-
-

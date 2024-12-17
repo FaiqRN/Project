@@ -1,5 +1,6 @@
 @extends('layouts.template')
 
+
 @section('content')
 <div class="container-fluid">
     <div class="card">
@@ -10,7 +11,7 @@
                     <i class="fas fa-plus mr-2"></i>Tambah Kegiatan
                 </button>
             </div>
-        </div> 
+        </div>
         <div class="card-body">
             <!-- Filter dan Pencarian -->
             <div class="row mb-3">
@@ -42,6 +43,7 @@
                 </div>
             </div>
 
+
             <!-- Tabel Kegiatan -->
             <div class="table-responsive">
                 <table id="tabelKegiatan" class="table table-bordered table-striped">
@@ -53,7 +55,6 @@
                             <th>Lokasi</th>
                             <th>Tanggal</th>
                             <th width="12%">Status Persetujuan</th>
-                            <th width="10%">Status</th>
                             <th width="10%">Aksi</th>
                         </tr>
                     </thead>
@@ -63,6 +64,7 @@
         </div>
     </div>
 </div>
+
 
 <!-- Modal Tambah Kegiatan -->
 <div class="modal fade" id="modalTambahKegiatan" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
@@ -90,16 +92,18 @@
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label>Status</label>
+                                <label>Status Persetujuan</label>
                                 <input type="text" class="form-control" value="pending" readonly>
                             </div>
                         </div>
                     </div>
 
+
                     <div class="form-group">
                         <label>Nama Kegiatan<span class="text-danger">*</span></label>
                         <input type="text" class="form-control" name="nama_kegiatan" required>
                     </div>
+
 
                     <div class="row">
                         <div class="col-md-6">
@@ -116,10 +120,12 @@
                         </div>
                     </div>
 
+
                     <div class="form-group">
                         <label>Deskripsi Kegiatan<span class="text-danger">*</span></label>
                         <textarea class="form-control" name="deskripsi_kegiatan" rows="3" required></textarea>
                     </div>
+
 
                     <div class="row">
                         <div class="col-md-6">
@@ -136,6 +142,7 @@
                         </div>
                     </div>
 
+
                     <div class="card mt-3">
                         <div class="card-header">
                             <h5 class="mb-0">Informasi Surat</h5>
@@ -145,7 +152,7 @@
                                 <label>Judul Surat<span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" name="judul_surat" required>
                             </div>
-                
+               
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
@@ -160,7 +167,7 @@
                                     </div>
                                 </div>
                             </div>
-                
+               
                             <div class="form-group">
                                 <label>File Surat (PDF)<span class="text-danger">*</span></label>
                                 <div class="custom-file">
@@ -180,6 +187,7 @@
         </div>
     </div>
 </div>
+
 
 <!-- Modal Detail Kegiatan -->
 <div class="modal fade" id="modalDetail" tabindex="-1" role="dialog" aria-labelledby="modalDetailLabel" aria-hidden="true">
@@ -223,12 +231,6 @@
                                     <span id="detailStatusPersetujuan" class="badge badge-pill px-3 py-2"></span>
                                 </p>
                             </div>
-                            <div class="col-md-4">
-                                <label class="text-muted mb-1">Status Kegiatan</label>
-                                <p>
-                                    <span id="detailStatusKegiatan" class="badge badge-pill px-3 py-2"></span>
-                                </p>
-                            </div>
                         </div>
                         <div class="row">
                             <div class="col-12">
@@ -244,6 +246,7 @@
                         </div>
                     </div>
                 </div>
+
 
                 <!-- Informasi Surat -->
                 <div class="card">
@@ -268,14 +271,11 @@
                     </div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
-            </div>
         </div>
     </div>
 </div>
-
 @endsection
+
 
 @push('css')
 <link rel="stylesheet" href="{{ asset('adminlte/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
@@ -289,7 +289,7 @@
     }
     .status-pending {
         background-color: #fff3cd;
-        color: #F9E400;
+        color: #856404;
         border: 1px solid #ffeeba;
     }
     .status-disetujui {
@@ -299,7 +299,7 @@
     }
     .status-ditolak {
         background-color: #f8d7da;
-        color: #d20e21;
+        color: #721c24;
         border: 1px solid #f5c6cb;
     }
     .table td, .table th {
@@ -318,61 +318,63 @@
         overflow-y: auto;
     }
 
+
     .modal-header {
         border-radius: 0;
     }
-    
+   
     .card {
         border: none;
         box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-    
+   
     .card-header {
         border-bottom: 1px solid #eee;
     }
-    
+   
     .text-muted {
         font-size: 0.85rem;
     }
-    
+   
     .badge {
         font-size: 0.85rem;
         font-weight: 500;
     }
-    
+   
     .badge-warning {
         background-color: #ffeeba;
         color: #856404;
     }
-    
+   
     .badge-success {
         background-color: #d4edda;
         color: #155724;
     }
-    
+   
     .badge-danger {
         background-color: #f8d7da;
-        color: #d20e21;
+        color: #721c24;
     }
-    
+   
     .badge-info {
         background-color: #d1ecf1;
         color: #0c5460;
     }
-    
+   
     .modal-lg {
         max-width: 800px;
     }
-    
+   
     .modal-body {
         padding: 1.5rem;
     }
-    
+   
     .font-weight-bold {
         color: #2d3748;
     }
 </style>
 @endpush
+
 
 @push('js')
 <script src="{{ asset('adminlte/plugins/datatables/jquery.dataTables.min.js') }}"></script>
@@ -392,7 +394,7 @@ $(document).ready(function() {
         }
     },
     columns: [
-        { 
+        {
             data: null,
             render: function (data, type, row, meta) {
                 return meta.row + 1;
@@ -401,7 +403,7 @@ $(document).ready(function() {
         { data: 'nama' },
         { data: 'penyelenggara' },
         { data: 'lokasi' },
-        { 
+        {
             data: null,
             render: function(data) {
                 const mulai = moment(data.tanggal_mulai).format('DD/MM/YYYY');
@@ -409,7 +411,7 @@ $(document).ready(function() {
                 return `${mulai} - ${selesai}`;
             }
         },
-        { 
+        {
             data: 'status_persetujuan',
             render: function(data) {
                 let badgeClass;
@@ -429,13 +431,6 @@ $(document).ready(function() {
                 return `<span class="badge badge-${badgeClass}">${data}</span>`;
             }
         },
-        { 
-            data: 'status_kegiatan',
-            render: function(data) {
-                const badgeClass = data === 'berlangsung' ? 'info' : 'success';
-                return `<span class="badge badge-${badgeClass}">${data}</span>`;
-            }
-        },
         {
             data: null,
             render: function(data) {
@@ -444,10 +439,6 @@ $(document).ready(function() {
                         <button class="btn btn-sm btn-info" onclick="detailKegiatan(${data.id})" title="Detail">
                             <i class="fas fa-eye"></i>
                         </button>
-                        <button class="btn btn-sm btn-primary" onclick="downloadSurat(${data.id})" title="Download">
-                            <i class="fas fa-download"></i>
-                        </button>
-                    </div>
                 `;
             }
         }
@@ -458,11 +449,13 @@ $(document).ready(function() {
     }
 });
 
+
     // File input handler
     $('.custom-file-input').on('change', function() {
         let fileName = $(this).val().split('\\').pop();
         $(this).next('.custom-file-label').addClass("selected").html(fileName);
     });
+
 
     // Reset form saat modal ditutup
     $('#modalTambahKegiatan').on('hidden.bs.modal', function() {
@@ -472,16 +465,17 @@ $(document).ready(function() {
         $('.invalid-feedback').remove();
     });
 
+
     // Form Submit Handler
     $('#formTambahKegiatan').on('submit', function(e) {
         e.preventDefault();
-        
+       
         // Remove previous error states
         $('.is-invalid').removeClass('is-invalid');
         $('.invalid-feedback').remove();
-        
+       
         let formData = new FormData(this);
-        
+       
         // Show loading state
         Swal.fire({
             title: 'Menyimpan Data',
@@ -491,6 +485,7 @@ $(document).ready(function() {
                 Swal.showLoading();
             }
         });
+
 
         $.ajax({
             url: '{{ route("dosen.kegiatan-non-jti.store") }}',
@@ -515,7 +510,7 @@ $(document).ready(function() {
             },
             error: function(xhr) {
                 console.error('Error:', xhr);
-                
+               
                 if (xhr.status === 422) {
                     // Validation errors
                     let errors = xhr.responseJSON.errors;
@@ -525,7 +520,7 @@ $(document).ready(function() {
                         input.after(`<div class="invalid-feedback">${errors[key][0]}</div>`);
                     });
                 }
-                
+               
                 Swal.fire({
                     icon: 'error',
                     title: 'Error!',
@@ -535,14 +530,17 @@ $(document).ready(function() {
         });
     });
 
+
     // Filter Handler
     $('#btnFilter').on('click', function() {
         let status = $('#filterStatus').val();
         let tanggal = $('#filterTanggal').val();
         let search = $('#searchKegiatan').val();
 
+
         table.ajax.reload();
     });
+
 
     // Search Handler
     $('#searchKegiatan').on('keyup', function(e) {
@@ -552,9 +550,10 @@ $(document).ready(function() {
     });
 });
 
+
 // Function untuk handle detail kegiatan
 function detailKegiatan(id) {
-    currentKegiatanId = id; 
+    currentKegiatanId = id; // Simpan ID untuk keperluan download
     $.ajax({
         url: `/dosen/kegiatan-non-jti/${id}/detail`,
         type: 'GET',
@@ -567,7 +566,7 @@ function detailKegiatan(id) {
                 $('#detailLokasi').text(data.lokasi_kegiatan);
                 $('#detailTanggal').text(`${formatDate(data.tanggal_mulai)} - ${formatDate(data.tanggal_selesai)}`);
                 $('#detailDeskripsi').text(data.deskripsi_kegiatan);
-                
+               
                 // Atur warna status persetujuan
                 const statusPersetujuan = $('#detailStatusPersetujuan');
                 statusPersetujuan.text(data.status_persetujuan);
@@ -582,21 +581,12 @@ function detailKegiatan(id) {
                         statusPersetujuan.removeClass().addClass('badge badge-danger');
                         break;
                 }
-                
-                // Atur warna status kegiatan
-                const statusKegiatan = $('#detailStatusKegiatan');
-                statusKegiatan.text(data.status_kegiatan);
-                statusKegiatan.removeClass().addClass(
-                    data.status_kegiatan.toLowerCase() === 'berlangsung' 
-                        ? 'badge badge-info' 
-                        : 'badge badge-secondary'
-                );
-                
+               
                 // Informasi surat
                 $('#detailJudulSurat').text(data.surat.judul_surat);
                 $('#detailNomorSurat').text(data.surat.nomer_surat);
                 $('#detailTanggalSurat').text(formatDate(data.surat.tanggal_surat));
-                
+               
                 $('#modalDetail').modal('show');
             } else {
                 Swal.fire('Error', response.message, 'error');
@@ -615,11 +605,6 @@ function formatDate(dateString) {
 }
 
 let currentKegiatanId = null; // Untuk menyimpan ID kegiatan yang sedang ditampilkan
-
-function downloadSurat(id) {
-    window.location.href = `/dosen/kegiatan-non-jti/${id}/download-surat`;
-}
-
 
 </script>
 @endpush
