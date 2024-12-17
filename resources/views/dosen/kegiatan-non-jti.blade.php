@@ -10,7 +10,7 @@
                     <i class="fas fa-plus mr-2"></i>Tambah Kegiatan
                 </button>
             </div>
-        </div>
+        </div> 
         <div class="card-body">
             <!-- Filter dan Pencarian -->
             <div class="row mb-3">
@@ -180,6 +180,101 @@
         </div>
     </div>
 </div>
+
+<!-- Modal Detail Kegiatan -->
+<div class="modal fade" id="modalDetail" tabindex="-1" role="dialog" aria-labelledby="modalDetailLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="modalDetailLabel">Detail Kegiatan</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Informasi Utama -->
+                <div class="card mb-4">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0 font-weight-bold">Informasi Kegiatan</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label class="text-muted mb-1">Nama Kegiatan</label>
+                                <p id="detailNamaKegiatan" class="font-weight-bold"></p>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="text-muted mb-1">Tanggal Pelaksanaan</label>
+                                <p id="detailTanggal" class="font-weight-bold"></p>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="text-muted mb-1">Jenis Kegiatan</label>
+                                <p id="detailJenisKegiatan" class="font-weight-bold"></p>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label class="text-muted mb-1">Penyelenggara</label>
+                                <p id="detailPenyelenggara" class="font-weight-bold"></p>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="text-muted mb-1">Status Persetujuan</label>
+                                <p>
+                                    <span id="detailStatusPersetujuan" class="badge badge-pill px-3 py-2"></span>
+                                </p>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="text-muted mb-1">Status Kegiatan</label>
+                                <p>
+                                    <span id="detailStatusKegiatan" class="badge badge-pill px-3 py-2"></span>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <label class="text-muted mb-1">Lokasi</label>
+                                <p id="detailLokasi" class="font-weight-bold"></p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <label class="text-muted mb-1">Deskripsi Kegiatan</label>
+                                <p id="detailDeskripsi" class="font-weight-bold"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Informasi Surat -->
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0 font-weight-bold">Informasi Surat</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label class="text-muted mb-1">Judul Surat</label>
+                                <p id="detailJudulSurat" class="font-weight-bold"></p>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="text-muted mb-1">Nomor Surat</label>
+                                <p id="detailNomorSurat" class="font-weight-bold"></p>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="text-muted mb-1">Tanggal Surat</label>
+                                <p id="detailTanggalSurat" class="font-weight-bold"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('css')
@@ -194,7 +289,7 @@
     }
     .status-pending {
         background-color: #fff3cd;
-        color: #856404;
+        color: #F9E400;
         border: 1px solid #ffeeba;
     }
     .status-disetujui {
@@ -204,7 +299,7 @@
     }
     .status-ditolak {
         background-color: #f8d7da;
-        color: #721c24;
+        color: #d20e21;
         border: 1px solid #f5c6cb;
     }
     .table td, .table th {
@@ -221,6 +316,60 @@
     .modal-body {
         max-height: calc(100vh - 200px);
         overflow-y: auto;
+    }
+
+    .modal-header {
+        border-radius: 0;
+    }
+    
+    .card {
+        border: none;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    
+    .card-header {
+        border-bottom: 1px solid #eee;
+    }
+    
+    .text-muted {
+        font-size: 0.85rem;
+    }
+    
+    .badge {
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+    
+    .badge-warning {
+        background-color: #ffeeba;
+        color: #856404;
+    }
+    
+    .badge-success {
+        background-color: #d4edda;
+        color: #155724;
+    }
+    
+    .badge-danger {
+        background-color: #f8d7da;
+        color: #d20e21;
+    }
+    
+    .badge-info {
+        background-color: #d1ecf1;
+        color: #0c5460;
+    }
+    
+    .modal-lg {
+        max-width: 800px;
+    }
+    
+    .modal-body {
+        padding: 1.5rem;
+    }
+    
+    .font-weight-bold {
+        color: #2d3748;
     }
 </style>
 @endpush
@@ -405,25 +554,72 @@ $(document).ready(function() {
 
 // Function untuk handle detail kegiatan
 function detailKegiatan(id) {
-    window.location.href = "{{ route('dosen.kegiatan-non-jti.show', '') }}/" + id;
-}
-
-// Function untuk handle download surat
-function downloadSurat(id) {
-    Swal.fire({
-        title: 'Mengunduh...',
-        text: 'Mohon tunggu',
-        allowOutsideClick: false,
-        didOpen: () => {
-            Swal.showLoading();
+    currentKegiatanId = id; 
+    $.ajax({
+        url: `/dosen/kegiatan-non-jti/${id}/detail`,
+        type: 'GET',
+        success: function(response) {
+            if (response.success) {
+                const data = response.data;
+                $('#detailNamaKegiatan').text(data.nama_kegiatan);
+                $('#detailJenisKegiatan').text(data.jenis_kegiatan);
+                $('#detailPenyelenggara').text(data.penyelenggara);
+                $('#detailLokasi').text(data.lokasi_kegiatan);
+                $('#detailTanggal').text(`${formatDate(data.tanggal_mulai)} - ${formatDate(data.tanggal_selesai)}`);
+                $('#detailDeskripsi').text(data.deskripsi_kegiatan);
+                
+                // Atur warna status persetujuan
+                const statusPersetujuan = $('#detailStatusPersetujuan');
+                statusPersetujuan.text(data.status_persetujuan);
+                switch(data.status_persetujuan.toLowerCase()) {
+                    case 'pending':
+                        statusPersetujuan.removeClass().addClass('badge badge-warning');
+                        break;
+                    case 'disetujui':
+                        statusPersetujuan.removeClass().addClass('badge badge-success');
+                        break;
+                    case 'ditolak':
+                        statusPersetujuan.removeClass().addClass('badge badge-danger');
+                        break;
+                }
+                
+                // Atur warna status kegiatan
+                const statusKegiatan = $('#detailStatusKegiatan');
+                statusKegiatan.text(data.status_kegiatan);
+                statusKegiatan.removeClass().addClass(
+                    data.status_kegiatan.toLowerCase() === 'berlangsung' 
+                        ? 'badge badge-info' 
+                        : 'badge badge-secondary'
+                );
+                
+                // Informasi surat
+                $('#detailJudulSurat').text(data.surat.judul_surat);
+                $('#detailNomorSurat').text(data.surat.nomer_surat);
+                $('#detailTanggalSurat').text(formatDate(data.surat.tanggal_surat));
+                
+                $('#modalDetail').modal('show');
+            } else {
+                Swal.fire('Error', response.message, 'error');
+            }
+        },
+        error: function(xhr) {
+            Swal.fire('Error', 'Terjadi kesalahan saat memuat detail kegiatan', 'error');
         }
     });
-
-    window.location.href = "{{ route('dosen.kegiatan-non-jti.download-surat', '') }}/" + id;
-    
-    setTimeout(() => {
-        Swal.close();
-    }, 1000);
 }
+
+// Fungsi untuk memformat tanggal
+function formatDate(dateString) {
+    const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
+    return new Date(dateString).toLocaleDateString('id-ID', options);
+}
+
+let currentKegiatanId = null; // Untuk menyimpan ID kegiatan yang sedang ditampilkan
+
+function downloadSurat(id) {
+    window.location.href = `/dosen/kegiatan-non-jti/${id}/download-surat`;
+}
+
+
 </script>
 @endpush
