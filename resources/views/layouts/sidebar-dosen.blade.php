@@ -68,7 +68,7 @@
 
             {{-- Kegiatan Non-JTI --}}
             <li class="nav-item">
-                <a href="{{ url('/dosen/kegiatan-non-jti') }}" class="nav-link {{ isMenuActive('kegiatan-non-jti', $activemenu) }}">
+                <a href="{{ route('dosen.kegiatan-non-jti') }}" class="nav-link {{ isMenuActive('kegiatan-non-jti', $activemenu) }}">
                     <i class="nav-icon fa fa-fw fa-university"></i>
                     <p>Kegiatan Non-JTI</p>
                 </a>

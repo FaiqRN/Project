@@ -2,7 +2,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
+
 
 class SuratModel extends Model
 {
@@ -10,7 +10,7 @@ class SuratModel extends Model
     
     protected $table = 'm_surat';
     protected $primaryKey = 'surat_id';
-    
+    public $timestamps = true;
     protected $fillable = [
         'nomer_surat',
         'judul_surat',
@@ -33,5 +33,15 @@ class SuratModel extends Model
     public function kegiatanProgramStudi()
     {
         return $this->hasOne(KegiatanProgramStudiModel::class, 'surat_id');
+    }
+
+    public function kegiatanLuarInstitusi()
+    {
+        return $this->hasOne(KegiatanLuarInstitusiModel::class, 'surat_id');
+    }
+
+    public function kegiatanInstitusi()
+    {
+        return $this->hasOne(KegiatanInstitusiModel::class, 'surat_id');
     }
 }

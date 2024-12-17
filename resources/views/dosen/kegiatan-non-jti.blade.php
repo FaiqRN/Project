@@ -11,8 +11,7 @@
                 </button>
             </div>
         </div>
-
-
+        <div class="card-body">
             <!-- Filter dan Pencarian -->
             <div class="row mb-3">
                 <div class="col-md-3">
@@ -75,7 +74,7 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form id="formTambahKegiatan" enctype="multipart/form-data">
+            <form id="formTambahKegiatan" method="POST" enctype="multipart/form-data">
                 @csrf
                 <div class="modal-body">
                     <div class="row">
@@ -92,7 +91,7 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Status Persetujuan</label>
-                                <input type="text" class="form-control" value="Menunggu" readonly>
+                                <input type="text" class="form-control" value="pending" readonly>
                             </div>
                         </div>
                     </div>
@@ -173,8 +172,6 @@
                         </div>
                     </div>
                 </div>
-
-                </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
                     <button type="submit" class="btn btn-primary">Simpan</button>
@@ -210,11 +207,20 @@
         color: #721c24;
         border: 1px solid #f5c6cb;
     }
-    .small-box {
-        border-radius: 0.5rem;
-    }
     .table td, .table th {
         vertical-align: middle;
+    }
+    .btn-group .btn {
+        margin: 0 2px;
+    }
+    .custom-file-label {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .modal-body {
+        max-height: calc(100vh - 200px);
+        overflow-y: auto;
     }
 </style>
 @endpush
@@ -222,117 +228,121 @@
 @push('js')
 <script src="{{ asset('adminlte/plugins/datatables/jquery.dataTables.min.js') }}"></script>
 <script src="{{ asset('adminlte/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
 <script>
 $(document).ready(function() {
     // Inisialisasi DataTable
     let table = $('#tabelKegiatan').DataTable({
-        processing: true,
-        serverSide: false,
-        ajax: {
-            url: '{{ route("dosen.kegiatan-non-jti.list") }}',
-            dataSrc: 'data'
-        },
-        columns: [
-            { 
-                data: null,
-                render: function (data, type, row, meta) {
-                    return meta.row + 1;
-                }
-            },
-            { data: 'nama' },
-            { data: 'penyelenggara' },
-            { data: 'lokasi' },
-            { 
-                data: null,
-                render: function(data) {
-                    let mulai = moment(data.tanggal_mulai).format('DD/MM/YYYY');
-                    let selesai = moment(data.tanggal_selesai).format('DD/MM/YYYY');
-                    return `${mulai} - ${selesai}`;
-                }
-            },
-            { 
-                data: 'status_persetujuan',
-                render: function(data) {
-                    let className = `status-badge status-${data.toLowerCase()}`;
-                    return `<span class="${className}">${data}</span>`;
-                }
-            },
-            { data: 'status' },
-            {
-                data: null,
-    render: function(data) {
-        return `
-            <button class="btn btn-sm btn-info" onclick="detailKegiatan(${data.id})">
-                <i class="fas fa-eye"></i>
-            </button>
-            <button class="btn btn-sm btn-primary" onclick="downloadSurat(${data.id})">
-                <i class="fas fa-download"></i>
-            </button>
-        `;
-    }
-}
-        ],
-        order: [[0, 'asc']],
-        language: {
-            url: '//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json'
+    processing: true,
+    serverSide: false,
+    ajax: {
+        url: '{{ route("dosen.kegiatan-non-jti.list") }}',
+        type: 'GET',
+        dataSrc: function(response) {
+            return response.data || [];
         }
-    });
+    },
+    columns: [
+        { 
+            data: null,
+            render: function (data, type, row, meta) {
+                return meta.row + 1;
+            }
+        },
+        { data: 'nama' },
+        { data: 'penyelenggara' },
+        { data: 'lokasi' },
+        { 
+            data: null,
+            render: function(data) {
+                const mulai = moment(data.tanggal_mulai).format('DD/MM/YYYY');
+                const selesai = moment(data.tanggal_selesai).format('DD/MM/YYYY');
+                return `${mulai} - ${selesai}`;
+            }
+        },
+        { 
+            data: 'status_persetujuan',
+            render: function(data) {
+                let badgeClass;
+                switch(data.toLowerCase()) {
+                    case 'pending':
+                        badgeClass = 'warning';
+                        break;
+                    case 'disetujui':
+                        badgeClass = 'success';
+                        break;
+                    case 'ditolak':
+                        badgeClass = 'danger';
+                        break;
+                    default:
+                        badgeClass = 'secondary';
+                }
+                return `<span class="badge badge-${badgeClass}">${data}</span>`;
+            }
+        },
+        { 
+            data: 'status_kegiatan',
+            render: function(data) {
+                const badgeClass = data === 'berlangsung' ? 'info' : 'success';
+                return `<span class="badge badge-${badgeClass}">${data}</span>`;
+            }
+        },
+        {
+            data: null,
+            render: function(data) {
+                return `
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-info" onclick="detailKegiatan(${data.id})" title="Detail">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-primary" onclick="downloadSurat(${data.id})" title="Download">
+                            <i class="fas fa-download"></i>
+                        </button>
+                    </div>
+                `;
+            }
+        }
+    ],
+    order: [[0, 'asc']],
+    language: {
+        url: '//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json'
+    }
+});
 
+    // File input handler
     $('.custom-file-input').on('change', function() {
         let fileName = $(this).val().split('\\').pop();
         $(this).next('.custom-file-label').addClass("selected").html(fileName);
     });
 
-    // Fungsi untuk update statistik
-    function updateStatistik() {
-        let total = 0;
-        let menunggu = 0;
-        let disetujui = 0;
-        let ditolak = 0;
-
-        table.rows().data().each(function(data) {
-            total++;
-            switch(data.status_persetujuan.toLowerCase()) {
-                case 'pending':
-                    menunggu++;
-                    break;
-                case 'disetujui':
-                    disetujui++;
-                    break;
-                case 'ditolak':
-                    ditolak++;
-                    break;
-            }
-        });
-
-        $('#totalKegiatan').text(total);
-        $('#totalMenunggu').text(menunggu);
-        $('#totalDisetujui').text(disetujui);
-        $('#totalDitolak').text(ditolak);
-    }
-
+    // Reset form saat modal ditutup
     $('#modalTambahKegiatan').on('hidden.bs.modal', function() {
         $('#formTambahKegiatan')[0].reset();
         $('.custom-file-label').html('Pilih file...');
+        $('.is-invalid').removeClass('is-invalid');
+        $('.invalid-feedback').remove();
     });
 
     // Form Submit Handler
     $('#formTambahKegiatan').on('submit', function(e) {
         e.preventDefault();
         
-        // Validasi jenis kegiatan
-        let jenisKegiatan = $('select[name="jenis_kegiatan"]').val();
-        if (!jenisKegiatan) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Silahkan pilih jenis kegiatan'
-            });
-            return false;
-        }
-
+        // Remove previous error states
+        $('.is-invalid').removeClass('is-invalid');
+        $('.invalid-feedback').remove();
+        
         let formData = new FormData(this);
         
+        // Show loading state
+        Swal.fire({
+            title: 'Menyimpan Data',
+            text: 'Mohon tunggu...',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
         $.ajax({
             url: '{{ route("dosen.kegiatan-non-jti.store") }}',
             type: 'POST',
@@ -343,49 +353,77 @@ $(document).ready(function() {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             },
             success: function(response) {
-                $('#modalTambahKegiatan').modal('hide');
-                table.ajax.reload();
                 Swal.fire({
                     icon: 'success',
-                    title: 'Berhasil',
-                    text: response.message
+                    title: 'Berhasil!',
+                    text: response.message,
+                    timer: 1500,
+                    showConfirmButton: false
+                }).then(() => {
+                    $('#modalTambahKegiatan').modal('hide');
+                    table.ajax.reload();
                 });
             },
             error: function(xhr) {
-                let errorMessage = 'Terjadi kesalahan';
-                if (xhr.responseJSON && xhr.responseJSON.message) {
-                    errorMessage = xhr.responseJSON.message;
+                console.error('Error:', xhr);
+                
+                if (xhr.status === 422) {
+                    // Validation errors
+                    let errors = xhr.responseJSON.errors;
+                    Object.keys(errors).forEach(function(key) {
+                        let input = $(`[name="${key}"]`);
+                        input.addClass('is-invalid');
+                        input.after(`<div class="invalid-feedback">${errors[key][0]}</div>`);
+                    });
                 }
+                
                 Swal.fire({
                     icon: 'error',
-                    title: 'Error',
-                    text: errorMessage
+                    title: 'Error!',
+                    text: xhr.responseJSON?.message || 'Terjadi kesalahan saat menyimpan data'
                 });
             }
         });
     });
 
     // Filter Handler
-    $('#btnFilter').click(function() {
+    $('#btnFilter').on('click', function() {
         let status = $('#filterStatus').val();
         let tanggal = $('#filterTanggal').val();
         let search = $('#searchKegiatan').val();
 
         table.ajax.reload();
-        updateStatistik();
     });
 
-    // Initial statistik update
-    table.on('draw', updateStatistik);
+    // Search Handler
+    $('#searchKegiatan').on('keyup', function(e) {
+        if(e.key === 'Enter') {
+            table.search(this.value).draw();
+        }
+    });
 });
 
+// Function untuk handle detail kegiatan
 function detailKegiatan(id) {
-    // Implementasi fungsi detail
-    window.location.href = `/dosen/kegiatan-non-jti/${id}`;
+    window.location.href = "{{ route('dosen.kegiatan-non-jti.show', '') }}/" + id;
 }
 
+// Function untuk handle download surat
 function downloadSurat(id) {
-    window.location.href = `/dosen/kegiatan-non-jti/${id}/download-surat`;
+    Swal.fire({
+        title: 'Mengunduh...',
+        text: 'Mohon tunggu',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+
+    window.location.href = "{{ route('dosen.kegiatan-non-jti.download-surat', '') }}/" + id;
+    
+    setTimeout(() => {
+        Swal.close();
+    }, 1000);
 }
 </script>
 @endpush
