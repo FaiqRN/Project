@@ -90,7 +90,7 @@
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label>Status Persetujuan</label>
+                                <label>Status</label>
                                 <input type="text" class="form-control" value="pending" readonly>
                             </div>
                         </div>
