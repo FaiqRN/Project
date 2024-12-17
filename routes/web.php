@@ -19,7 +19,9 @@ use App\Http\Controllers\PembagianPoinController;
 use App\Http\Controllers\AdminPembagianPoinController;
 use App\Http\Controllers\AdminUnggahDokumenAkhirController;
 use App\Http\Controllers\BebanKerjaController;
+use App\Http\Controllers\KegiatanNonJTIController;
 
+ 
 // Guest Routes (untuk user yang belum login)
 Route::middleware(['guest'])->group(function () {
     // Redirect ke login jika mengakses root URL
@@ -67,6 +69,17 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
                 ]
             ]);
         })->name('dosen.agenda');
+
+                // Tambahkan Route Kegiatan Non-JTI
+                Route::prefix('kegiatan-non-jti')->group(function () {
+                    Route::get('/', [KegiatanNonJTIController::class, 'index'])->name('dosen.kegiatan-non-jti');
+                    Route::get('/list', [KegiatanNonJTIController::class, 'getKegiatanList'])->name('dosen.kegiatan-non-jti.list');
+                    Route::post('/store', [KegiatanNonJTIController::class, 'store'])->name('dosen.kegiatan-non-jti.store');
+                    Route::get('/{id}', [KegiatanNonJTIController::class, 'show'])->name('dosen.kegiatan-non-jti.show');
+                    Route::put('/{id}', [KegiatanNonJTIController::class, 'update'])->name('dosen.kegiatan-non-jti.update');
+                    Route::delete('/{id}', [KegiatanNonJTIController::class, 'destroy'])->name('dosen.kegiatan-non-jti.destroy');
+                    Route::get('/{id}/download-surat', [KegiatanNonJTIController::class, 'downloadSurat'])->name('dosen.kegiatan-non-jti.download-surat');
+                });
 
         // Route untuk Update Progress Agenda
         Route::prefix('update-progress')->group(function () {
