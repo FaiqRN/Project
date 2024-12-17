@@ -225,4 +225,66 @@ class KegiatanNonJTIController extends Controller
                 ->with('error', 'Terjadi kesalahan saat memuat detail kegiatan');
         }
     }
+
+    public function getDetail($id)
+{
+    try {
+        // Coba cari di kegiatan luar institusi
+        $kegiatan = KegiatanLuarInstitusiModel::with(['user', 'surat'])
+            ->where('kegiatan_luar_institusi_id', $id)
+            ->first();
+
+        if (!$kegiatan) {
+            // Jika tidak ditemukan, cari di kegiatan institusi
+            $kegiatan = KegiatanInstitusiModel::with(['user', 'surat'])
+                ->where('kegiatan_institusi_id', $id)
+                ->first();
+        }
+
+        if (!$kegiatan) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Kegiatan tidak ditemukan'
+            ], 404);
+        }
+
+        // Format data sesuai jenis kegiatan
+        $data = [
+            'id' => $kegiatan instanceof KegiatanLuarInstitusiModel 
+                ? $kegiatan->kegiatan_luar_institusi_id 
+                : $kegiatan->kegiatan_institusi_id,
+            'jenis_kegiatan' => $kegiatan instanceof KegiatanLuarInstitusiModel 
+                ? 'Kegiatan Luar Institusi' 
+                : 'Kegiatan Institusi',
+            'nama_kegiatan' => $kegiatan instanceof KegiatanLuarInstitusiModel 
+                ? $kegiatan->nama_kegiatan_luar_institusi 
+                : $kegiatan->nama_kegiatan_institusi,
+            'penyelenggara' => $kegiatan->penyelenggara,
+            'lokasi_kegiatan' => $kegiatan->lokasi_kegiatan,
+            'deskripsi_kegiatan' => $kegiatan->deskripsi_kegiatan,
+            'tanggal_mulai' => $kegiatan->tanggal_mulai,
+            'tanggal_selesai' => $kegiatan->tanggal_selesai,
+            'status_persetujuan' => $kegiatan->status_persetujuan,
+            'status_kegiatan' => $kegiatan->status_kegiatan,
+            'surat' => [
+                'judul_surat' => $kegiatan->surat->judul_surat,
+                'nomer_surat' => $kegiatan->surat->nomer_surat,
+                'tanggal_surat' => $kegiatan->surat->tanggal_surat
+            ]
+        ];
+
+        return response()->json([
+            'success' => true,
+            'data' => $data
+        ]);
+
+    } catch (\Exception $e) {
+        Log::error('Error in getDetail: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => 'Terjadi kesalahan saat memuat detail kegiatan'
+        ], 500);
+    }
+}
+
 }

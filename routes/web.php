@@ -79,6 +79,7 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
                     Route::put('/{id}', [KegiatanNonJTIController::class, 'update'])->name('dosen.kegiatan-non-jti.update');
                     Route::delete('/{id}', [KegiatanNonJTIController::class, 'destroy'])->name('dosen.kegiatan-non-jti.destroy');
                     Route::get('/{id}/download-surat', [KegiatanNonJTIController::class, 'downloadSurat'])->name('dosen.kegiatan-non-jti.download-surat');
+                    Route::get('/{id}/detail', [KegiatanNonJTIController::class, 'getDetail'])->name('dosen.kegiatan-non-jti.detail');
                 });
 
         // Route untuk Update Progress Agenda
