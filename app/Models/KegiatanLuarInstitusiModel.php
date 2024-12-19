@@ -22,7 +22,9 @@ class KegiatanLuarInstitusiModel extends Model
         'tanggal_selesai',
         'status_kegiatan',
         'status_persetujuan',
-        'penyelenggara'
+        'keterangan',
+        'penyelenggara',
+        'created_by'
     ];
 
 
@@ -40,7 +42,7 @@ class KegiatanLuarInstitusiModel extends Model
 
     public function surat()
     {
-        return $this->belongsTo(SuratModel::class, 'surat_id', 'surat_id');
+        return $this->belongsTo(SuratModel::class, 'surat_id', 'surat_id')->withDefault(null);
     }
 
 
@@ -49,6 +51,3 @@ class KegiatanLuarInstitusiModel extends Model
         return $this->hasMany(JabatanModel::class, 'kegiatan_luar_institusi_id');
     }
 }
-
-
-

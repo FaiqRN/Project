@@ -37,9 +37,14 @@
                     </div>
                 </div>
                 <div class="col-md-2">
-                    <button class="btn btn-secondary btn-block" id="btnFilter">
-                        <i class="fas fa-filter mr-1"></i> Filter
-                    </button>
+                    <div class="btn-group w-100">
+                        <button class="btn btn-secondary" id="btnFilter">
+                            <i class="fas fa-filter mr-1"></i> Filter
+                        </button>
+                        <button class="btn btn-outline-secondary" id="btnResetFilter">
+                            <i class="fas fa-undo"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -97,8 +102,17 @@
                             </div>
                         </div>
                     </div>
-
-
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label>Penanggung Jawab<span class="text-danger">*</span></label>
+                                <select class="form-control select2" name="user_id" required>
+                                    <option value="">Pilih Penanggung Jawab</option>
+                                </select>
+                                <small class="form-text text-muted">Pilih dosen sebagai penanggung jawab kegiatan</small>
+                            </div>
+                        </div>
+                    </div>
                     <div class="form-group">
                         <label>Nama Kegiatan<span class="text-danger">*</span></label>
                         <input type="text" class="form-control" name="nama_kegiatan" required>
@@ -279,6 +293,8 @@
 
 @push('css')
 <link rel="stylesheet" href="{{ asset('adminlte/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
+<link rel="stylesheet" href="{{ asset('adminlte/plugins/select2/css/select2.min.css') }}">
+<link rel="stylesheet" href="{{ asset('adminlte/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
 <style>
     .status-badge {
         padding: 0.5rem;
@@ -372,6 +388,19 @@
     .font-weight-bold {
         color: #2d3748;
     }
+    .btn-danger {
+        background-color: #dc3545;
+        border-color: #dc3545;
+    }
+
+    .btn-danger:hover {
+        background-color: #c82333;
+        border-color: #bd2130;
+    }
+
+    .swal2-popup {
+        font-size: 0.9rem;
+    }
 </style>
 @endpush
 
@@ -379,16 +408,73 @@
 @push('js')
 <script src="{{ asset('adminlte/plugins/datatables/jquery.dataTables.min.js') }}"></script>
 <script src="{{ asset('adminlte/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
+<script src="{{ asset('adminlte/plugins/select2/js/select2.full.min.js') }}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
 <script>
 $(document).ready(function() {
+    // Initialize Select2
+    $('.select2').select2({
+        theme: 'bootstrap4',
+        width: '100%',
+        placeholder: 'Pilih Penanggung Jawab',
+        allowClear: true
+    });
+
+    // Load dosen list when modal is opened
+    $('#modalTambahKegiatan').on('show.bs.modal', function() {
+        loadDosenList();
+    });
+
+    function loadDosenList() {
+        $.ajax({
+            url: '{{ route("dosen.kegiatan-non-jti.get-dosen") }}',
+            type: 'GET',
+            success: function(response) {
+                if (response.success) {
+                    let select = $('select[name="user_id"]');
+                    select.empty();
+                    select.append('<option value="">Pilih Penanggung Jawab</option>');
+                    
+                    response.data.forEach(function(dosen) {
+                        let optionText = dosen.nidn ? `${dosen.nama} (${dosen.nidn})` : dosen.nama;
+                        select.append(`<option value="${dosen.user_id}">${optionText}</option>`);
+                    });
+
+                    // Trigger change to update Select2
+                    select.trigger('change');
+                }
+            },
+            error: function(xhr) {
+                console.error('Error loading dosen list:', xhr);
+                Swal.fire('Error', 'Gagal memuat daftar dosen', 'error');
+            }
+        });
+    }
+
+    // Reset form and select2 when modal is closed
+    $('#modalTambahKegiatan').on('hidden.bs.modal', function() {
+        $('#formTambahKegiatan')[0].reset();
+        $('.select2').val('').trigger('change');
+        $('.custom-file-label').html('Pilih file...');
+        $('.is-invalid').removeClass('is-invalid');
+        $('.invalid-feedback').remove();
+    });
+    
     // Inisialisasi DataTable
     let table = $('#tabelKegiatan').DataTable({
+    dom: '<"row"<"col-sm-12"tr>><"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
     processing: true,
     serverSide: false,
     ajax: {
         url: '{{ route("dosen.kegiatan-non-jti.list") }}',
         type: 'GET',
+        data: function(d) {
+                return {
+                    status: $('#filterStatus').val(),
+                    tanggal: $('#filterTanggal').val(),
+                    search: $('#searchKegiatan').val()
+                };
+            },
         dataSrc: function(response) {
             return response.data || [];
         }
@@ -434,12 +520,22 @@ $(document).ready(function() {
         {
             data: null,
             render: function(data) {
-                return `
+                let buttons = `
                     <div class="btn-group">
                         <button class="btn btn-sm btn-info" onclick="detailKegiatan(${data.id})" title="Detail">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                `;
+                            <i class="fas fa-eye"></i> Detail
+                        </button>`;
+                
+                // Tampilkan tombol hapus hanya jika user memiliki hak
+                if (data.can_delete) {
+                    buttons += `
+                        <button class="btn btn-sm btn-danger" onclick="hapusKegiatan(${data.id})" title="Hapus">
+                            <i class="fas fa-trash"></i> Hapus
+                        </button>`;
+                }
+                
+                buttons += `</div>`;
+                return buttons;
             }
         }
     ],
@@ -533,20 +629,39 @@ $(document).ready(function() {
 
     // Filter Handler
     $('#btnFilter').on('click', function() {
-        let status = $('#filterStatus').val();
-        let tanggal = $('#filterTanggal').val();
-        let search = $('#searchKegiatan').val();
-
-
         table.ajax.reload();
     });
 
+    $('#btnResetFilter').on('click', function() {
+        $('#filterStatus').val('');
+        $('#filterTanggal').val('');
+        $('#searchKegiatan').val('');
+        table.ajax.reload();
+    });
 
     // Search Handler
+
+    $('#btnSearch').on('click', function() {
+        table.ajax.reload();
+    });
+
     $('#searchKegiatan').on('keyup', function(e) {
-        if(e.key === 'Enter') {
-            table.search(this.value).draw();
+        if (e.key === 'Enter') {
+            table.ajax.reload();
         }
+    });
+
+    $('#searchForm').on('submit', function(e) {
+        e.preventDefault();
+        table.ajax.reload();
+    });
+
+    $('#filterTanggal').on('change', function() {
+        table.ajax.reload();
+    });
+
+    $('#filterStatus').on('change', function() {
+        table.ajax.reload();
     });
 });
 
@@ -606,5 +721,50 @@ function formatDate(dateString) {
 
 let currentKegiatanId = null; // Untuk menyimpan ID kegiatan yang sedang ditampilkan
 
+
+function hapusKegiatan(id) {
+    Swal.fire({
+        title: 'Apakah Anda yakin?',
+        text: "Data kegiatan dan surat akan dihapus secara permanen!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Ya, hapus!',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: `/dosen/kegiatan-non-jti/${id}`,
+                type: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    if (response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil!',
+                            text: response.message,
+                            timer: 1500,
+                            showConfirmButton: false
+                        }).then(() => {
+                            $('#tabelKegiatan').DataTable().ajax.reload();
+                        });
+                    } else {
+                        Swal.fire('Error', response.message, 'error');
+                    }
+                },
+                error: function(xhr) {
+                    let message = 'Terjadi kesalahan saat menghapus data.';
+                    if (xhr.status === 403) {
+                        message = 'Anda tidak memiliki izin untuk menghapus data ini.';
+                    }
+                    Swal.fire('Error', message, 'error');
+                }
+            });
+        }
+    });
+}
 </script>
 @endpush

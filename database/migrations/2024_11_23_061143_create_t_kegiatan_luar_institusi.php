@@ -15,9 +15,9 @@ return new class extends Migration
     {
         Schema::create('t_kegiatan_luar_institusi', function (Blueprint $table) {
             $table->id('kegiatan_luar_institusi_id');
-            $table->unsignedBigInteger('surat_id');
+            $table->unsignedBigInteger('surat_id')->nullable();
             $table->unsignedBigInteger('user_id');
-
+            $table->unsignedBigInteger('created_by');
 
             $table->string('nama_kegiatan_luar_institusi', 200);
             $table->text('deskripsi_kegiatan');
@@ -28,6 +28,7 @@ return new class extends Migration
             $table->enum('status_persetujuan', ['pending', 'disetujui','ditolak'])->default('pending');
             $table->string('penyelenggara', 150)->nullable();
             $table->text('surat_penugasan')->nullable();
+            $table->text('keterangan')->nullable();
             $table->timestamps();
        
 
@@ -41,7 +42,7 @@ return new class extends Migration
             $table->foreign('surat_id')
                   ->references('surat_id')
                   ->on('m_surat')
-                  ->onDelete('restrict');
+                ->onDelete('set null');
         });
     }
 
@@ -54,8 +55,3 @@ return new class extends Migration
         Schema::dropIfExists('t_kegiatan_luar_institusi');
     }
 };
-
-
-
-
-

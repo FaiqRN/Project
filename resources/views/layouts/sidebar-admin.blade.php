@@ -93,7 +93,7 @@
 
                     {{-- Kegiatan Non-JTI --}}
                     <li class="nav-item">
-                        <a href="{{ route('admin.dosen.kegiatan-non-jti') }}" class="nav-link {{ $currentRoute === 'admin.dosen.kegiatan-non-jti' ? 'active' : '' }}">
+                        <a href="{{ route('admin.dosen.kegiatan-non-jti.index') }}" class="nav-link {{ $currentRoute === 'admin.dosen.kegiatan-non-jti' ? 'active' : '' }}">
                             <i class="fa fa-fw fa-university nav-icon"></i>
                             <p>Kegiatan Non-JTI</p>
                         </a>

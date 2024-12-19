@@ -20,7 +20,7 @@ use App\Http\Controllers\AdminPembagianPoinController;
 use App\Http\Controllers\AdminUnggahDokumenAkhirController;
 use App\Http\Controllers\BebanKerjaController;
 use App\Http\Controllers\KegiatanNonJTIController;
-
+use App\Http\Controllers\AdminKegiatanNonJTIController;
 
  
 // Guest Routes (untuk user yang belum login)
@@ -51,14 +51,10 @@ Route::middleware(['auth.check'])->group(function () {
     Route::put('/profile/update', [UserController::class, 'update'])->name('profile.update');
 
 
-
-
 // Dosen Routes
 Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
     Route::prefix('dosen')->group(function () {
 
-
-           
         Route::get('/dashboard', function () {
             return view('dosen.dashboard', [
                 'breadcrumb' => (object)[
@@ -82,13 +78,15 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
                 // Tambahkan Route Kegiatan Non-JTI
         Route::prefix('kegiatan-non-jti')->group(function () {
             Route::get('/', [KegiatanNonJTIController::class, 'index'])->name('dosen.kegiatan-non-jti');
-            Route::get('/list', [KegiatanNonJTIController::class, 'getKegiatanList'])->name('dosen.kegiatan-non-jti.list');
+            Route::get('/kegiatan-non-jti/list', [KegiatanNonJTIController::class, 'getKegiatanList'])->name('dosen.kegiatan-non-jti.list');
             Route::post('/store', [KegiatanNonJTIController::class, 'store'])->name('dosen.kegiatan-non-jti.store');
             Route::get('/{id}', [KegiatanNonJTIController::class, 'show'])->name('dosen.kegiatan-non-jti.show');
             Route::put('/{id}', [KegiatanNonJTIController::class, 'update'])->name('dosen.kegiatan-non-jti.update');
             Route::delete('/{id}', [KegiatanNonJTIController::class, 'destroy'])->name('dosen.kegiatan-non-jti.destroy');
             Route::get('/{id}/download-surat', [KegiatanNonJTIController::class, 'downloadSurat'])->name('dosen.kegiatan-non-jti.download-surat');
             Route::get('/{id}/detail', [KegiatanNonJTIController::class, 'getDetail'])->name('dosen.kegiatan-non-jti.detail');
+            Route::get('/kegiatan-non-jti/get-dosen', [KegiatanNonJTIController::class, 'getDosen'])->name('dosen.kegiatan-non-jti.get-dosen');
+            Route::delete('/kegiatan-non-jti/{id}', [KegiatanNonJTIController::class, 'destroy'])->name('dosen.kegiatan-non-jti.destroy');
         });
 
 
@@ -160,8 +158,6 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
     // Kaprodi Routes
     Route::middleware(['auth.role:Kaprodi'])->prefix('kaprodi')->group(function () {
 
-
-       
         Route::get('/dashboard', function () {
             return view('kaprodi.dashboard', [
                 'breadcrumb' => (object)[
@@ -170,8 +166,6 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
                 ]
             ]);
         })->name('kaprodi.dashboard');
-
-
 
 
         Route::get('/kegiatan', function () {
@@ -192,11 +186,10 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
                  ->name('kaprodi.beban-kerja.statistik');
             Route::get('/detail-data', [BebanKerjaController::class, 'getDetailData'])
                  ->name('kaprodi.beban-kerja.detail.data');
-                 Route::get('/kaprodi/beban-kerja/detail-data', [BebanKerjaController::class, 'getDetailData'])->name('kaprodi.beban-kerja.detail.data');
-                 Route::get('/kaprodi/beban-kerja/export-pdf', [BebanKerjaController::class, 'exportPDF'])->name('kaprodi.beban-kerja.pdf');
-                 Route::get('/kaprodi/beban-kerja/export-excel', [BebanKerjaController::class, 'exportExcel'])->name('kaprodi.beban-kerja.excel');
-                 
-                 
+            Route::get('/kaprodi/beban-kerja/detail-data', [BebanKerjaController::class, 'getDetailData'])->name('kaprodi.beban-kerja.detail.data');
+            Route::get('/kaprodi/beban-kerja/export-pdf', [BebanKerjaController::class, 'exportPDF'])->name('kaprodi.beban-kerja.pdf');
+            Route::get('/kaprodi/beban-kerja/export-excel', [BebanKerjaController::class, 'exportExcel'])->name('kaprodi.beban-kerja.excel');
+                       
         });
        
         // Route untuk surat tugas
@@ -224,11 +217,6 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
     // Admin Routes
     Route::middleware(['auth.role:Admin'])->prefix('admin')->name('admin.')->group(function () {
 
-
-
-
-
-
         Route::get('/dashboard', function () {
             return view('admin.dashboard', [
                 'breadcrumb' => (object)[
@@ -239,8 +227,6 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
         })->name('dashboard');
 
 
-
-
         // User Management
         Route::controller(UserManagementController::class)->group(function () {
             Route::get('/users', 'index')->name('users.index');
@@ -249,8 +235,6 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
             Route::put('/users/{id}', 'update')->name('users.update');  
             Route::delete('/users/{id}', 'destroy')->name('users.destroy');
         });
-
-
 
 
         // Dosen Management Routes
@@ -276,13 +260,7 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
                     Route::get('/jabatan/get-kegiatan', 'getKegiatan')->name('jabatan.getKegiatan');
                 });
 
-
-
-
                 Route::get('/kegiatan', [KegiatanController::class, 'index'])->name('kegiatan');
-
-
-
 
                 // Kegiatan Jurusan Routes
                 Route::prefix('jurusan')->group(function () {
@@ -350,13 +328,14 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
                 });;
             });
 
-
-            Route::view('/kegiatan-non-jti', 'admin.dosen.kegiatan-non-jti', [
-                'breadcrumb' => (object)[
-                    'title' => 'Kegiatan Non-JTI',
-                    'list' => ['Home', 'Dosen', 'Kegiatan Non-JTI']
-                ]
-            ])->name('kegiatan-non-jti');
+            Route::prefix('kegiatan-non-jti')->name('kegiatan-non-jti.')->group(function () {
+                Route::get('/', [AdminKegiatanNonJTIController::class, 'index'])->name('index');
+                Route::get('/list', [AdminKegiatanNonJTIController::class, 'getKegiatanList'])->name('list');
+                Route::post('/{id}/status', [AdminKegiatanNonJTIController::class, 'updateStatus'])->name('update-status');
+                Route::get('/{id}/download-surat/{jenis}', [AdminKegiatanNonJTIController::class, 'downloadSurat'])->name('download-surat');
+                Route::get('/{id}/detail', [AdminKegiatanNonJTIController::class, 'getDetail'])->name('admin.dosen.kegiatan-non-jti.detail');
+                Route::delete('/{id}', [AdminKegiatanNonJTIController::class, 'destroy'])->name('destroy');
+            });
         });
 
 
