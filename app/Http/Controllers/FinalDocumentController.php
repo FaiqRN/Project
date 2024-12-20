@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\FinalDocumentModel;
 use App\Models\KegiatanJurusanModel;
 use App\Models\KegiatanProgramStudiModel;
+use App\Models\KegiatanInstitusiModel;
+use App\Models\KegiatanLuarInstitusiModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -35,8 +37,7 @@ class FinalDocumentController extends Controller
             DB::raw("'jurusan' as jenis")
         ]);
     
-    // Query remains same
-    $kegiatanProdi = KegiatanProgramStudiModel::where('user_id', Auth::id())
+        $kegiatanProdi = KegiatanProgramStudiModel::where('user_id', Auth::id())
         ->whereNull('final_id')
         ->select([
             'kegiatan_program_studi_id as id',
@@ -47,7 +48,29 @@ class FinalDocumentController extends Controller
             DB::raw("'prodi' as jenis")
         ]);
 
-        $kegiatan = $kegiatanJurusan->union($kegiatanProdi);
+        $kegiatanInstitusi = KegiatanInstitusiModel::where('user_id', Auth::id())
+        ->whereNull('final_id')
+        ->select([
+            'kegiatan_institusi_id as id',
+            'nama_kegiatan_institusi as nama',
+            'tanggal_mulai',
+            'tanggal_selesai',
+            'status_kegiatan',
+            DB::raw("'institusi' as jenis")
+        ]);
+
+        $kegiatanLuarInstitusi = KegiatanLuarInstitusiModel::where('user_id', Auth::id())
+        ->whereNull('final_id')
+        ->select([
+            'kegiatan_luar_institusi_id as id',
+            'nama_kegiatan_luar_institusi as nama',
+            'tanggal_mulai',
+            'tanggal_selesai',
+            'status_kegiatan',
+            DB::raw("'luar_institusi' as jenis")
+        ]);
+
+        $kegiatan = $kegiatanJurusan->union($kegiatanProdi)->union($kegiatanInstitusi)->union($kegiatanLuarInstitusi);
 
         return DataTables::of($kegiatan)
             ->addColumn('action', function ($row) {
@@ -72,7 +95,7 @@ class FinalDocumentController extends Controller
     {
         $request->validate([
             'kegiatan_id' => 'required',
-            'jenis_kegiatan' => 'required|in:jurusan,prodi',
+            'jenis_kegiatan' => 'required|in:jurusan,prodi,institusi,luar_institusi',
             'file_akhir' => 'required|file|max:10240|mimes:pdf,doc,docx'
         ]);
 
@@ -85,9 +108,15 @@ class FinalDocumentController extends Controller
             if ($request->jenis_kegiatan === 'jurusan') {
                 $finalDoc->kegiatan_jurusan_id = $request->kegiatan_id;
                 $kegiatan = KegiatanJurusanModel::findOrFail($request->kegiatan_id);
-            } else {
+            } elseif ($request->jenis_kegiatan === 'prodi') {
                 $finalDoc->kegiatan_program_studi_id = $request->kegiatan_id;
                 $kegiatan = KegiatanProgramStudiModel::findOrFail($request->kegiatan_id);
+            } elseif ($request->jenis_kegiatan === 'institusi') {
+                $finalDoc->kegiatan_institusi_id = $request->kegiatan_id;
+                $kegiatan = KegiatanInstitusiModel::findOrFail($request->kegiatan_id);
+            } elseif ($request->jenis_kegiatan === 'luar_institusi') {
+                $finalDoc->kegiatan_luar_institusi_id = $request->kegiatan_id;
+                $kegiatan = KegiatanLuarInstitusiModel::findOrFail($request->kegiatan_id);
             }
             
             $finalDoc->save();

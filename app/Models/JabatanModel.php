@@ -59,4 +59,14 @@ class JabatanModel extends Model
         {
             return $this->hasMany(PoinProgramStudiModel::class, 'jabatan_id');
         }
+
+        public function poinInstitusi()
+        {
+            return $this->hasMany(PoinInstitusiModel::class, 'jabatan_id');
+        }
+
+        public function poinLuarInstitusi()
+        {
+            return $this->hasMany(PoinLuarInstitusiModel::class, 'jabatan_id');
+        }
 }

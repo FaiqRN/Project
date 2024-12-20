@@ -8,21 +8,6 @@
             <h3 class="card-title">Penambahan Poin Kegiatan</h3>
         </div>
         <div class="card-body">
-            <!-- Total Keseluruhan -->
-            <div class="row mb-4">
-                <div class="col-12">
-                    <div class="small-box bg-primary">
-                        <div class="inner">
-                            <h3 id="total-poin-keseluruhan">0</h3>
-                            <p>Total Poin Keseluruhan</p>
-                        </div>
-                        <div class="icon">
-                            <i class="fas fa-star"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Tabel Data Poin -->
             <div class="table-responsive">
                 <table id="tabel-poin" class="table table-bordered table-striped">

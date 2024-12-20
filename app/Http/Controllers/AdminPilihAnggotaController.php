@@ -6,6 +6,8 @@ use App\Models\AgendaModel;
 use App\Models\UserModel;
 use App\Models\KegiatanJurusanModel;
 use App\Models\KegiatanProgramStudiModel;
+use App\Models\KegiatanInstitusiModel;
+use App\Models\KegiatanLuarInstitusiModel;
 use App\Models\AgendaUserModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -23,6 +25,14 @@ class AdminPilihAnggotaController extends Controller
         $kegiatanProdi = KegiatanProgramStudiModel::with(['surat'])
             ->where('status_kegiatan', 'berlangsung')
             ->get();
+        
+        $kegiatanInstitusi = KegiatanInstitusiModel::with(['surat'])
+            ->where('status_kegiatan', 'berlangsung')
+            ->get();
+        
+        $kegiatanLuarInstitusi = KegiatanLuarInstitusiModel::with(['surat'])
+            ->where('status_kegiatan', 'berlangsung')
+            ->get();
 
         // Ambil semua data agenda
         $agendas = AgendaModel::all();
@@ -33,6 +43,8 @@ class AdminPilihAnggotaController extends Controller
         return view('admin.dosen.agenda.pilih-anggota', [
             'kegiatanJurusan' => $kegiatanJurusan,
             'kegiatanProdi' => $kegiatanProdi,
+            'kegiatanInstitusi' => $kegiatanInstitusi,
+            'kegiatanLuarInstitusi' => $kegiatanLuarInstitusi,
             'agendas' => $agendas,
             'dosens' => $dosens,
             'breadcrumb' => (object)[
@@ -49,7 +61,9 @@ class AdminPilihAnggotaController extends Controller
                 ->join('t_agenda as a', 'au.agenda_id', '=', 'a.agenda_id')
                 ->join('m_user as u', 'au.user_id', '=', 'u.user_id')
                 ->leftJoin('t_kegiatan_jurusan as kj', 'a.kegiatan_jurusan_id', '=', 'kj.kegiatan_jurusan_id')
-                ->leftJoin('t_kegiatan_program_studi as kp', 'a.kegiatan_program_studi_id', '=', 'kp.kegiatan_program_studi_id');
+                ->leftJoin('t_kegiatan_program_studi as kp', 'a.kegiatan_program_studi_id', '=', 'kp.kegiatan_program_studi_id')
+                ->leftJoin('t_kegiatan_institusi as ki', 'a.kegiatan_institusi_id', '=', 'ki.kegiatan_institusi_id')
+                ->leftJoin('t_kegiatan_luar_institusi as kli', 'a.kegiatan_luar_institusi_id', '=', 'kli.kegiatan_luar_institusi_id');
     
             // Filter berdasarkan kegiatan jurusan
             if ($request->kegiatan_jurusan) {
@@ -59,6 +73,16 @@ class AdminPilihAnggotaController extends Controller
             // Filter berdasarkan kegiatan prodi
             if ($request->kegiatan_prodi) {
                 $query->where('a.kegiatan_program_studi_id', $request->kegiatan_prodi);
+            }
+
+            // Filter berdasarkan kegiatan institusi
+            if ($request->kegiatan_institusi) {
+                $query->where('a.kegiatan_institusi_id', $request->kegiatan_institusi);
+            }
+
+            // Filter berdasarkan kegiatan luar institusi
+            if ($request->kegiatan_luar_institusi) {
+                $query->where('a.kegiatan_luar_institusi_id', $request->kegiatan_luar_institusi);
             }
     
             // Filter berdasarkan status anggota
@@ -76,7 +100,7 @@ class AdminPilihAnggotaController extends Controller
                 'a.nama_agenda',
                 'u.nama_lengkap',
                 'u.nidn',
-                DB::raw('COALESCE(kj.nama_kegiatan_jurusan, kp.nama_kegiatan_program_studi) as nama_kegiatan')
+                DB::raw('COALESCE(kj.nama_kegiatan_jurusan, kp.nama_kegiatan_program_studi, ki.nama_kegiatan_institusi, kli.nama_kegiatan_luar_institusi) as nama_kegiatan')
             ]);
     
             return DataTables::of($query)
@@ -230,7 +254,9 @@ class AdminPilihAnggotaController extends Controller
                 ->join('t_agenda as a', 'au.agenda_id', '=', 'a.agenda_id')
                 ->join('m_user as u', 'au.user_id', '=', 'u.user_id')
                 ->leftJoin('t_kegiatan_jurusan as kj', 'a.kegiatan_jurusan_id', '=', 'kj.kegiatan_jurusan_id')
-                ->leftJoin('t_kegiatan_program_studi as kp', 'a.kegiatan_program_studi_id', '=', 'kp.kegiatan_program_studi_id');
+                ->leftJoin('t_kegiatan_program_studi as kp', 'a.kegiatan_program_studi_id', '=', 'kp.kegiatan_program_studi_id')
+                ->leftJoin('t_kegiatan_institusi as ki', 'a.kegiatan_institusi_id', '=', 'ki.kegiatan_institusi_id')
+                ->leftJoin('t_kegiatan_luar_institusi as kli', 'a.kegiatan_luar_institusi_id', '=', 'kli.kegiatan_luar_institusi_id');
     
             // Filter berdasarkan kegiatan jurusan
             if ($request->kegiatan_jurusan) {
@@ -240,6 +266,16 @@ class AdminPilihAnggotaController extends Controller
             // Filter berdasarkan kegiatan prodi
             if ($request->kegiatan_prodi) {
                 $query->where('a.kegiatan_program_studi_id', $request->kegiatan_prodi);
+            }
+
+            // Filter berdasarkan kegiatan institusi
+            if ($request->kegiatan_institusi) {
+                $query->where('a.kegiatan_institusi_id', $request->kegiatan_institusi);
+            }
+
+            // Filter berdasarkan kegiatan luar institusi
+            if ($request->kegiatan_luar_institusi) {
+                $query->where('a.kegiatan_luar_institusi_id', $request->kegiatan_luar_institusi);
             }
     
             // Filter berdasarkan status anggota
@@ -257,7 +293,7 @@ class AdminPilihAnggotaController extends Controller
                 'a.nama_agenda',
                 'u.nama_lengkap',
                 'u.nidn',
-                DB::raw('COALESCE(kj.nama_kegiatan_jurusan, kp.nama_kegiatan_program_studi) as nama_kegiatan')
+                DB::raw('COALESCE(kj.nama_kegiatan_jurusan, kp.nama_kegiatan_program_studi, ki.nama_kegiatan_institusi, kli.nama_kegiatan_luar_institusi) as nama_kegiatan')
             ]);
     
             return DataTables::of($query)

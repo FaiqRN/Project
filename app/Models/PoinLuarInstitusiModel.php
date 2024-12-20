@@ -34,11 +34,6 @@ class PoinLuarInstitusiModel extends Model
         return $this->belongsTo(JabatanModel::class, 'jabatan_id');
     }
 
-    public function kegiatan()
-    {
-        return $this->belongsTo(KegiatanLuarInstitusiModel::class, 'kegiatan_luar_institusi_id');
-    }
-
     public function approver()
     {
         return $this->belongsTo(UserModel::class, 'approved_by', 'user_id');

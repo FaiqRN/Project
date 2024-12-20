@@ -13,57 +13,62 @@ use ZipArchive;
 class AdminUpdateProgressAgendaController extends Controller
 {
     public function index()
-{
-    try {
-        // Ambil semua agenda dengan eager loading dan ordering
-        $agendas = AgendaModel::with([
-            'kegiatanJurusan',
-            'kegiatanProgramStudi',
-            'dokumentasi',
-            'users.dokumentasi'
-        ])
-        ->orderBy('tanggal_agenda', 'asc')  // Urutkan berdasarkan tanggal
-        ->orderBy('agenda_id', 'asc')       // Kemudian berdasarkan ID
-        ->get();
+    {
+        try {
+            // Ambil semua agenda dengan eager loading dan ordering
+            $agendas = AgendaModel::with([
+                'kegiatanJurusan',
+                'kegiatanProgramStudi',
+                'kegiatanInstitusi',   
+                'kegiatanLuarInstitusi',
+                'dokumentasi',
+                'users.dokumentasi'
+            ])
+            ->orderBy('tanggal_agenda', 'asc')  // Urutkan berdasarkan tanggal
+            ->orderBy('agenda_id', 'asc')       // Kemudian berdasarkan ID
+            ->get();
 
-        // Hitung progress untuk setiap agenda
-        $agendas = $agendas->map(function($agenda) {
-            $totalUsers = $agenda->users()->count();
-            $uploadedUsers = DokumentasiModel::where('agenda_id', $agenda->agenda_id)
-                                           ->distinct('user_id')
-                                           ->count('user_id');
-            
-            $progressPercentage = $totalUsers > 0 ? 
-                                round(($uploadedUsers / $totalUsers) * 100, 2) : 0;
-            
-            $agenda->setAttribute('progress', [
-                'total_users' => $totalUsers,
-                'uploaded_users' => $uploadedUsers,
-                'percentage' => $progressPercentage
+            // Hitung progress untuk setiap agenda
+            $agendas = $agendas->map(function($agenda) {
+                $totalUsers = $agenda->users()->count();
+                $uploadedUsers = DokumentasiModel::where('agenda_id', $agenda->agenda_id)
+                                               ->distinct('user_id')
+                                               ->count('user_id');
+                
+                $progressPercentage = $totalUsers > 0 ? 
+                                    round(($uploadedUsers / $totalUsers) * 100, 2) : 0;
+                
+                $agenda->setAttribute('progress', [
+                    'total_users' => $totalUsers,
+                    'uploaded_users' => $uploadedUsers,
+                    'percentage' => $progressPercentage
+                ]);
+                
+                $agenda->setAttribute('display_status', $this->determineStatus($uploadedUsers, $totalUsers));
+                return $agenda;
+            });
+
+            return view('admin.dosen.update-progress', [
+                'agendas' => $agendas,
+                'breadcrumb' => (object)[
+                    'title' => 'Update Progress Agenda',
+                    'list' => ['Home', 'Dosen', 'Update Progress Agenda']
+                ]
             ]);
-            
-            $agenda->setAttribute('display_status', $this->determineStatus($uploadedUsers, $totalUsers));
-            return $agenda;
-        });
-
-        return view('admin.dosen.update-progress', [
-            'agendas' => $agendas,
-            'breadcrumb' => (object)[
-                'title' => 'Update Progress Agenda',
-                'list' => ['Home', 'Dosen', 'Update Progress Agenda']
-            ]
-        ]);
-    } catch (\Exception $e) {
-        return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        } catch (\Exception $e) {
+            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
     }
-}
+
     public function getDetailAgenda($id)
     {
         try {
             // Ambil agenda dengan eager loading
             $agenda = AgendaModel::with([
-                'kegiatanJurusan', 
-                'kegiatanProgramStudi', 
+                'kegiatanJurusan',
+                'kegiatanProgramStudi',
+                'kegiatanInstitusi',   
+                'kegiatanLuarInstitusi',
                 'users' => function($query) {
                     $query->with(['dokumentasi' => function($q) {
                         $q->orderBy('created_at', 'desc');
@@ -92,14 +97,23 @@ class AdminUpdateProgressAgendaController extends Controller
                 ];
             });
 
+            $kegiatanNama = '';
+            if ($agenda->kegiatanJurusan) {
+                $kegiatanNama = $agenda->kegiatanJurusan->nama_kegiatan_jurusan;
+            } elseif ($agenda->kegiatanProgramStudi) {
+                $kegiatanNama = $agenda->kegiatanProgramStudi->nama_kegiatan_program_studi;
+            } elseif ($agenda->kegiatanInstitusi) {
+                $kegiatanNama = $agenda->kegiatanInstitusi->nama_kegiatan_institusi;
+            } elseif ($agenda->kegiatanLuarInstitusi) {
+                $kegiatanNama = $agenda->kegiatanLuarInstitusi->nama_kegiatan_luar_institusi;
+            }
+
             return response()->json([
                 'status' => 'success',
                 'data' => [
                     'agenda' => [
                         'nama_agenda' => $agenda->nama_agenda,
-                        'jenis_kegiatan' => $agenda->kegiatanJurusan 
-                            ? $agenda->kegiatanJurusan->nama_kegiatan_jurusan 
-                            : $agenda->kegiatanProgramStudi->nama_kegiatan_program_studi,
+                        'jenis_kegiatan' => $kegiatanNama,
                         'tanggal' => $agenda->tanggal_agenda
                     ],
                     'user_submissions' => $userSubmissions
@@ -210,6 +224,10 @@ class AdminUpdateProgressAgendaController extends Controller
             $agenda->kegiatanJurusan->checkStatus();
         } elseif($agenda->kegiatanProgramStudi) {
             $agenda->kegiatanProgramStudi->checkStatus();
+        } elseif($agenda->kegiatanInstitusi) {
+            $agenda->kegiatanInstitusi->checkStatus();
+        } elseif($agenda->kegiatanLuarInstitusi) {
+            $agenda->kegiatanLuarInstitusi->checkStatus();
         }
     }
 }

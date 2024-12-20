@@ -50,4 +50,44 @@ class KegiatanLuarInstitusiModel extends Model
     {
         return $this->hasMany(JabatanModel::class, 'kegiatan_luar_institusi_id');
     }
+
+    public function agendas()
+    {
+        return $this->hasMany(AgendaModel::class, 'kegiatan_luar_institusi_id');
+    }
+
+    public function finalDocument()
+    {
+        return $this->hasOne(FinalDocumentModel::class, 'kegiatan_luar_institusi_id');
+    }
+
+    public function checkStatus()
+    {
+        // Cek semua agenda
+        $allAgendas = $this->agendas;
+        $allCompleted = true;
+        
+        if($allAgendas->isEmpty()) {
+            $allCompleted = false;
+        }
+
+        foreach($allAgendas as $agenda) {
+            if($agenda->status_agenda != 'selesai') {
+                $allCompleted = false;
+                break;
+            }
+        }
+
+        // Cek dokumen final
+        $hasFinalDocument = $this->finalDocument()->exists();
+
+        // Update status kegiatan
+        if($allCompleted && $hasFinalDocument) {
+            $this->status_kegiatan = 'selesai';
+        } else {
+            $this->status_kegiatan = 'berlangsung';
+        }
+        
+        $this->save();
+    }
 }

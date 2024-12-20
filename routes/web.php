@@ -108,7 +108,7 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
         // Route khusus PIC
         Route::middleware(['auth.role:PIC'])->group(function () {
             // Kegiatan Routes (tetap dipertahankan)
-            Route::get('/kegiatan', [KegiatanController::class, 'showKegiatanPIC'])->name('pic.kegiatan');
+     Route::get('/kegiatan', [KegiatanController::class, 'showKegiatanPIC'])->name('pic.kegiatan');
             Route::get('/surat-tugas/download-file/{id}', [SuratTugasController::class, 'downloadSurat'])->name('surat-tugas.download-file');
             Route::post('/kegiatan/validate-tanggal-agenda', [KegiatanController::class, 'validateTanggalAgenda'])->name('kegiatan.validate.tanggal');
            
@@ -271,7 +271,19 @@ Route::middleware(['auth.role:Dosen,PIC'])->group(function () {
                     Route::delete('/delete/{id}', [KegiatanController::class, 'destroyKegiatanJurusan'])->name('jurusan.destroy');
                 });
 
+                // Kegiatan Institusi Routes
+                Route::prefix('institusi')->group(function () {
+                    Route::get('/get-data', [KegiatanController::class, 'getKegiatanInstitusi'])->name('institusi.data');
+                    Route::get('/{id}', [KegiatanController::class, 'showKegiatanInstitusi'])->name('institusi.show');
+                    Route::put('/update/{id}', [KegiatanController::class, 'updateKegiatanInstitusi'])->name('institusi.update');
+                });
 
+                // Kegiatan Luar Institusi Routes
+                Route::prefix('luar-institusi')->group(function () {
+                    Route::get('/get-data', [KegiatanController::class, 'getKegiatanLuarInstitusi'])->name('luar-institusi.data');
+                    Route::get('/{id}', [KegiatanController::class, 'showKegiatanLuarInstitusi'])->name('luar-institusi.show');
+                    Route::put('/update/{id}', [KegiatanController::class, 'updateKegiatanLuarInstitusi'])->name('luar-institusi.update');
+                });
 
 
                 // Kegiatan Prodi Routes

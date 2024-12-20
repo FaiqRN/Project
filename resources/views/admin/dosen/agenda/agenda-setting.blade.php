@@ -49,6 +49,8 @@
                             <option value="">Pilih Tipe Kegiatan</option>
                             <option value="jurusan">Kegiatan Jurusan</option>
                             <option value="prodi">Kegiatan Program Studi</option>
+                            <option value="institusi">Kegiatan Institusi</option>
+                            <option value="luar_institusi">Kegiatan Luar Institusi</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -206,73 +208,87 @@
 $(document).ready(function() {
     // Inisialisasi DataTable
     var table = $('#tabelAgenda').DataTable({
-        processing: true,
-        serverSide: true,
-        ajax: "{{ route('admin.dosen.agenda.get-data') }}",
-        columns: [
-            { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, width: '5%'},
-            { data: 'nama_kegiatan', name: 'nama_kegiatan' },
-            { data: 'nama_agenda', name: 'nama_agenda' },
-            { data: 'tanggal_agenda', name: 'tanggal_agenda' },
-            { data: 'deskripsi', name: 'deskripsi',orderable: false  },
-            { data: 'dokumen', name: 'dokumen', orderable: false, searchable: false },
-            { data: 'aksi', name: 'aksi', orderable: false, searchable: false, render: function(data, type, row) {                
-                return `
-                    <div class="btn-group" role="group" style="gap: 5px;">
-                        <button type="button" class="btn btn-warning btn-sm edit-agenda" 
-                            data-id="${row.agenda_id}"
-                            data-nama="${row.nama_agenda}"
-                            data-tanggal_mulai="${row.tanggal_mulai}" 
-                            data-tanggal_selesai="${row.tanggal_selesai}"
-                            data-deskripsi="${row.deskripsi}">
-                            <i class="fas fa-edit"></i> Edit
-                        </button>
-                        <button type="button" class="btn btn-danger btn-sm delete-agenda" 
-                            data-id="${row.agenda_id}">
-                            <i class="fas fa-trash"></i> Hapus
-                        </button>
-                    </div>`;
-                } 
-            }
-        ],
-            columnDefs: [
-            { className: "align-middle", targets: "_all" }
-        ]
-    });
-
-    // Handle perubahan tipe kegiatan
-    $('#kegiatan_type').change(function() {
-        var type = $(this).val();
-        var kegiatanSelect = $('#kegiatan_id');
-        var tanggalInput = $('#tanggal_agenda');
-        
-        kegiatanSelect.prop('disabled', true);
-        tanggalInput.prop('disabled', true);
-        kegiatanSelect.html('<option value="">Pilih Kegiatan</option>');
-        
-        if (type) {
-            $.ajax({
-                url: "{{ route('admin.dosen.agenda.get-kegiatan') }}",
-                type: 'GET',
-                data: { type: type },
-                success: function(response) {
-                    if (response.data && response.data.length > 0) {
-                        response.data.forEach(function(item) {
-                            var nama = type === 'jurusan' ? item.nama_kegiatan_jurusan : item.nama_kegiatan_program_studi;
-                            kegiatanSelect.append(
-                                $('<option></option>')
-                                    .val(item.id)
-                                    .text(nama)
-                                    .data('tanggal_mulai', item.tanggal_mulai)
-                                    .data('tanggal_selesai', item.tanggal_selesai)
-                            );
-                        });
-                        kegiatanSelect.prop('disabled', false);
-                    }
-                }
-            });
+    processing: true,
+    serverSide: true,
+    ajax: "{{ route('admin.dosen.agenda.get-data') }}",
+    columns: [
+        { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, width: '5%'},
+        { data: 'nama_kegiatan', name: 'nama_kegiatan' },
+        { data: 'nama_agenda', name: 'nama_agenda' },
+        { data: 'tanggal_agenda', name: 'tanggal_agenda' },
+        { data: 'deskripsi', name: 'deskripsi',orderable: false  },
+        { data: 'dokumen', name: 'dokumen', orderable: false, searchable: false },
+        { data: 'aksi', name: 'aksi', orderable: false, searchable: false, render: function(data, type, row) {                
+            return `
+                <div class="btn-group" role="group" style="gap: 5px;">
+                    <button type="button" class="btn btn-warning btn-sm edit-agenda" 
+                        data-id="${row.agenda_id}"
+                        data-nama="${row.nama_agenda}"
+                        data-tanggal_mulai="${row.tanggal_mulai}" 
+                        data-tanggal_selesai="${row.tanggal_selesai}"
+                        data-deskripsi="${row.deskripsi}">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                    <button type="button" class="btn btn-danger btn-sm delete-agenda" 
+                        data-id="${row.agenda_id}">
+                        <i class="fas fa-trash"></i> Hapus
+                    </button>
+                </div>`;
+            } 
         }
-    });
+    ],
+    columnDefs: [
+        { className: "align-middle", targets: "_all" }
+    ]
+});
+
+// Di dalam script, bagian handle perubahan tipe kegiatan
+$('#kegiatan_type').change(function() {
+    var type = $(this).val();
+    var kegiatanSelect = $('#kegiatan_id');
+    var tanggalInput = $('#tanggal_agenda');
+    
+    kegiatanSelect.prop('disabled', true);
+    tanggalInput.prop('disabled', true);
+    kegiatanSelect.html('<option value="">Pilih Kegiatan</option>');
+    
+    if (type) {
+        $.ajax({
+            url: "{{ route('admin.dosen.agenda.get-kegiatan') }}",
+            type: 'GET',
+            data: { type: type },
+            success: function(response) {
+                if (response.data && response.data.length > 0) {
+                    response.data.forEach(function(item) {
+                        var nama;
+                        switch(type) {
+                            case 'jurusan':
+                                nama = item.nama_kegiatan_jurusan;
+                                break;
+                            case 'prodi':
+                                nama = item.nama_kegiatan_program_studi;
+                                break;
+                            case 'institusi':
+                                nama = item.nama_kegiatan_institusi;
+                                break;
+                            case 'luar_institusi':
+                                nama = item.nama_kegiatan_luar_institusi;
+                                break;
+                        }
+                        kegiatanSelect.append(
+                            $('<option></option>')
+                                .val(item.id)
+                                .text(nama)
+                                .data('tanggal_mulai', item.tanggal_mulai)
+                                .data('tanggal_selesai', item.tanggal_selesai)
+                        );
+                    });
+                    kegiatanSelect.prop('disabled', false);
+                }
+            }
+        });
+    }
+});
 
     $('#kegiatan_id').change(function() {
         var selectedOption = $(this).find('option:selected');

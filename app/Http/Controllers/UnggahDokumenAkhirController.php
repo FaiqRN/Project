@@ -7,11 +7,12 @@ use App\Models\AgendaModel;
 use App\Models\FinalDocumentModel;
 use App\Models\KegiatanJurusanModel;
 use App\Models\KegiatanProgramStudiModel;
+use App\Models\KegiatanInstitusiModel;
+use App\Models\KegiatanLuarInstitusiModel;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Log;
-
 
 class UnggahDokumenAkhirController extends Controller
 {
@@ -61,7 +62,39 @@ class UnggahDokumenAkhirController extends Controller
                 ];
             });
 
-        $combinedKegiatan = $kegiatanJurusan->concat($kegiatanProdi);
+        // Ambil kegiatan institusi
+        $kegiatanInstitusi = KegiatanInstitusiModel::where('user_id', $userId)
+            ->where('status_kegiatan', 'selesai')
+            ->with(['finalDocument'])
+            ->get()
+            ->map(function ($kegiatan) {
+                return [
+                    'id' => $kegiatan->kegiatan_institusi_id,
+                    'nama' => $kegiatan->nama_kegiatan_institusi,
+                    'type' => 'institusi',
+                    'status' => $kegiatan->status_kegiatan,
+                    'has_final' => $kegiatan->finalDocument()->exists(),
+                    'file_path' => optional($kegiatan->finalDocument)->file_akhir
+                ];
+            });
+
+        // Ambil kegiatan luar institusi
+        $kegiatanLuarInstitusi = KegiatanLuarInstitusiModel::where('user_id', $userId)
+            ->where('status_kegiatan', 'selesai')
+            ->with(['finalDocument'])
+            ->get()
+            ->map(function ($kegiatan) {
+                return [
+                    'id' => $kegiatan->kegiatan_luar_institusi_id,
+                    'nama' => $kegiatan->nama_kegiatan_luar_institusi,
+                    'type' => 'luar_institusi',
+                    'status' => $kegiatan->status_kegiatan,
+                    'has_final' => $kegiatan->finalDocument()->exists(),
+                    'file_path' => optional($kegiatan->finalDocument)->file_akhir
+                ];
+            });
+
+        $combinedKegiatan = $kegiatanJurusan->concat($kegiatanProdi)->concat($kegiatanInstitusi)->concat($kegiatanLuarInstitusi);
 
         return DataTables::of($combinedKegiatan)
             ->addIndexColumn()
@@ -107,7 +140,7 @@ class UnggahDokumenAkhirController extends Controller
 
             $request->validate([
                 'kegiatan_id' => 'required',
-                'kegiatan_type' => 'required|in:jurusan,prodi',
+                'kegiatan_type' => 'required|in:jurusan,prodi,institusi,luar_institusi',
                 'dokumen_akhir' => 'required|file|mimes:pdf|max:10240'
             ]);
 
@@ -117,11 +150,23 @@ class UnggahDokumenAkhirController extends Controller
                 $finalDoc = FinalDocumentModel::firstOrNew([
                     'kegiatan_jurusan_id' => $request->kegiatan_id
                 ]);
-            } else {
+            } elseif ($request->kegiatan_type === 'prodi') {
                 $kegiatan = KegiatanProgramStudiModel::findOrFail($request->kegiatan_id);
                 $finalDoc = FinalDocumentModel::firstOrNew([
                     'kegiatan_program_studi_id' => $request->kegiatan_id
                 ]);
+            } elseif ($request->kegiatan_type === 'institusi') {
+                $kegiatan = KegiatanInstitusiModel::findOrFail($request->kegiatan_id);
+                $finalDoc = FinalDocumentModel::firstOrNew([
+                    'kegiatan_institusi_id' => $request->kegiatan_id
+                ]);
+            } elseif ($request->kegiatan_type === 'luar_institusi') {
+                $kegiatan = KegiatanLuarInstitusiModel::findOrFail($request->kegiatan_id);
+                $finalDoc = FinalDocumentModel::firstOrNew([
+                    'kegiatan_luar_institusi_id' => $request->kegiatan_id
+                ]);
+            } else {
+                throw new \Exception('Tipe kegiatan tidak valid');
             }
 
             // Hapus file lama jika ada
@@ -156,8 +201,14 @@ class UnggahDokumenAkhirController extends Controller
         try {
             if ($type === 'jurusan') {
                 $finalDoc = FinalDocumentModel::where('kegiatan_jurusan_id', $id)->firstOrFail();
-            } else {
+            } elseif ($type === 'prodi') {
                 $finalDoc = FinalDocumentModel::where('kegiatan_program_studi_id', $id)->firstOrFail();
+            } elseif ($type === 'institusi') {
+                $finalDoc = FinalDocumentModel::where('kegiatan_institusi_id', $id)->firstOrFail();
+            } elseif ($type === 'luar_institusi') {
+                $finalDoc = FinalDocumentModel::where('kegiatan_luar_institusi_id', $id)->firstOrFail();
+            } else {
+                throw new \Exception('Tipe kegiatan tidak valid');
             }
             
             if (!Storage::exists($finalDoc->file_akhir)) {
@@ -178,7 +229,7 @@ class UnggahDokumenAkhirController extends Controller
     
             $request->validate([
                 'kegiatan_id' => 'required',
-                'kegiatan_type' => 'required|in:jurusan,prodi',
+                'kegiatan_type' => 'required|in:jurusan,prodi,institusi,luar_institusi',
                 'dokumen_akhir' => 'required|file|mimes:pdf|max:10240'
             ]);
     
@@ -186,9 +237,17 @@ class UnggahDokumenAkhirController extends Controller
             if ($request->kegiatan_type === 'jurusan') {
                 $finalDoc = FinalDocumentModel::where('kegiatan_jurusan_id', $request->kegiatan_id)->firstOrFail();
                 $kegiatan = KegiatanJurusanModel::findOrFail($request->kegiatan_id);
-            } else {
+            } elseif ($request->kegiatan_type === 'prodi') {
                 $finalDoc = FinalDocumentModel::where('kegiatan_program_studi_id', $request->kegiatan_id)->firstOrFail();
                 $kegiatan = KegiatanProgramStudiModel::findOrFail($request->kegiatan_id);
+            } elseif ($request->kegiatan_type === 'institusi') {
+                $finalDoc = FinalDocumentModel::where('kegiatan_institusi_id', $request->kegiatan_id)->firstOrFail();
+                $kegiatan = KegiatanInstitusiModel::findOrFail($request->kegiatan_id);
+            } elseif ($request->kegiatan_type === 'luar_institusi') {
+                $finalDoc = FinalDocumentModel::where('kegiatan_luar_institusi_id', $request->kegiatan_id)->firstOrFail();
+                $kegiatan = KegiatanLuarInstitusiModel::findOrFail($request->kegiatan_id);
+            } else {
+                throw new \Exception('Tipe kegiatan tidak valid');
             }
     
             // Hapus file lama jika ada

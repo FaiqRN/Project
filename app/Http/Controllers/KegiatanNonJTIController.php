@@ -37,18 +37,18 @@ class KegiatanNonJTIController extends Controller
             $loggedInUserId = session('user_id');
     
             // Query base untuk kegiatan luar institusi
-            $kegiatanLuar = KegiatanLuarInstitusiModel::with(['user', 'surat']);
+            $kegiatanLuarInstitusi = KegiatanLuarInstitusiModel::with(['user', 'surat']);
             $kegiatanInstitusi = KegiatanInstitusiModel::with(['user', 'surat']);
     
             // Filter status
             if ($status) {
-                $kegiatanLuar->where('status_persetujuan', $status);
+                $kegiatanLuarInstitusi->where('status_persetujuan', $status);
                 $kegiatanInstitusi->where('status_persetujuan', $status);
             }
     
             // Filter tanggal
             if ($tanggal) {
-                $kegiatanLuar->whereDate('tanggal_mulai', '<=', $tanggal)
+                $kegiatanLuarInstitusi->whereDate('tanggal_mulai', '<=', $tanggal)
                             ->whereDate('tanggal_selesai', '>=', $tanggal);
                 $kegiatanInstitusi->whereDate('tanggal_mulai', '<=', $tanggal)
                                ->whereDate('tanggal_selesai', '>=', $tanggal);
@@ -56,7 +56,7 @@ class KegiatanNonJTIController extends Controller
     
             // Filter pencarian
             if ($search) {
-                $kegiatanLuar->where(function($query) use ($search) {
+                $kegiatanLuarInstitusi->where(function($query) use ($search) {
                     $query->where('nama_kegiatan_luar_institusi', 'like', "%{$search}%")
                           ->orWhere('penyelenggara', 'like', "%{$search}%")
                           ->orWhere('lokasi_kegiatan', 'like', "%{$search}%");
@@ -70,13 +70,13 @@ class KegiatanNonJTIController extends Controller
             }
     
             // Eksekusi query
-            $kegiatanLuar = $kegiatanLuar->orderBy('created_at', 'desc')->get();
+            $kegiatanLuarInstitusi = $kegiatanLuarInstitusi->orderBy('created_at', 'desc')->get();
             $kegiatanInstitusi = $kegiatanInstitusi->orderBy('created_at', 'desc')->get();
     
             $kegiatan = [];
     
             // Format kegiatan luar institusi
-            foreach ($kegiatanLuar as $k) {
+            foreach ($kegiatanLuarInstitusi as $k) {
                 $kegiatan[] = [
                     'id' => $k->kegiatan_luar_institusi_id,
                     'jenis_kegiatan' => 'luar_institusi',

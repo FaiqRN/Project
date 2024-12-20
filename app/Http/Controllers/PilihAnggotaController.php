@@ -1,18 +1,17 @@
 <?php
 
-
 namespace App\Http\Controllers;
-
 
 use App\Models\AgendaModel;
 use App\Models\UserModel;
 use App\Models\KegiatanJurusanModel;
 use App\Models\KegiatanProgramStudiModel;
+use App\Models\KegiatanLuarInstitusiModel;
+use App\Models\KegiatanInstitusiModel;
 use App\Models\AgendaUserModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
-
 
 class PilihAnggotaController extends Controller
 {
@@ -29,16 +28,30 @@ class PilihAnggotaController extends Controller
             ->where('status_kegiatan', 'berlangsung')
             ->first();
 
+        $kegiatanLuarInstitusi = KegiatanLuarInstitusiModel::with(['surat'])
+            ->where('user_id', $userId)
+            ->where('status_kegiatan', 'berlangsung')
+            ->first();
+            
+        $kegiatanInstitusi = KegiatanInstitusiModel::with(['surat'])
+            ->where('user_id', $userId)
+            ->where('status_kegiatan', 'berlangsung')
+            ->first();
 
-        $agendas = AgendaModel::where(function($query) use ($kegiatanJurusan, $kegiatanProdi) {
+        $agendas = AgendaModel::where(function($query) use ($kegiatanJurusan, $kegiatanProdi, $kegiatanLuarInstitusi, $kegiatanInstitusi) {
             if ($kegiatanJurusan) {
                 $query->orWhere('kegiatan_jurusan_id', $kegiatanJurusan->kegiatan_jurusan_id);
             }
             if ($kegiatanProdi) {
                 $query->orWhere('kegiatan_program_studi_id', $kegiatanProdi->kegiatan_program_studi_id);
             }
+            if ($kegiatanLuarInstitusi) {
+                $query->orWhere('kegiatan_luar_institusi_id', $kegiatanLuarInstitusi->kegiatan_luar_institusi_id);
+            }
+            if ($kegiatanInstitusi) {
+                $query->orWhere('kegiatan_institusi_id', $kegiatanInstitusi->kegiatan_institusi_id);
+            }
         })->get();
-
 
         // Modified to get all users with level 3 (dosen) and level 4 (PIC)
         $users = UserModel::whereIn('level_id', [3, 4])->get();
@@ -46,6 +59,8 @@ class PilihAnggotaController extends Controller
         return view('pic.pilih', [
             'kegiatanJurusan' => $kegiatanJurusan,
             'kegiatanProdi' => $kegiatanProdi,
+            'kegiatanInstitusi' => $kegiatanInstitusi, // Fixed typo here
+            'kegiatanLuarInstitusi' => $kegiatanLuarInstitusi,
             'agendas' => $agendas,
             'dosens' => $users, // Changed variable name to be more generic since it now includes PIC
             'breadcrumb' => (object)[
@@ -54,7 +69,6 @@ class PilihAnggotaController extends Controller
             ]
         ]);
     }
-
 
     public function getData()
     {
@@ -68,16 +82,29 @@ class PilihAnggotaController extends Controller
                 ->where('status_kegiatan', 'berlangsung')
                 ->first();
 
+            $kegiatanLuarInstitusi = KegiatanLuarInstitusiModel::where('user_id', $userId)
+                ->where('status_kegiatan', 'berlangsung')
+                ->first();
+
+            $kegiatanInstitusi = KegiatanInstitusiModel::where('user_id', $userId)
+                ->where('status_kegiatan', 'berlangsung')
+                ->first();
 
             $query = DB::table('t_agenda_user as au')
                 ->join('t_agenda as a', 'au.agenda_id', '=', 'a.agenda_id')
                 ->join('m_user as u', 'au.user_id', '=', 'u.user_id')
-                ->where(function($q) use ($kegiatanJurusan, $kegiatanProdi) {
+                ->where(function($q) use ($kegiatanJurusan, $kegiatanProdi, $kegiatanLuarInstitusi, $kegiatanInstitusi) {
                     if ($kegiatanJurusan) {
                         $q->orWhere('a.kegiatan_jurusan_id', $kegiatanJurusan->kegiatan_jurusan_id);
                     }
                     if ($kegiatanProdi) {
                         $q->orWhere('a.kegiatan_program_studi_id', $kegiatanProdi->kegiatan_program_studi_id);
+                    }
+                    if ($kegiatanLuarInstitusi) {
+                        $q->orWhere('a.kegiatan_luar_institusi_id', $kegiatanLuarInstitusi->kegiatan_luar_institusi_id);
+                    }
+                    if ($kegiatanInstitusi) {
+                        $q->orWhere('a.kegiatan_institusi_id', $kegiatanInstitusi->kegiatan_institusi_id);
                     }
                 })
                 ->select([
@@ -88,7 +115,6 @@ class PilihAnggotaController extends Controller
                     'u.nidn',
                     'u.level_id' // Added level_id to identify user type
                 ]);
-
 
             return DataTables::of($query)
                 ->addIndexColumn()
@@ -108,7 +134,6 @@ class PilihAnggotaController extends Controller
                 ->rawColumns(['action'])
                 ->make(true);
 
-
         } catch (\Exception $e) {
             return response()->json([
                 'error' => true,
@@ -117,8 +142,6 @@ class PilihAnggotaController extends Controller
         }
     }
 
-
-    // Rest of the methods remain the same...
     public function store(Request $request)
     {
         try {
@@ -138,6 +161,14 @@ class PilihAnggotaController extends Controller
                     ->exists();
             } else if ($agenda->kegiatan_program_studi_id) {
                 $hasAccess = KegiatanProgramStudiModel::where('kegiatan_program_studi_id', $agenda->kegiatan_program_studi_id)
+                    ->where('user_id', $userId)
+                    ->exists();
+            } else if ($agenda->kegiatan_luar_institusi_id) {
+                $hasAccess = KegiatanLuarInstitusiModel::where('kegiatan_luar_institusi_id', $agenda->kegiatan_luar_institusi_id)
+                    ->where('user_id', $userId)
+                    ->exists();
+            } else if ($agenda->kegiatan_institusi_id) {
+                $hasAccess = KegiatanInstitusiModel::where('kegiatan_institusi_id', $agenda->kegiatan_institusi_id)
                     ->where('user_id', $userId)
                     ->exists();
             }
@@ -187,14 +218,12 @@ class PilihAnggotaController extends Controller
         }
     }
 
-
     public function edit($id)
     {
         try {
             $userId = session('user_id');
             $agendaUser = AgendaUserModel::with('agenda')->findOrFail($id);
             $agenda = $agendaUser->agenda;
-
 
             $hasAccess = false;
             if ($agenda->kegiatan_jurusan_id) {
@@ -205,8 +234,15 @@ class PilihAnggotaController extends Controller
                 $hasAccess = KegiatanProgramStudiModel::where('kegiatan_program_studi_id', $agenda->kegiatan_program_studi_id)
                     ->where('user_id', $userId)
                     ->exists();
+            } else if ($agenda->kegiatan_luar_institusi_id) {
+                $hasAccess = KegiatanLuarInstitusiModel::where('kegiatan_luar_institusi_id', $agenda->kegiatan_luar_institusi_id)
+                    ->where('user_id', $userId)
+                    ->exists();
+            } else if ($agenda->kegiatan_institusi_id) {
+                $hasAccess = KegiatanInstitusiModel::where('kegiatan_institusi_id', $agenda->kegiatan_institusi_id)
+                    ->where('user_id', $userId)
+                    ->exists();
             }
-
 
             if (!$hasAccess) {
                 return response()->json([
@@ -215,12 +251,10 @@ class PilihAnggotaController extends Controller
                 ], 403);
             }
 
-
             return response()->json([
                 'success' => true,
                 'data' => $agendaUser
             ]);
-
 
         } catch (\Exception $e) {
             return response()->json([
@@ -229,7 +263,6 @@ class PilihAnggotaController extends Controller
             ], 500);
         }
     }
-
 
     public function update(Request $request, $id)
     {
@@ -249,6 +282,14 @@ class PilihAnggotaController extends Controller
                     ->exists();
             } else if ($agenda->kegiatan_program_studi_id) {
                 $hasAccess = KegiatanProgramStudiModel::where('kegiatan_program_studi_id', $agenda->kegiatan_program_studi_id)
+                    ->where('user_id', $userId)
+                    ->exists();
+            } else if ($agenda->kegiatan_luar_institusi_id) {
+                $hasAccess = KegiatanLuarInstitusiModel::where('kegiatan_luar_institusi_id', $agenda->kegiatan_luar_institusi_id)
+                    ->where('user_id', $userId)
+                    ->exists();
+            } else if ($agenda->kegiatan_institusi_id) {
+                $hasAccess = KegiatanInstitusiModel::where('kegiatan_institusi_id', $agenda->kegiatan_institusi_id)
                     ->where('user_id', $userId)
                     ->exists();
             }
@@ -290,7 +331,6 @@ class PilihAnggotaController extends Controller
         }
     }
 
-
     public function destroy($id)
     {
         try {
@@ -305,6 +345,14 @@ class PilihAnggotaController extends Controller
                     ->exists();
             } else if ($agenda->kegiatan_program_studi_id) {
                 $hasAccess = KegiatanProgramStudiModel::where('kegiatan_program_studi_id', $agenda->kegiatan_program_studi_id)
+                    ->where('user_id', $userId)
+                    ->exists();
+            } else if ($agenda->kegiatan_luar_institusi_id) {
+                $hasAccess = KegiatanLuarInstitusiModel::where('kegiatan_luar_institusi_id', $agenda->kegiatan_luar_institusi_id)
+                    ->where('user_id', $userId)
+                    ->exists();
+            } else if ($agenda->kegiatan_institusi_id) {
+                $hasAccess = KegiatanInstitusiModel::where('kegiatan_institusi_id', $agenda->kegiatan_institusi_id)
                     ->where('user_id', $userId)
                     ->exists();
             }
@@ -331,4 +379,3 @@ class PilihAnggotaController extends Controller
         }
     }
 }
-

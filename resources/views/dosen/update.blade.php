@@ -37,6 +37,10 @@
                                             {{ $agenda->kegiatanJurusan->nama_kegiatan_jurusan }}
                                         @elseif($agenda->kegiatanProgramStudi)
                                             {{ $agenda->kegiatanProgramStudi->nama_kegiatan_program_studi }}
+                                        @elseif($agenda->kegiatanInstitusi)
+                                            {{ $agenda->kegiatanInstitusi->nama_kegiatan_institusi }}
+                                        @elseif($agenda->kegiatanLuarInstitusi)
+                                            {{ $agenda->kegiatanLuarInstitusi->nama_kegiatan_luar_institusi }}
                                         @endif
                                     </td>
                                     <td>{{ \Carbon\Carbon::parse($agenda->tanggal_agenda)->format('d-m-Y') }}</td>
@@ -48,7 +52,7 @@
                                     <td>
                                         <button type="button" class="btn btn-primary btn-sm btn-kirim" 
                                                 data-id="{{ $agenda->agenda_id }}"
-                                                data-kegiatan="{{ $agenda->kegiatanJurusan ? $agenda->kegiatanJurusan->nama_kegiatan_jurusan : ($agenda->kegiatanProgramStudi ? $agenda->kegiatanProgramStudi->nama_kegiatan_program_studi : '') }}"
+                                                data-kegiatan="{{ $agenda->kegiatanJurusan ? $agenda->kegiatanJurusan->nama_kegiatan_jurusan : ($agenda->kegiatanProgramStudi ? $agenda->kegiatanProgramStudi->nama_kegiatan_program_studi : ($agenda->kegiatanInstitusi ? $agenda->kegiatanInstitusi->nama_kegiatan_institusi : ($agenda->kegiatanLuarInstitusi ? $agenda->kegiatanLuarInstitusi->nama_kegiatan_luar_institusi : ''))) }}"
                                                 data-agenda="{{ $agenda->nama_agenda }}"
                                                 data-tanggal="{{ \Carbon\Carbon::parse($agenda->tanggal_agenda)->format('d-m-Y') }}"
                                                 {{ $agenda->hasUploaded ? 'disabled' : '' }}>

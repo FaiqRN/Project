@@ -31,6 +31,10 @@
                                     {{ $agenda->kegiatanJurusan->nama_kegiatan_jurusan }}
                                 @elseif($agenda->kegiatanProgramStudi)
                                     {{ $agenda->kegiatanProgramStudi->nama_kegiatan_program_studi }}
+                                @elseif($agenda->kegiatanInstitusi)
+                                    {{ $agenda->kegiatanInstitusi->nama_kegiatan_institusi }}
+                                @elseif($agenda->kegiatanLuarInsittusi)
+                                    {{ $agenda->kegiatanLuarInsittusi->nama_kegiatan_luar_institusi }}
                                 @endif
                             </td>
                             <td class="text-center">{{ \Carbon\Carbon::parse($agenda->tanggal_agenda)->format('d-m-Y') }}</td>
@@ -67,7 +71,9 @@
                                             data-id="{{ $agenda->agenda_id }}"
                                             data-agenda="{{ $agenda->nama_agenda }}"
                                             data-kegiatan="{{ $agenda->kegiatanJurusan ? $agenda->kegiatanJurusan->nama_kegiatan_jurusan : 
-                                                            $agenda->kegiatanProgramStudi->nama_kegiatan_program_studi }}"
+                                                            ($agenda->kegiatanProgramStudi ? $agenda->kegiatanProgramStudi->nama_kegiatan_program_studi : 
+                                                            ($agenda->kegiatanInstitusi ? $agenda->kegiatanInstitusi->nama_kegiatan_institusi : 
+                                                            ($agenda->kegiatanLuarInsittusi ? $agenda->kegiatanLuarInsittusi->nama_kegiatan_luar_institusi : ''))) }}"
                                             data-tanggal="{{ $agenda->tanggal_agenda }}">
                                         <i class="fas fa-eye"></i> Detail & Hapus
                                     </button>
@@ -263,7 +269,6 @@ function deleteDoc(id, nama) {
 }
 </script>
 @endpush
-
 
 @push('css')
 <style>

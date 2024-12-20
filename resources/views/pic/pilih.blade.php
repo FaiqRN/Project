@@ -32,7 +32,28 @@
                         </div>
                     @endif
 
-                    @if(!$kegiatanJurusan && !$kegiatanProdi)
+                    @if($kegiatanInstitusi)
+                        <div class="alert alert-primary">
+                            <h5><i class="icon fas fa-info"></i> Kegiatan Institusi</h5>
+                            <p style="margin-top: 10px;"><strong>Nama Kegiatan:</strong> {{ $kegiatanInstitusi->nama_kegiatan_institusi }} <br>
+                            <strong>Periode:</strong> {{ date('d/m/Y', strtotime($kegiatanInstitusi->tanggal_mulai)) }} - 
+                                                      {{ date('d/m/Y', strtotime($kegiatanInstitusi->tanggal_selesai)) }}
+                                                      <strong>|</strong>
+                            <strong style="margin-left: 5px;">Surat Tugas:</strong> {{ $kegiatanInstitusi->surat->judul_surat ?? '-' }}</p>
+                        </div>
+                    @endif
+
+                    @if($kegiatanLuarInstitusi)
+                        <div class="alert alert-warning">
+                            <h5><i class="icon fas fa-info"></i> Kegiatan Luar Institusi</h5>
+                            <p style="margin-top: 10px;"><strong>Nama Kegiatan:</strong> {{ $kegiatanLuarInstitusi->nama_kegiatan_luar_institusi }} <br>
+                            <strong>Periode:</strong> {{ date('d/m/Y', strtotime($kegiatanLuarInstitusi->tanggal_mulai)) }} - 
+                                                      {{ date('d/m/Y', strtotime($kegiatanLuarInstitusi->tanggal_selesai)) }}
+                                                      <strong>|</strong>
+                            <strong style="margin-left: 5px;">Surat Tugas:</strong> {{ $kegiatanLuarInstitusi->surat->judul_surat ?? '-' }}</p>
+                        </div>
+                    @endif
+                    @if(!$kegiatanJurusan && !$kegiatanProdi && !$kegiatanInstitusi && !$kegiatanLuarInstitusi)
                         <div class="alert alert-warning">
                             <h5><i class="icon fas fa-exclamation-triangle"></i> Perhatian</h5>
                             <p>Anda belum ditugaskan pada kegiatan apapun.</p>
@@ -49,7 +70,7 @@
             <h3 class="card-title">Data Anggota Agenda</h3>
         </div>
         <div class="card-body">
-            @if($kegiatanJurusan || $kegiatanProdi)
+            @if($kegiatanJurusan || $kegiatanProdi || $kegiatanInstitusi || $kegiatanLuarInstitusi)
                 <div class="mb-3">
                     <button type="button" class="btn btn-primary" onclick="showModal()">
                         <i class="fas fa-plus"></i> Tambah User

@@ -5,11 +5,17 @@ namespace App\Http\Controllers;
 use App\Models\AgendaModel;
 use App\Models\KegiatanJurusanModel;
 use App\Models\KegiatanProgramStudiModel;
+use App\Models\KegiatanInstitusiModel;
+use App\Models\KegiatanLuarInstitusiModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Yajra\DataTables\Facades\DataTables;
 use Exception;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class AgendaController extends Controller
 {
@@ -23,9 +29,19 @@ class AgendaController extends Controller
             ->orderBy('tanggal_mulai', 'desc')
             ->first();
 
+        $kegiatanInstitusi = KegiatanInstitusiModel::where('user_id', auth()->id())
+            ->orderBy('tanggal_mulai', 'desc')
+            ->first();
+
+        $kegiatanLuarInstitusi = KegiatanLuarInstitusiModel::where('user_id', auth()->id())
+            ->orderBy('tanggal_mulai', 'desc')
+            ->first();
+
         return view('dosen.agenda.index', [
             'kegiatanJurusan' => $kegiatanJurusan,
             'kegiatanProdi' => $kegiatanProdi,
+            'kegiatanInstitusi' => $kegiatanInstitusi,
+            'kegiatanLuarInstitusi' => $kegiatanLuarInstitusi,
             'breadcrumb' => (object)[
                 'title' => 'Detail Kegiatan',
                 'list' => ['Home', 'Agenda', 'Detail']
@@ -36,16 +52,19 @@ class AgendaController extends Controller
     public function getAgendaList(Request $request, $type, $id)
     {
         try {
-            if (!in_array($type, ['jurusan', 'prodi'])) {
+            if (!in_array($type, ['jurusan', 'prodi', 'institusi', 'luar_institusi'])) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Tipe kegiatan tidak valid'
                 ], 400);
             }
 
-            $kegiatan = $type === 'jurusan' 
-                ? KegiatanJurusanModel::find($id)
-                : KegiatanProgramStudiModel::find($id);
+            $kegiatan = match ($type) {
+                'jurusan' => KegiatanJurusanModel::find($id),
+                'prodi' => KegiatanProgramStudiModel::find($id),
+                'institusi' => KegiatanInstitusiModel::find($id),
+                'luar_institusi' => KegiatanLuarInstitusiModel::find($id),
+            };
 
             if (!$kegiatan) {
                 return response()->json([
@@ -61,10 +80,15 @@ class AgendaController extends Controller
                 ], 403);
             }
 
-            $query = AgendaModel::where(
-                $type === 'jurusan' ? 'kegiatan_jurusan_id' : 'kegiatan_program_studi_id', 
-                $id
-            )->orderBy('tanggal_agenda', 'asc');
+            $columnMap = [
+                'jurusan' => 'kegiatan_jurusan_id',
+                'prodi' => 'kegiatan_program_studi_id',
+                'institusi' => 'kegiatan_institusi_id',
+                'luar_institusi' => 'kegiatan_luar_institusi_id'
+            ];
+
+            $query = AgendaModel::where($columnMap[$type], $id)
+                ->orderBy('tanggal_agenda', 'asc');
 
             return DataTables::of($query)
                 ->addIndexColumn()
@@ -117,61 +141,69 @@ class AgendaController extends Controller
     public function store(Request $request)
     {
         try {
+            DB::beginTransaction();
+            
             $validator = Validator::make($request->all(), [
                 'agenda' => 'required|array',
                 'agenda.*.nama_agenda' => 'required|string|max:200',
                 'agenda.*.tanggal_agenda' => 'required|date',
-                'agenda.*.deskripsi' => 'required',
+                'agenda.*.deskripsi' => 'required|string',
                 'agenda.*.file_surat_agenda' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
-                'kegiatan_type' => 'required|in:jurusan,prodi',
-                'kegiatan_id' => 'required'
+                'kegiatan_type' => 'required|in:jurusan,prodi,institusi,luar_institusi',
+                'kegiatan_id' => 'required|integer'
             ]);
-   
+    
             if ($validator->fails()) {
                 return response()->json([
                     'status' => 'error',
+                    'message' => 'Validasi gagal',
                     'errors' => $validator->errors()
                 ], 422);
             }
-   
+    
             foreach ($request->agenda as $item) {
                 $agenda = new AgendaModel();
                 $agenda->nama_agenda = $item['nama_agenda'];
                 $agenda->tanggal_agenda = $item['tanggal_agenda'];
                 $agenda->deskripsi = $item['deskripsi'];
                 $agenda->user_id = auth()->id();
-               
-                // Set kegiatan ID berdasarkan tipe
-                if ($request->kegiatan_type === 'jurusan') {
-                    $agenda->kegiatan_jurusan_id = $request->kegiatan_id;
-                } else {
-                    $agenda->kegiatan_program_studi_id = $request->kegiatan_id;
+    
+                // Set kegiatan ID
+                match ($request->kegiatan_type) {
+                    'jurusan' => $agenda->kegiatan_jurusan_id = $request->kegiatan_id,
+                    'prodi' => $agenda->kegiatan_program_studi_id = $request->kegiatan_id,
+                    'institusi' => $agenda->kegiatan_institusi_id = $request->kegiatan_id,
+                    'luar_institusi' => $agenda->kegiatan_luar_institusi_id = $request->kegiatan_id,
+                };
+    
+                // Handle file upload
+                if (isset($item['file_surat_agenda']) && $item['file_surat_agenda'] instanceof \Illuminate\Http\UploadedFile) {
+                    $file = $item['file_surat_agenda'];
+                    $filename =Str::slug($file->getClientOriginalName()) . '.' . $file->getClientOriginalExtension();
+                    $path = $file->storeAs('public/agenda_files', $filename);
+                    if (!$path) {
+                        throw new \Exception('Gagal mengupload file');
+                    }
+                    $agenda->file_surat_agenda = $path;
                 }
-   
-                if (!empty($item['file_surat_agenda'])) {
-                    $originalName = $item['file_surat_agenda']->getClientOriginalName();
-                    $fileName = time() . '_' . preg_replace('/[^a-zA-Z0-9_\-\.]/', '_', $originalName);
-                    $filePath = $item['file_surat_agenda']->storeAs('public/agenda_files', $fileName);
-                    $agenda->file_surat_agenda = $filePath;
+    
+                if (!$agenda->save()) {
+                    throw new \Exception('Gagal menyimpan agenda');
                 }
-   
-                $agenda->save();
             }
-   
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Agenda berhasil disimpan'
-            ]);
-           
-        } catch (Exception $e) {
+    
+            DB::commit();
+            return response()->json(['status' => 'success', 'message' => 'Agenda berhasil disimpan']);
+    
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error storing agenda: ' . $e->getMessage());
             return response()->json([
                 'status' => 'error',
-                'message' => $e->getMessage()
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
             ], 500);
         }
-    }  
-
-    
+    }
 
     public function update(Request $request, $id)
     {
@@ -199,9 +231,12 @@ class AgendaController extends Controller
                 ], 403);
             }
 
-            $kegiatan = $agenda->kegiatan_jurusan_id 
-                ? KegiatanJurusanModel::find($agenda->kegiatan_jurusan_id)
-                : KegiatanProgramStudiModel::find($agenda->kegiatan_program_studi_id);
+            $kegiatan = match (true) {
+                !is_null($agenda->kegiatan_jurusan_id) => KegiatanJurusanModel::find($agenda->kegiatan_jurusan_id),
+                !is_null($agenda->kegiatan_program_studi_id) => KegiatanProgramStudiModel::find($agenda->kegiatan_program_studi_id),
+                !is_null($agenda->kegiatan_institusi_id) => KegiatanInstitusiModel::find($agenda->kegiatan_institusi_id),
+                !is_null($agenda->kegiatan_luar_institusi_id) => KegiatanLuarInstitusiModel::find($agenda->kegiatan_luar_institusi_id),
+            };
 
             $tanggalAgenda = strtotime($request->tanggal_agenda);
             $tanggalMulai = strtotime($kegiatan->tanggal_mulai);
@@ -270,5 +305,42 @@ class AgendaController extends Controller
                 'message' => 'Terjadi kesalahan: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    public function showKegiatanPIC()
+    {
+        // Get active activities for current user
+        $user_id = Auth::id();
+        
+        $kegiatanJurusan = KegiatanJurusanModel::where('user_id', $user_id)
+            ->where('status_kegiatan', 'berlangsung')
+            ->with(['user', 'surat'])
+            ->first();
+
+        $kegiatanProdi = KegiatanProgramStudiModel::where('user_id', $user_id)
+            ->where('status_kegiatan', 'berlangsung')
+            ->with(['user', 'surat'])
+            ->first();
+
+        $kegiatanInstitusi = KegiatanInstitusiModel::where('user_id', $user_id)
+            ->where('status_kegiatan', 'berlangsung')
+            ->with(['user', 'surat'])
+            ->first();
+
+        $kegiatanLuarInstitusi = KegiatanLuarInstitusiModel::where('user_id', $user_id)
+            ->where('status_kegiatan', 'berlangsung')
+            ->with(['user', 'surat'])
+            ->first();
+
+        return view('pic.kegiatan', [
+            'kegiatanJurusan' => $kegiatanJurusan,
+            'kegiatanProdi' => $kegiatanProdi,
+            'kegiatanInstitusi' => $kegiatanInstitusi,
+            'kegiatanLuarInstitusi' => $kegiatanLuarInstitusi,
+            'breadcrumb' => (object)[
+                'title' => 'Detail Kegiatan',
+                'list' => ['Home', 'Kegiatan', 'Detail']
+            ]
+        ]);
     }
 }

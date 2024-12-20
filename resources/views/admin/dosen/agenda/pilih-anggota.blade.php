@@ -39,6 +39,34 @@
                                 </select>
                             </div>
                         </div>
+                        <!-- Filter Kegiatan Institusi -->
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Kegiatan Institusi:</label>
+                                <select class="form-control select2" id="filterKegiatanInstitusi">
+                                    <option value="">Semua Kegiatan Institusi</option>
+                                    @foreach($kegiatanInstitusi as $kegiatan)
+                                        <option value="{{ $kegiatan->kegiatan_institusi_id }}">
+                                            {{ $kegiatan->nama_kegiatan_institusi }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <!-- Filter Kegiatan Luar Institusi -->
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Kegiatan Luar Institusi:</label>
+                                <select class="form-control select2" id="filterKegiatanLuarInstitusi">
+                                    <option value="">Semua Kegiatan Luar Institusi</option>
+                                    @foreach($kegiatanLuarInstitusi as $kegiatan)
+                                        <option value="{{ $kegiatan->kegiatan_luar_institusi_id }}">
+                                            {{ $kegiatan->nama_kegiatan_luar_institusi }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
                     </div>
                     <div class="row">
                         <!-- Filter Status Anggota -->
@@ -167,11 +195,14 @@ $(document).ready(function() {
     let table = $('#tabelAnggota').DataTable({
         processing: true,
         serverSide: true,
+        dom: '<"row"<"col-sm-12"tr>><"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
         ajax: {
             url: "{{ route('admin.dosen.agenda.pilih-anggota.data') }}",
             data: function(d) {
                 d.kegiatan_jurusan = $('#filterKegiatanJurusan').val();
                 d.kegiatan_prodi = $('#filterKegiatanProdi').val();
+                d.kegiatan_institusi = $('#filterKegiatanInstitusi').val();
+                d.kegiatan_luar_institusi = $('#filterKegiatanLuarInstitusi').val();
                 d.status_anggota = $('#filterStatusAnggota').val();
             }
         },
@@ -198,6 +229,8 @@ $(document).ready(function() {
     $('#btnResetFilter').click(function() {
         $('#filterKegiatanJurusan').val('').trigger('change');
         $('#filterKegiatanProdi').val('').trigger('change');
+        $('#filterKegiatanInstitusi').val('').trigger('change');
+        $('#filterKegiatanLuarInstitusi').val('').trigger('change');
         $('#filterStatusAnggota').val('').trigger('change');
         table.ajax.reload();
     });
@@ -265,26 +298,6 @@ function editData(id) {
             Swal.fire('Error', message, 'error');
         }
     });
-
-
-    $.ajax({
-        url: "{{ route('admin.dosen.agenda.pilih-anggota.edit', ':id') }}".replace(':id', id),
-        type: 'GET',
-        success: function(response) {
-            if (response.success) {
-                $('#id').val(response.data.id);
-                $('#agenda_id').val(response.data.agenda_id).trigger('change');
-                $('#user_id').val(response.data.user_id).trigger('change');
-                $('#modalForm').modal('show');
-            } else {
-                Swal.fire('Error', response.message || 'Gagal mengambil data', 'error');
-            }
-        },
-        error: function(xhr) {
-            let message = xhr.responseJSON?.message || 'Terjadi kesalahan saat mengambil data';
-            Swal.fire('Error', message, 'error');
-        }
-    });
 }
 
 function deleteData(id) {
@@ -321,6 +334,4 @@ function deleteData(id) {
     });
 }
 </script>
-
-
 @endpush

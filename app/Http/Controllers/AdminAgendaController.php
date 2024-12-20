@@ -6,11 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Models\AgendaModel;
 use App\Models\KegiatanJurusanModel;
 use App\Models\KegiatanProgramStudiModel;
+use App\Models\KegiatanInstitusiModel;
+use App\Models\KegiatanLuarInstitusiModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Yajra\DataTables\Facades\DataTables;
 use Exception;
+use Illuminate\Support\Facades\Log;
 
 class AdminAgendaController extends Controller
 {
@@ -27,9 +30,14 @@ class AdminAgendaController extends Controller
     public function getAgendaList(Request $request)
     {
         try {
-            $query = AgendaModel::with(['user', 'kegiatanJurusan', 'kegiatanProgramStudi'])
-                ->orderBy('tanggal_agenda', 'desc');
-
+            $query = AgendaModel::with([
+                'user', 
+                'kegiatanJurusan', 
+                'kegiatanProgramStudi',
+                'kegiatanInstitusi', 
+                'kegiatanLuarInstitusi' 
+            ])->orderBy('tanggal_agenda', 'desc');
+    
             return DataTables::of($query)
                 ->addIndexColumn()
                 ->addColumn('nama_kegiatan', function ($agenda) {
@@ -37,6 +45,10 @@ class AdminAgendaController extends Controller
                         return $agenda->kegiatanJurusan->nama_kegiatan_jurusan;
                     } elseif ($agenda->kegiatanProgramStudi) {
                         return $agenda->kegiatanProgramStudi->nama_kegiatan_program_studi;
+                    } elseif ($agenda->kegiatanInstitusi) {
+                        return $agenda->kegiatanInstitusi->nama_kegiatan_institusi;
+                    } elseif ($agenda->kegiatanLuarInstitusi) {
+                        return $agenda->kegiatanLuarInstitusi->nama_kegiatan_luar_institusi;
                     }
                     return '-';
                 })
@@ -55,13 +67,25 @@ class AdminAgendaController extends Controller
                     }
                     return '-';
                 })
-                // Di dalam fungsi getAgendaList controller
                 ->addColumn('aksi', function ($agenda) {
-                    $tanggalMulai = $agenda->kegiatanJurusan ? $agenda->kegiatanJurusan->tanggal_mulai : 
-                                    ($agenda->kegiatanProgramStudi ? $agenda->kegiatanProgramStudi->tanggal_mulai : null);
-                    $tanggalSelesai = $agenda->kegiatanJurusan ? $agenda->kegiatanJurusan->tanggal_selesai : 
-                                      ($agenda->kegiatanProgramStudi ? $agenda->kegiatanProgramStudi->tanggal_selesai : null);
+                    // Ambil tanggal dari kegiatan yang sesuai
+                    $tanggalMulai = null;
+                    $tanggalSelesai = null;
                     
+                    if ($agenda->kegiatanJurusan) {
+                        $tanggalMulai = $agenda->kegiatanJurusan->tanggal_mulai;
+                        $tanggalSelesai = $agenda->kegiatanJurusan->tanggal_selesai;
+                    } elseif ($agenda->kegiatanProgramStudi) {
+                        $tanggalMulai = $agenda->kegiatanProgramStudi->tanggal_mulai;
+                        $tanggalSelesai = $agenda->kegiatanProgramStudi->tanggal_selesai;
+                    } elseif ($agenda->kegiatanInstitusi) {
+                        $tanggalMulai = $agenda->kegiatanInstitusi->tanggal_mulai;
+                        $tanggalSelesai = $agenda->kegiatanInstitusi->tanggal_selesai;
+                    } elseif ($agenda->kegiatanLuarInstitusi) {
+                        $tanggalMulai = $agenda->kegiatanLuarInstitusi->tanggal_mulai;
+                        $tanggalSelesai = $agenda->kegiatanLuarInstitusi->tanggal_selesai;
+                    }
+    
                     return '<div class="btn-group">
                             <button type="button" class="btn btn-warning btn-sm edit-agenda" 
                                 data-id="' . $agenda->agenda_id . '"
@@ -96,20 +120,8 @@ class AdminAgendaController extends Controller
                 'tanggal_agenda' => 'required|date',
                 'deskripsi' => 'required',
                 'file_surat_agenda' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
-                'kegiatan_type' => 'required|in:jurusan,prodi',
+                'kegiatan_type' => 'required|in:jurusan,prodi,institusi,luar_institusi',
                 'kegiatan_id' => 'required|integer'
-            ], [
-                'nama_agenda.required' => 'Nama agenda harus diisi',
-                'nama_agenda.max' => 'Nama agenda maksimal 200 karakter',
-                'tanggal_agenda.required' => 'Tanggal agenda harus diisi',
-                'tanggal_agenda.date' => 'Format tanggal tidak valid',
-                'deskripsi.required' => 'Deskripsi harus diisi',
-                'file_surat_agenda.mimes' => 'File harus berformat PDF, DOC, atau DOCX',
-                'file_surat_agenda.max' => 'Ukuran file maksimal 5MB',
-                'kegiatan_type.required' => 'Tipe kegiatan harus dipilih',
-                'kegiatan_type.in' => 'Tipe kegiatan tidak valid',
-                'kegiatan_id.required' => 'Kegiatan harus dipilih',
-                'kegiatan_id.integer' => 'ID kegiatan tidak valid'
             ]);
 
             if ($validator->fails()) {
@@ -120,19 +132,27 @@ class AdminAgendaController extends Controller
             }
 
             // Validasi keberadaan kegiatan dan rentang tanggal
-            if ($request->kegiatan_type === 'jurusan') {
-                $kegiatan = KegiatanJurusanModel::find($request->kegiatan_id);
-                if (!$kegiatan) {
-                    throw new Exception('Kegiatan jurusan tidak ditemukan');
-                }
-            } else {
-                $kegiatan = KegiatanProgramStudiModel::find($request->kegiatan_id);
-                if (!$kegiatan) {
-                    throw new Exception('Kegiatan program studi tidak ditemukan');
-                }
+            $kegiatan = null;
+            switch ($request->kegiatan_type) {
+                case 'jurusan':
+                    $kegiatan = KegiatanJurusanModel::find($request->kegiatan_id);
+                    break;
+                case 'prodi':
+                    $kegiatan = KegiatanProgramStudiModel::find($request->kegiatan_id);
+                    break;
+                case 'institusi':
+                    $kegiatan = KegiatanInstitusiModel::find($request->kegiatan_id);
+                    break;
+                case 'luar_institusi':
+                    $kegiatan = KegiatanLuarInstitusiModel::find($request->kegiatan_id);
+                    break;
             }
 
-            // Validasi tanggal agenda berada dalam rentang tanggal kegiatan
+            if (!$kegiatan) {
+                throw new Exception('Kegiatan tidak ditemukan');
+            }
+
+            // Validasi tanggal
             $tanggalAgenda = strtotime($request->tanggal_agenda);
             $tanggalMulai = strtotime($kegiatan->tanggal_mulai);
             $tanggalSelesai = strtotime($kegiatan->tanggal_selesai);
@@ -140,12 +160,11 @@ class AdminAgendaController extends Controller
             if ($tanggalAgenda < $tanggalMulai || $tanggalAgenda > $tanggalSelesai) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Tanggal agenda harus berada dalam rentang tanggal kegiatan (' . 
-                                date('d-m-Y', $tanggalMulai) . ' sampai ' . 
-                                date('d-m-Y', $tanggalSelesai) . ')'
+                    'message' => 'Tanggal agenda harus berada dalam rentang tanggal kegiatan'
                 ], 422);
             }
 
+            // Buat agenda baru
             $agenda = new AgendaModel();
             $agenda->nama_agenda = $request->nama_agenda;
             $agenda->tanggal_agenda = $request->tanggal_agenda;
@@ -154,7 +173,7 @@ class AdminAgendaController extends Controller
             // Upload file jika ada
             if ($request->hasFile('file_surat_agenda')) {
                 $file = $request->file('file_surat_agenda');
-                $fileName = 'agenda_' . time() . '_' . $file->getClientOriginalName();
+                $fileName = $file->getClientOriginalName();
                 $filePath = $file->storeAs('public/agenda_files', $fileName);
                 
                 if (!$filePath) {
@@ -164,11 +183,20 @@ class AdminAgendaController extends Controller
                 $agenda->file_surat_agenda = $filePath;
             }
 
-            // Set kegiatan ID berdasarkan tipe
-            if ($request->kegiatan_type === 'jurusan') {
-                $agenda->kegiatan_jurusan_id = $request->kegiatan_id;
-            } else {
-                $agenda->kegiatan_program_studi_id = $request->kegiatan_id;
+            // Set foreign key berdasarkan tipe kegiatan
+            switch ($request->kegiatan_type) {
+                case 'jurusan':
+                    $agenda->kegiatan_jurusan_id = $request->kegiatan_id;
+                    break;
+                case 'prodi':
+                    $agenda->kegiatan_program_studi_id = $request->kegiatan_id;
+                    break;
+                case 'institusi':
+                    $agenda->kegiatan_institusi_id = $request->kegiatan_id;
+                    break;
+                case 'luar_institusi':
+                    $agenda->kegiatan_luar_institusi_id = $request->kegiatan_id;
+                    break;
             }
 
             $agenda->save();
@@ -233,7 +261,7 @@ class AdminAgendaController extends Controller
                 }
 
                 // Generate nama file yang aman
-                $fileName = 'agenda_' . time() . '_' . $file->getClientOriginalName();
+                $fileName = $file->getClientOriginalName();
                 
                 // Upload file baru
                 $newFilePath = $file->storeAs('public/agenda_files', $fileName);
@@ -328,20 +356,37 @@ class AdminAgendaController extends Controller
     public function getKegiatan(Request $request)
     {
         try {
-            if ($request->type === 'jurusan') {
-                $kegiatan = KegiatanJurusanModel::select('kegiatan_jurusan_id as id', 
-                    'nama_kegiatan_jurusan', 'tanggal_mulai', 'tanggal_selesai')
-                    ->orderBy('nama_kegiatan_jurusan')
-                    ->get();
-            } else {
-                $kegiatan = KegiatanProgramStudiModel::select('kegiatan_program_studi_id as id', 
-                    'nama_kegiatan_program_studi', 'tanggal_mulai', 'tanggal_selesai')
-                    ->orderBy('nama_kegiatan_program_studi')
-                    ->get();
+            Log::info('Type yang diterima:', ['type' => $request->type]); // Tambahkan log
+            
+            $kegiatan = [];
+            switch ($request->type) {
+                case 'jurusan':
+                    $kegiatan = KegiatanJurusanModel::select('kegiatan_jurusan_id as id', 'nama_kegiatan_jurusan', 'tanggal_mulai', 'tanggal_selesai')
+                        ->orderBy('nama_kegiatan_jurusan')
+                        ->get();
+                    break;
+                case 'prodi':
+                    $kegiatan = KegiatanProgramStudiModel::select('kegiatan_program_studi_id as id', 'nama_kegiatan_program_studi', 'tanggal_mulai', 'tanggal_selesai')
+                        ->orderBy('nama_kegiatan_program_studi')
+                        ->get();
+                    break;
+                case 'institusi':
+                    $kegiatan = KegiatanInstitusiModel::select('kegiatan_institusi_id as id', 'nama_kegiatan_institusi', 'tanggal_mulai', 'tanggal_selesai')
+                        ->orderBy('nama_kegiatan_institusi')
+                        ->get();
+                    break;
+                case 'luar_institusi':
+                    $kegiatan = KegiatanLuarInstitusiModel::select('kegiatan_luar_institusi_id as id', 'nama_kegiatan_luar_institusi', 'tanggal_mulai', 'tanggal_selesai')
+                        ->orderBy('nama_kegiatan_luar_institusi')
+                        ->get();
+                    break;
             }
-
+    
+            Log::info('Data kegiatan:', ['kegiatan' => $kegiatan]); // Tambahkan log
+            
             return response()->json(['status' => 'success', 'data' => $kegiatan]);
         } catch (Exception $e) {
+            Log::error('Error:', ['message' => $e->getMessage()]); // Tambahkan log
             return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
         }
     }

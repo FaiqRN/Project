@@ -21,6 +21,8 @@ class UpdateProgressAgendaController extends Controller
             ->with([
                 'kegiatanJurusan',
                 'kegiatanProgramStudi',
+                'kegiatanInstitusi',
+                'kegiatanLuarInstitusi',
                 'dokumentasi',
                 'users' => function($query) use ($userId) {
                     $query->where('m_user.user_id', $userId);
@@ -60,6 +62,8 @@ class UpdateProgressAgendaController extends Controller
             $agenda = AgendaModel::with([
                 'kegiatanJurusan',
                 'kegiatanProgramStudi',
+                'kegiatanInstitusi',
+                'kegiatanLuarInstitusi',
                 'dokumentasi',
                 'users' => function($query) use ($userId) {
                     $query->where('user_id', $userId);
@@ -110,7 +114,7 @@ class UpdateProgressAgendaController extends Controller
             $userId = session('user_id');
             
             // Ambil data agenda dan pastikan exists
-            $agenda = AgendaModel::findOrFail($id);
+            $agenda = AgendaModel::with('users')->findOrFail($id);
     
             // Cek akses user ke agenda
             if (!$agenda->users->contains('user_id', $userId)) {
